@@ -5,7 +5,7 @@ from .aruco import ArUCOGenerator
 from .drawing import DrawingContext
 from .lightburn import LightBurnExporter
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='../templates', static_folder='../static')
 app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-production")
 
 # Initialize generators
