@@ -1,0 +1,1103 @@
+# REPLIT Agent Instructions: ArUCO LightBurn Generator
+
+## Project Overview
+Build a **minimal web application** that generates ArUCO markers and exports them as LightBurn (.lbrn2) files for laser cutting. The application should have a clean web interface for parameter input, real-time SVG preview, and direct LightBurn file download.
+
+## Core Requirements
+
+### 1. Technology Stack
+- **Backend**: Python Flask
+- **Frontend**: HTML + vanilla JavaScript + CSS
+- **Dependencies**: opencv-python, numpy, flask
+- **Output Format**: LightBurn .lbrn2 files
+- **Preview Format**: SVG
+
+### 2. Functionality Requirements
+- Generate ArUCO markers from multiple dictionary types
+- Create single markers or grids of markers
+- Configurable marker size, spacing, and starting ID
+- Real-time SVG preview in browser
+- Download LightBurn files directly
+- Responsive web interface
+
+## Exact File Structure
+Create this **exact** directory structure:
+
+```
+aruco-lightburn/
+├── app.py
+├── requirements.txt
+├── README.md
+├── aruco_generator/
+│   ├── __init__.py
+│   ├── aruco.py
+│   ├── drawing.py
+│   ├── lightburn.py
+│   └── web.py
+├── templates/
+│   └── index.html
+└── static/
+    ├── style.css
+    └── app.js
+```
+
+## File Contents - Implement EXACTLY
+
+### `requirements.txt`
+```txt
+flask==2.3.3
+opencv-python==4.8.1.78
+numpy==1.24.3
+```
+
+### `app.py`
+```python
+from aruco_generator.web import app
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)
+```
+
+### `aruco_generator/__init__.py`
+```python
+# Empty file for package initialization
+```
+
+### `aruco_generator/aruco.py`
+```python
+import cv2
+import numpy as np
+from typing import Tuple, List, Dict, Any
+
+class ArUCOGenerator:
+    def __init__(self):
+        self.dictionaries = {
+            "4X4_50": cv2.aruco.DICT_4X4_50,
+            "4X4_100": cv2.aruco.DICT_4X4_100,
+            "4X4_250": cv2.aruco.DICT_4X4_250,
+            "4X4_1000": cv2.aruco.DICT_4X4_1000,
+            "5X5_50": cv2.aruco.DICT_5X5_50,
+            "5X5_100": cv2.aruco.DICT_5X5_100,
+            "5X5_250": cv2.aruco.DICT_5X5_250,
+            "5X5_1000": cv2.aruco.DICT_5X5_1000,
+            "6X6_50": cv2.aruco.DICT_6X6_50,
+            "6X6_100": cv2.aruco.DICT_6X6_100,
+            "6X6_250": cv2.aruco.DICT_6X6_250,
+            "6X6_1000": cv2.aruco.DICT_6X6_1000,
+            "7X7_50": cv2.aruco.DICT_7X7_50,
+            "7X7_100": cv2.aruco.DICT_7X7_100,
+            "7X7_250": cv2.aruco.DICT_7X7_250,
+            "7X7_1000": cv2.aruco.DICT_7X7_1000,
+        }
+    
+    def get_dictionary_info(self) -> Dict[str, Dict[str, Any]]:
+        """Return dictionary information for UI"""
+        info = {}
+        for name, dict_id in self.dictionaries.items():
+            dictionary = cv2.aruco.getPredefinedDictionary(dict_id)
+            bits, max_markers = name.split('_')
+            info[name] = {
+                'bits': bits,
+                'max_markers': int(max_markers),
+                'description': f"{bits} bits, {max_markers} unique markers"
+            }
+        return info
+    
+    def generate_marker(self, marker_id: int, dict_name: str, size_pixels: int = 200) -> np.ndarray:
+        """Generate single ArUCO marker as numpy array"""
+        if dict_name not in self.dictionaries:
+            raise ValueError(f"Unknown dictionary: {dict_name}")
+        
+        dictionary = cv2.aruco.getPredefinedDictionary(self.dictionaries[dict_name])
+        marker_image = cv2.aruco.generateImageMarker(dictionary, marker_id, size_pixels)
+        return marker_image
+    
+    def generate_grid(self, start_id: int, dict_name: str, rows: int, cols: int, 
+                     size_mm: float, spacing_mm: float) -> List[Dict[str, Any]]:
+        """Generate grid of markers with positions"""
+        if rows * cols + start_id > self.get_dictionary_info()[dict_name]['max_markers']:
+            raise ValueError(f"Too many markers requested for dictionary {dict_name}")
+        
+        markers = []
+        for row in range(rows):
+            for col in range(cols):
+                marker_id = start_id + (row * cols + col)
+                marker_image = self.generate_marker(marker_id, dict_name)
+                
+                x = col * (size_mm + spacing_mm)
+                y = row * (size_mm + spacing_mm)
+                
+                markers.append({
+                    'id': marker_id,
+                    'image': marker_image,
+                    'x': x,
+                    'y': y,
+                    'size': size_mm,
+                    'dict': dict_name
+                })
+        return markers
+    
+    def calculate_total_size(self, rows: int, cols: int, size_mm: float, spacing_mm: float) -> Tuple[float, float]:
+        """Calculate total dimensions of marker grid"""
+        width = cols * size_mm + (cols - 1) * spacing_mm
+        height = rows * size_mm + (rows - 1) * spacing_mm
+        return width, height
+```
+
+### `aruco_generator/drawing.py`
+```python
+import numpy as np
+from typing import List, Dict, Any
+
+class DrawingContext:
+    def __init__(self):
+        self.elements = []
+        self.bounds = {'min_x': 0, 'min_y': 0, 'max_x': 0, 'max_y': 0}
+    
+    def add_rectangle(self, x: float, y: float, width: float, height: float, 
+                     fill: bool = True, layer: int = 0, marker_id: int = None):
+        """Add rectangle to drawing context"""
+        element = {
+            'type': 'rect',
+            'x': x, 'y': y, 
+            'width': width, 
+            'height': height,
+            'fill': fill, 
+            'layer': layer
+        }
+        if marker_id is not None:
+            element['marker_id'] = marker_id
+            
+        self.elements.append(element)
+        self._update_bounds(x, y, width, height)
+    
+    def add_marker_grid(self, markers: List[Dict[str, Any]], include_borders: bool = True):
+        """Add ArUCO markers as filled rectangles"""
+        for marker in markers:
+            image = marker['image']
+            size = marker['size']
+            x, y = marker['x'], marker['y']
+            marker_id = marker['id']
+            
+            # Add border if requested
+            if include_borders:
+                self.add_rectangle(x, y, size, size, fill=False, layer=1, marker_id=marker_id)
+            
+            # Convert ArUCO image to rectangles
+            pixel_size = size / image.shape[0]
+            
+            for row in range(image.shape[0]):
+                for col in range(image.shape[1]):
+                    if image[row, col] == 0:  # Black pixel in ArUCO
+                        px_x = x + col * pixel_size
+                        px_y = y + row * pixel_size
+                        self.add_rectangle(px_x, px_y, pixel_size, pixel_size, 
+                                         fill=True, layer=0, marker_id=marker_id)
+    
+    def add_text_labels(self, markers: List[Dict[str, Any]], font_size: float = 3.0):
+        """Add text labels below each marker"""
+        for marker in markers:
+            x = marker['x']
+            y = marker['y'] + marker['size'] + font_size
+            text = f"ID: {marker['id']}"
+            
+            self.elements.append({
+                'type': 'text',
+                'x': x,
+                'y': y,
+                'text': text,
+                'font_size': font_size,
+                'layer': 2,
+                'marker_id': marker['id']
+            })
+    
+    def _update_bounds(self, x: float, y: float, width: float, height: float):
+        """Update drawing bounds"""
+        self.bounds['min_x'] = min(self.bounds['min_x'], x)
+        self.bounds['min_y'] = min(self.bounds['min_y'], y)
+        self.bounds['max_x'] = max(self.bounds['max_x'], x + width)
+        self.bounds['max_y'] = max(self.bounds['max_y'], y + height)
+    
+    def get_svg(self) -> str:
+        """Generate SVG preview"""
+        width = self.bounds['max_x'] - self.bounds['min_x']
+        height = self.bounds['max_y'] - self.bounds['min_y']
+        
+        svg = f'''<svg width="{width:.1f}mm" height="{height:.1f}mm" 
+                       viewBox="{self.bounds['min_x']:.1f} {self.bounds['min_y']:.1f} {width:.1f} {height:.1f}" 
+                       xmlns="http://www.w3.org/2000/svg">
+                  <style>
+                    .cut {{ fill: black; stroke: none; }}
+                    .mark {{ fill: none; stroke: blue; stroke-width: 0.1; }}
+                    .text {{ fill: red; font-family: Arial; font-size: 3px; }}
+                  </style>'''
+        
+        for element in self.elements:
+            if element['type'] == 'rect':
+                if element['fill']:
+                    css_class = 'cut'
+                else:
+                    css_class = 'mark'
+                
+                svg += f'''<rect x="{element['x']:.3f}" y="{element['y']:.3f}" 
+                               width="{element['width']:.3f}" height="{element['height']:.3f}" 
+                               class="{css_class}" />'''
+            elif element['type'] == 'text':
+                svg += f'''<text x="{element['x']:.3f}" y="{element['y']:.3f}" 
+                               class="text">{element['text']}</text>'''
+        
+        svg += '</svg>'
+        return svg
+```
+
+### `aruco_generator/lightburn.py`
+```python
+import xml.etree.ElementTree as ET
+from io import BytesIO
+from typing import Dict, Any
+from .drawing import DrawingContext
+
+class LightBurnExporter:
+    def __init__(self):
+        self.layer_settings = {
+            0: {"index": "0", "name": "ArUCO Fill", "type": "Cut", "priority": "2"},      # Black fill
+            1: {"index": "1", "name": "ArUCO Border", "type": "Cut", "priority": "1"},   # Blue borders  
+            2: {"index": "30", "name": "ArUCO Labels", "type": "Tool", "priority": "0"}  # Red text
+        }
+    
+    def export(self, context: DrawingContext, metadata: Dict[str, Any] = None) -> BytesIO:
+        """Export drawing context to LightBurn .lbrn2 format"""
+        
+        # Create root element
+        root = ET.Element('LightBurnProject', {
+            'AppVersion': "1.0.06",
+            'FormatVersion': "1",
+            'MaterialHeight': "0",
+            'MirrorX': "False", 
+            'MirrorY': "False"
+        })
+        root.text = "\n"
+        
+        # Add layer cut settings
+        self._add_cut_settings(root)
+        
+        # Create main shape group
+        main_group = ET.SubElement(root, "Shape", Type="Group")
+        main_group.text = "\n "
+        main_group.tail = "\n"
+        
+        children = ET.SubElement(main_group, "Children")
+        children.text = "\n "
+        children.tail = "\n"
+        
+        # Add all drawing elements
+        for element in context.elements:
+            if element['type'] == 'rect':
+                self._add_rectangle(children, element)
+            elif element['type'] == 'text':
+                self._add_text(children, element)
+        
+        # Add metadata as notes if provided
+        if metadata:
+            self._add_notes(root, metadata)
+        
+        # Generate XML output
+        tree = ET.ElementTree(root)
+        output = BytesIO()
+        tree.write(output, encoding="utf-8", xml_declaration=True, method="xml")
+        output.seek(0)
+        return output
+    
+    def _add_cut_settings(self, root):
+        """Add cut settings for different layers"""
+        for layer_id, settings in self.layer_settings.items():
+            cs = ET.SubElement(root, "CutSetting", Type=settings["type"])
+            ET.SubElement(cs, "index", Value=settings["index"])
+            ET.SubElement(cs, "name", Value=settings["name"])
+            ET.SubElement(cs, "priority", Value=settings["priority"])
+    
+    def _add_rectangle(self, parent, element):
+        """Add rectangle shape to LightBurn XML"""
+        layer_idx = str(self.layer_settings[element['layer']]['index'])
+        
+        shape = ET.SubElement(parent, "Shape", Type="Path", CutIndex=layer_idx)
+        shape.text = "\n "
+        shape.tail = "\n "
+        
+        # Create rectangle vertices
+        x, y = element['x'], element['y']
+        w, h = element['width'], element['height']
+        
+        vertices = [
+            f"V{x:.3f} {y:.3f}c0x1c1x1",
+            f"V{x+w:.3f} {y:.3f}c0x1c1x1",
+            f"V{x+w:.3f} {y+h:.3f}c0x1c1x1", 
+            f"V{x:.3f} {y+h:.3f}c0x1c1x1"
+        ]
+        
+        vl = ET.SubElement(shape, "VertList")
+        vl.text = "".join(vertices)
+        vl.tail = "\n "
+        
+        pl = ET.SubElement(shape, "PrimList")
+        pl.text = "LineClosed"
+        pl.tail = "\n "
+    
+    def _add_text(self, parent, element):
+        """Add text shape to LightBurn XML"""
+        layer_idx = str(self.layer_settings[element['layer']]['index'])
+        
+        shape = ET.SubElement(parent, "Shape", {
+            'Type': "Text",
+            'CutIndex': layer_idx,
+            'Font': "Arial",
+            'H': f"{element['font_size']:.3f}",
+            'Str': element['text'],
+            'Bold': "0",
+            'Italic': "0",
+            'Ah': "0",  # Left align
+            'Av': "1"   # Bottom align
+        })
+        shape.text = "\n "
+        shape.tail = "\n "
+        
+        # Transform matrix for positioning
+        xf = ET.SubElement(shape, "XForm")
+        xf.text = f"1.000 0.000 0.000 1.000 {element['x']:.3f} {element['y']:.3f}"
+        xf.tail = "\n "
+    
+    def _add_notes(self, root, metadata):
+        """Add metadata as notes"""
+        notes_text = "ArUCO Marker Generator\n\n"
+        for key, value in metadata.items():
+            notes_text += f"{key}: {value}\n"
+        
+        notes = ET.SubElement(root, "Notes", ShowOnLoad="0", Notes=notes_text)
+        notes.text = ""
+        notes.tail = "\n"
+```
+
+### `aruco_generator/web.py`
+```python
+from flask import Flask, render_template, request, send_file, jsonify
+from .aruco import ArUCOGenerator
+from .drawing import DrawingContext
+from .lightburn import LightBurnExporter
+import traceback
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    """Main page with ArUCO generator form"""
+    generator = ArUCOGenerator()
+    dict_info = generator.get_dictionary_info()
+    return render_template('index.html', dictionaries=dict_info)
+
+@app.route('/preview', methods=['POST'])
+def preview():
+    """Generate SVG preview of ArUCO markers"""
+    try:
+        data = request.json
+        
+        # Extract parameters
+        dict_name = data.get('dictionary', '4X4_50')
+        start_id = int(data.get('start_id', 0))
+        rows = int(data.get('rows', 1))
+        cols = int(data.get('cols', 1))
+        size_mm = float(data.get('size_mm', 20))
+        spacing_mm = float(data.get('spacing_mm', 5))
+        include_borders = data.get('include_borders', True)
+        include_labels = data.get('include_labels', True)
+        
+        # Validate inputs
+        if rows < 1 or rows > 20:
+            return jsonify({'error': 'Rows must be between 1 and 20'}), 400
+        if cols < 1 or cols > 20:
+            return jsonify({'error': 'Columns must be between 1 and 20'}), 400
+        if size_mm < 5 or size_mm > 200:
+            return jsonify({'error': 'Size must be between 5 and 200 mm'}), 400
+        
+        # Generate markers
+        generator = ArUCOGenerator()
+        markers = generator.generate_grid(start_id, dict_name, rows, cols, size_mm, spacing_mm)
+        
+        # Create drawing
+        context = DrawingContext()
+        context.add_marker_grid(markers, include_borders=include_borders)
+        
+        if include_labels:
+            context.add_text_labels(markers)
+        
+        # Calculate dimensions
+        total_width, total_height = generator.calculate_total_size(rows, cols, size_mm, spacing_mm)
+        
+        return jsonify({
+            'svg': context.get_svg(),
+            'width': total_width,
+            'height': total_height,
+            'markers_count': len(markers)
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e), 'traceback': traceback.format_exc()}), 500
+
+@app.route('/generate', methods=['POST'])
+def generate():
+    """Generate and download LightBurn file"""
+    try:
+        data = request.json
+        
+        # Extract parameters
+        dict_name = data.get('dictionary', '4X4_50')
+        start_id = int(data.get('start_id', 0))
+        rows = int(data.get('rows', 1))
+        cols = int(data.get('cols', 1))
+        size_mm = float(data.get('size_mm', 20))
+        spacing_mm = float(data.get('spacing_mm', 5))
+        include_borders = data.get('include_borders', True)
+        include_labels = data.get('include_labels', True)
+        
+        # Generate markers
+        generator = ArUCOGenerator()
+        markers = generator.generate_grid(start_id, dict_name, rows, cols, size_mm, spacing_mm)
+        
+        # Create drawing
+        context = DrawingContext()
+        context.add_marker_grid(markers, include_borders=include_borders)
+        
+        if include_labels:
+            context.add_text_labels(markers)
+        
+        # Export to LightBurn
+        exporter = LightBurnExporter()
+        metadata = {
+            'Dictionary': dict_name,
+            'Start ID': start_id,
+            'Grid Size': f"{rows}x{cols}",
+            'Marker Size': f"{size_mm}mm",
+            'Spacing': f"{spacing_mm}mm",
+            'Total Markers': len(markers)
+        }
+        
+        lbrn_file = exporter.export(context, metadata)
+        
+        # Generate filename
+        filename = f"aruco_{dict_name}_{start_id}-{start_id + len(markers) - 1}_{rows}x{cols}.lbrn2"
+        
+        return send_file(
+            lbrn_file,
+            mimetype='application/octet-stream',
+            as_attachment=True,
+            download_name=filename
+        )
+        
+    except Exception as e:
+        return jsonify({'error': str(e), 'traceback': traceback.format_exc()}), 500
+
+@app.route('/dictionaries')
+def get_dictionaries():
+    """Get available ArUCO dictionaries"""
+    generator = ArUCOGenerator()
+    return jsonify(generator.get_dictionary_info())
+
+if __name__ == '__main__':
+    app.run(debug=True)
+```
+
+### `templates/index.html`
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArUCO LightBurn Generator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ArUCO Marker Generator</h1>
+            <p>Generate ArUCO markers for LightBurn laser cutting</p>
+        </header>
+
+        <div class="main-content">
+            <div class="form-panel">
+                <form id="aruco-form">
+                    <div class="form-group">
+                        <label for="dictionary">Dictionary Type:</label>
+                        <select id="dictionary" name="dictionary" required>
+                            {% for dict_name, info in dictionaries.items() %}
+                            <option value="{{ dict_name }}" {% if dict_name == '4X4_50' %}selected{% endif %}>
+                                {{ dict_name }} - {{ info.description }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="start_id">Start ID:</label>
+                            <input type="number" id="start_id" name="start_id" value="0" min="0" max="999" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="rows">Rows:</label>
+                            <input type="number" id="rows" name="rows" value="1" min="1" max="20" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="cols">Columns:</label>
+                            <input type="number" id="cols" name="cols" value="1" min="1" max="20" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="size_mm">Marker Size (mm):</label>
+                            <input type="number" id="size_mm" name="size_mm" value="20" min="5" max="200" step="0.1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="spacing_mm">Spacing (mm):</label>
+                            <input type="number" id="spacing_mm" name="spacing_mm" value="5" min="0" max="50" step="0.1" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group checkbox-group">
+                            <label>
+                                <input type="checkbox" id="include_borders" name="include_borders" checked>
+                                Include borders
+                            </label>
+                        </div>
+                        <div class="form-group checkbox-group">
+                            <label>
+                                <input type="checkbox" id="include_labels" name="include_labels" checked>
+                                Include ID labels
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="button" id="preview-btn" class="btn btn-secondary">Preview</button>
+                        <button type="button" id="download-btn" class="btn btn-primary">Download LightBurn File</button>
+                    </div>
+                </form>
+
+                <div id="info-panel" class="info-panel">
+                    <h3>Generation Info</h3>
+                    <div id="info-content">
+                        <p>Configure parameters above and click Preview</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="preview-panel">
+                <h3>Preview</h3>
+                <div id="loading" class="loading" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Generating preview...</p>
+                </div>
+                <div id="error-message" class="error-message" style="display: none;"></div>
+                <div id="preview-container" class="preview-container">
+                    <p class="preview-placeholder">Click "Preview" to see your ArUCO markers</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
+```
+
+### `static/style.css`
+```css
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+header h1 {
+    color: #2c3e50;
+    font-size: 2.5em;
+    margin-bottom: 10px;
+}
+
+header p {
+    color: #7f8c8d;
+    font-size: 1.1em;
+}
+
+.main-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    align-items: start;
+}
+
+.form-panel, .preview-panel {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+input, select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0;
+    cursor: pointer;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: auto;
+    margin-right: 8px;
+}
+
+.button-group {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex: 1;
+}
+
+.btn-primary {
+    background-color: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background-color: #95a5a6;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #7f8c8d;
+    transform: translateY(-2px);
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.info-panel {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    border-left: 4px solid #3498db;
+}
+
+.info-panel h3 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+}
+
+.info-content p {
+    margin-bottom: 5px;
+}
+
+.preview-panel h3 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.preview-container {
+    min-height: 400px;
+    border: 2px dashed #e0e0e0;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fafafa;
+    overflow: auto;
+}
+
+.preview-placeholder {
+    color: #7f8c8d;
+    text-align: center;
+    font-style: italic;
+}
+
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.error-message {
+    color: #e74c3c;
+    background-color: #fdf2f2;
+    border: 1px solid #fecaca;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.preview-container svg {
+    max-width: 100%;
+    max-height: 600px;
+    border: 1px solid #ddd;
+    background: white;
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .button-group {
+        flex-direction: column;
+    }
+    
+    header h1 {
+        font-size: 2em;
+    }
+}
+```
+
+### `static/app.js`
+```javascript
+class ArUCOGenerator {
+    constructor() {
+        this.form = document.getElementById('aruco-form');
+        this.previewBtn = document.getElementById('preview-btn');
+        this.downloadBtn = document.getElementById('download-btn');
+        this.previewContainer = document.getElementById('preview-container');
+        this.loadingDiv = document.getElementById('loading');
+        this.errorDiv = document.getElementById('error-message');
+        this.infoContent = document.getElementById('info-content');
+        
+        this.initializeEventListeners();
+        this.updateInfo();
+    }
+    
+    initializeEventListeners() {
+        this.previewBtn.addEventListener('click', () => this.generatePreview());
+        this.downloadBtn.addEventListener('click', () => this.downloadLightBurn());
+        
+        // Auto-update preview when parameters change
+        const inputs = this.form.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            input.addEventListener('change', () => {
+                this.updateInfo();
+                if (this.hasPreview()) {
+                    this.generatePreview();
+                }
+            });
+        });
+    }
+    
+    hasPreview() {
+        return this.previewContainer.querySelector('svg') !== null;
+    }
+    
+    getFormData() {
+        const formData = new FormData(this.form);
+        const data = Object.fromEntries(formData);
+        
+        // Convert checkboxes
+        data.include_borders = document.getElementById('include_borders').checked;
+        data.include_labels = document.getElementById('include_labels').checked;
+        
+        return data;
+    }
+    
+    updateInfo() {
+        const data = this.getFormData();
+        const totalMarkers = parseInt(data.rows) * parseInt(data.cols);
+        const totalWidth = parseInt(data.cols) * parseFloat(data.size_mm) + 
+                          (parseInt(data.cols) - 1) * parseFloat(data.spacing_mm);
+        const totalHeight = parseInt(data.rows) * parseFloat(data.size_mm) + 
+                           (parseInt(data.rows) - 1) * parseFloat(data.spacing_mm);
+        
+        this.infoContent.innerHTML = `
+            <p><strong>Grid:</strong> ${data.rows} × ${data.cols} (${totalMarkers} markers)</p>
+            <p><strong>IDs:</strong> ${data.start_id} to ${parseInt(data.start_id) + totalMarkers - 1}</p>
+            <p><strong>Total Size:</strong> ${totalWidth.toFixed(1)} × ${totalHeight.toFixed(1)} mm</p>
+            <p><strong>Dictionary:</strong> ${data.dictionary}</p>
+        `;
+    }
+    
+    showLoading() {
+        this.loadingDiv.style.display = 'flex';
+        this.errorDiv.style.display = 'none';
+        this.previewBtn.disabled = true;
+        this.downloadBtn.disabled = true;
+    }
+    
+    hideLoading() {
+        this.loadingDiv.style.display = 'none';
+        this.previewBtn.disabled = false;
+        this.downloadBtn.disabled = false;
+    }
+    
+    showError(message) {
+        this.errorDiv.textContent = message;
+        this.errorDiv.style.display = 'block';
+        this.hideLoading();
+    }
+    
+    async generatePreview() {
+        const data = this.getFormData();
+        
+        this.showLoading();
+        
+        try {
+            const response = await fetch('/preview', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to generate preview');
+            }
+            
+            const result = await response.json();
+            
+            this.previewContainer.innerHTML = result.svg;
+            this.hideLoading();
+            
+            // Update info with actual results
+            this.infoContent.innerHTML = `
+                <p><strong>Grid:</strong> ${data.rows} × ${data.cols} (${result.markers_count} markers)</p>
+                <p><strong>IDs:</strong> ${data.start_id} to ${parseInt(data.start_id) + result.markers_count - 1}</p>
+                <p><strong>Total Size:</strong> ${result.width.toFixed(1)} × ${result.height.toFixed(1)} mm</p>
+                <p><strong>Dictionary:</strong> ${data.dictionary}</p>
+                <p style="color: #27ae60; font-weight: bold;">✓ Preview generated successfully</p>
+            `;
+            
+        } catch (error) {
+            console.error('Preview error:', error);
+            this.showError(error.message);
+            this.previewContainer.innerHTML = '<p class="preview-placeholder">Failed to generate preview</p>';
+        }
+    }
+    
+    async downloadLightBurn() {
+        const data = this.getFormData();
+        
+        this.showLoading();
+        
+        try {
+            const response = await fetch('/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to generate LightBurn file');
+            }
+            
+            // Download the file
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            
+            // Extract filename from response headers or generate one
+            const contentDisposition = response.headers.get('content-disposition');
+            let filename = 'aruco_markers.lbrn2';
+            if (contentDisposition) {
+                const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
+                if (matches != null && matches[1]) {
+                    filename = matches[1].replace(/['"]/g, '');
+                }
+            }
+            
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            this.hideLoading();
+            
+            // Show success message
+            this.infoContent.innerHTML += '<p style="color: #27ae60; font-weight: bold;">✓ LightBurn file downloaded successfully</p>';
+            
+        } catch (error) {
+            console.error('Download error:', error);
+            this.showError(error.message);
+        }
+    }
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    new ArUCOGenerator();
+});
+```
+
+### `README.md`
+```markdown
+# ArUCO LightBurn Generator
+
+A minimal web application for generating ArUCO markers and exporting them as LightBurn (.lbrn2) files for laser cutting.
+
+## Features
+
+- Generate single ArUCO markers or grids
+- Support for multiple ArUCO dictionary types (4x4, 5x5, 6x6, 7x7)
+- Configurable marker size, spacing, and starting ID
+- Real-time SVG preview
+- Direct LightBurn file download
+- Clean web interface
+
+## Usage
+
+1. Start the application: `python app.py`
+2. Open browser to `http://localhost:5000`
+3. Configure your ArUCO parameters
+4. Click "Preview" to see the markers
+5. Click "Download LightBurn File" to get the .lbrn2 file
+6. Import the file into LightBurn for laser cutting
+
+## Parameters
+
+- **Dictionary**: ArUCO dictionary type (affects marker appearance and max ID)
+- **Start ID**: First marker ID in the sequence
+- **Grid Size**: Number of rows and columns
+- **Marker Size**: Size of each marker in millimeters
+- **Spacing**: Space between markers in millimeters
+- **Include Borders**: Add cutting borders around markers
+- **Include Labels**: Add ID labels below each marker
+
+## Dependencies
+
+- Flask (web framework)
+- OpenCV (ArUCO generation)
+- NumPy (image processing)
+
+## Output
+
+The generated .lbrn2 files contain:
+- Layer 0 (Black): Marker fill areas for cutting/engraving
+- Layer 1 (Blue): Border outlines for cutting
+- Layer 30 (Red): Text labels (tool layer)
+```
+
+## Testing Instructions
+
+After creating all files:
+
+1. **Install dependencies**: `pip install -r requirements.txt`
+2. **Run application**: `python app.py`
+3. **Test in browser**: Go to `http://localhost:5000`
+4. **Generate test file**:
+   - Set Dictionary to "4X4_50"
+   - Set Start ID to 0
+   - Set Grid to 2x2
+   - Set Marker Size to 20mm
+   - Set Spacing to 5mm
+   - Click "Preview" - should show 4 ArUCO markers
+   - Click "Download LightBurn File" - should download .lbrn2 file
+5. **Verify output**: The downloaded file should be importable into LightBurn
+
+## Expected Output Files
+
+The application must create these exact files and work completely. The final test is downloading a .lbrn2 file that can be opened in LightBurn software.
+
+**CRITICAL**: Ensure OpenCV is properly installed and ArUCO generation works. Test with multiple dictionary types and grid sizes. The web interface must be fully functional with preview and download capabilities.
