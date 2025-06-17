@@ -1,0 +1,108 @@
+/* Custom styles for ArUCO Generator */
+
+.preview-wrapper {
+    max-height: 500px;
+    overflow: auto;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.375rem;
+    padding: 1rem;
+    background-color: var(--bs-body-bg);
+}
+
+#svgPreview svg {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid var(--bs-border-color-translucent);
+    border-radius: 0.25rem;
+    background-color: white;
+}
+
+/* Loading and state animations */
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* Error state styling */
+#errorState {
+    margin-bottom: 0;
+}
+
+/* Form improvements */
+.form-label {
+    font-weight: 500;
+}
+
+.form-text {
+    font-size: 0.875rem;
+}
+
+/* Button states */
+.btn:disabled {
+    opacity: 0.6;
+}
+
+/* Card improvements */
+.card {
+    border: 1px solid var(--bs-border-color);
+}
+
+.card-header {
+    background-color: var(--bs-body-bg);
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+/* Info text styling */
+#previewInfo {
+    font-size: 0.875rem;
+}
+
+#dimensionsInfo {
+    font-size: 0.8rem;
+}
+
+/* Responsive improvements */
+@media (max-width: 991.98px) {
+    .preview-wrapper {
+        max-height: 300px;
+    }
+    
+    .display-6 {
+        font-size: 2rem;
+    }
+}
+
+/* Dark theme specific adjustments */
+[data-bs-theme="dark"] #svgPreview svg {
+    background-color: #ffffff;
+}
+
+[data-bs-theme="dark"] .preview-wrapper {
+    background-color: var(--bs-dark);
+}
+
+/* Hover effects */
+.btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    transition: transform 0.2s ease;
+}
+
+/* Custom scrollbar for preview */
+.preview-wrapper::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.preview-wrapper::-webkit-scrollbar-track {
+    background: var(--bs-secondary-bg);
+    border-radius: 4px;
+}
+
+.preview-wrapper::-webkit-scrollbar-thumb {
+    background: var(--bs-border-color);
+    border-radius: 4px;
+}
+
+.preview-wrapper::-webkit-scrollbar-thumb:hover {
+    background: var(--bs-secondary);
+}
