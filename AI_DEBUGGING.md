@@ -33,6 +33,12 @@ POST /api/preview              # Test marker generation
 - **LightBurn Export**: Tested with material settings
 - **Database**: Optional PostgreSQL, falls back to SQLite
 
+### Performance Fixes (v1.1.0)
+- **JSON Parsing Errors**: Fixed "unexpected end of data" through optimized ArUCO rendering
+- **Preview Optimization**: Uses 10px base resolution with 2px sampling for fast preview
+- **Export Quality**: Full 200px resolution for laser cutting precision
+- **API Timeouts**: Eliminated through efficient SVG generation pipeline
+
 ### System Diagnostics
 ```bash
 ./debug_monitor.sh status      # Basic health check
@@ -68,8 +74,8 @@ curl http://localhost:5000/api/debug/status
 - `aruco_generator/web.py` - All routes and API endpoints
 
 ### Core Functionality
-- `aruco_generator/aruco.py` - ArUCO marker generation with OpenCV
-- `aruco_generator/drawing.py` - SVG rendering system
+- `aruco_generator/aruco.py` - ArUCO marker generation with OpenCV (optimized for preview/export)
+- `aruco_generator/drawing.py` - Efficient SVG rendering system with pixel sampling
 - `aruco_generator/lightburn.py` - LightBurn export with material settings
 
 ### Frontend
