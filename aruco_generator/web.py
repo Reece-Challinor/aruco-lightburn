@@ -320,7 +320,7 @@ def generate_quick_test():
     except Exception as e:
         return jsonify({'error': f'Unexpected error: {str(e)}'}), 500
 
-@app.route('/api/quick-test-download', methods=['POST'])
+@app.route('/api/quick-test/download', methods=['POST'])
 def download_quick_test():
     """Download LightBurn file for quick test configuration"""
     try:

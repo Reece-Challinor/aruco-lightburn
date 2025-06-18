@@ -179,11 +179,203 @@ class ArUCOGenerator {
                 });
             }
 
+            // Enhanced advanced mode listeners
+            this.attachAdvancedModeListeners();
+
             // Initialize border width visibility
             this.toggleBorderWidth();
         } catch (error) {
             this.logError('Event Listener Attachment', error);
         }
+    }
+
+    attachAdvancedModeListeners() {
+        // Dictionary change listener
+        if (this.dictionarySelect) {
+            this.dictionarySelect.addEventListener('change', () => {
+                this.updateMaxMarkerInfo();
+                this.updateMarkerCounts();
+            });
+        }
+
+        // Grid dimension listeners
+        if (this.rowsInput) {
+            this.rowsInput.addEventListener('input', () => this.updateMarkerCounts());
+        }
+        if (this.colsInput) {
+            this.colsInput.addEventListener('input', () => this.updateMarkerCounts());
+        }
+        if (this.startIdInput) {
+            this.startIdInput.addEventListener('input', () => this.updateMarkerCounts());
+        }
+
+        // Size preset buttons
+        document.querySelectorAll('.size-preset').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const size = parseFloat(e.target.dataset.size);
+                if (this.sizeMmInput) {
+                    this.sizeMmInput.value = size;
+                    this.log('Size preset applied', size);
+                }
+                // Update button states
+                document.querySelectorAll('.size-preset').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+            });
+        });
+
+        // Real-time validation
+        if (this.advancedForm) {
+            this.advancedForm.addEventListener('input', () => {
+                this.validateAdvancedFormRealTime();
+            });
+        }
+    }
+
+    updateMaxMarkerInfo() {
+        try {
+            const selectedDict = this.dictionarySelect?.value;
+            const maxIdElement = document.getElementById('maxIdInfo');
+            
+            if (selectedDict && this.dictionaries[selectedDict] && maxIdElement) {
+                const maxMarkers = this.dictionaries[selectedDict].max_markers;
+                maxIdElement.textContent = `/ ${maxMarkers}`;
+                
+                // Update input max value
+                if (this.startIdInput) {
+                    this.startIdInput.max = maxMarkers - 1;
+                }
+                
+                this.log('Max marker info updated', { dict: selectedDict, max: maxMarkers });
+            }
+        } catch (error) {
+            this.logError('Max Marker Info Update', error);
+        }
+    }
+
+    updateMarkerCounts() {
+        try {
+            const rows = parseInt(this.rowsInput?.value) || 1;
+            const cols = parseInt(this.colsInput?.value) || 1;
+            const startId = parseInt(this.startIdInput?.value) || 0;
+            
+            const totalMarkers = rows * cols;
+            const endId = startId + totalMarkers - 1;
+            
+            const totalMarkersElement = document.getElementById('totalMarkers');
+            const idRangeElement = document.getElementById('idRange');
+            
+            if (totalMarkersElement) {
+                totalMarkersElement.textContent = `Total markers: ${totalMarkers}`;
+            }
+            
+            if (idRangeElement) {
+                if (totalMarkers === 1) {
+                    idRangeElement.textContent = `${startId}`;
+                } else {
+                    idRangeElement.textContent = `${startId}-${endId}`;
+                }
+            }
+            
+            // Validate against dictionary limits
+            this.validateMarkerRange(startId, totalMarkers);
+            
+        } catch (error) {
+            this.logError('Marker Count Update', error);
+        }
+    }
+
+    validateMarkerRange(startId, totalMarkers) {
+        try {
+            const selectedDict = this.dictionarySelect?.value;
+            if (!selectedDict || !this.dictionaries[selectedDict]) return;
+            
+            const maxMarkers = this.dictionaries[selectedDict].max_markers;
+            const endId = startId + totalMarkers - 1;
+            
+            const isValid = startId >= 0 && endId < maxMarkers;
+            
+            // Update UI validation state
+            const startIdInput = this.startIdInput;
+            if (startIdInput) {
+                if (isValid) {
+                    startIdInput.classList.remove('is-invalid');
+                    startIdInput.classList.add('is-valid');
+                } else {
+                    startIdInput.classList.remove('is-valid');
+                    startIdInput.classList.add('is-invalid');
+                }
+            }
+            
+            return isValid;
+        } catch (error) {
+            this.logError('Marker Range Validation', error);
+            return false;
+        }
+    }
+
+    validateAdvancedFormRealTime() {
+        try {
+            const data = this.getAdvancedFormData();
+            const errors = this.getValidationErrors(data);
+            
+            // Update generate button state
+            if (this.generateAdvancedBtn) {
+                this.generateAdvancedBtn.disabled = errors.length > 0;
+            }
+            
+            return errors.length === 0;
+        } catch (error) {
+            this.logError('Real-time Validation', error);
+            return false;
+        }
+    }
+
+    getValidationErrors(data) {
+        const errors = [];
+        
+        try {
+            if (!data.dictionary) {
+                errors.push('Dictionary selection is required');
+            }
+            
+            if (data.rows < 1 || data.rows > 10) {
+                errors.push('Rows must be between 1 and 10');
+            }
+            
+            if (data.cols < 1 || data.cols > 10) {
+                errors.push('Columns must be between 1 and 10');
+            }
+            
+            if (data.start_id < 0) {
+                errors.push('Starting ID must be 0 or greater');
+            }
+            
+            if (data.size_mm <= 0 || data.size_mm > 500) {
+                errors.push('Size must be between 0.1 and 500mm');
+            }
+            
+            if (data.spacing_mm < 0 || data.spacing_mm > 100) {
+                errors.push('Spacing must be between 0 and 100mm');
+            }
+            
+            // Validate marker range
+            if (data.dictionary && this.dictionaries[data.dictionary]) {
+                const maxMarkers = this.dictionaries[data.dictionary].max_markers;
+                const totalMarkers = data.rows * data.cols;
+                const endId = data.start_id + totalMarkers - 1;
+                
+                if (endId >= maxMarkers) {
+                    errors.push(`Marker range exceeds dictionary limit (${maxMarkers} markers)`);
+                }
+            }
+            
+        } catch (error) {
+            this.logError('Validation Error Processing', error);
+            errors.push('Validation error occurred');
+        }
+        
+        return errors;
     }
 
     async loadDictionaries() {
@@ -194,12 +386,32 @@ class ArUCOGenerator {
             if (response.ok) {
                 this.dictionaries = await response.json();
                 this.log('Dictionaries loaded successfully', this.dictionaries);
+                
+                // Initialize advanced mode features after dictionaries are loaded
+                this.initializeAdvancedMode();
             } else {
                 throw new Error(`Failed to load dictionaries: ${response.status}`);
             }
         } catch (error) {
             this.logError('Dictionary Loading', error);
             this.showError('Failed to load ArUCO dictionaries. Please refresh the page.');
+        }
+    }
+
+    initializeAdvancedMode() {
+        try {
+            // Initialize max marker info
+            this.updateMaxMarkerInfo();
+            
+            // Initialize marker counts
+            this.updateMarkerCounts();
+            
+            // Set initial validation state
+            this.validateAdvancedFormRealTime();
+            
+            this.log('Advanced mode initialized');
+        } catch (error) {
+            this.logError('Advanced Mode Initialization', error);
         }
     }
 
