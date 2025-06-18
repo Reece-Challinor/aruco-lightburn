@@ -182,6 +182,10 @@ class LightBurnExporter:
         notes_text += f"4. Process layers in order: Fill (engrave) → Borders (cut) → Labels (mark)\n"
         notes_text += f"5. Use air assist for clean cuts and prevent charring"
         
-        notes = ET.SubElement(root, "Notes")
-        notes.text = notes_text
+        notes = ET.SubElement(root, "Notes", ShowOnLoad="1", Notes=notes_text)
+        notes.text = ""
         notes.tail = "\n"
+    
+    def get_material_info(self) -> Dict[str, Any]:
+        """Return material configuration info for UI"""
+        return self.material_settings

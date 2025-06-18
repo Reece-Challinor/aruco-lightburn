@@ -4,6 +4,7 @@ from flask import Flask, render_template, request, jsonify, send_file
 from .aruco import ArUCOGenerator
 from .drawing import DrawingContext
 from .lightburn import LightBurnExporter
+from .batch import BatchGenerator
 
 app = Flask(__name__, template_folder='../templates', static_folder='../static')
 app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-production")
@@ -220,6 +221,11 @@ def apply_preset(preset_name):
     if preset_name in presets:
         return jsonify({"success": True, "preset": presets[preset_name]})
     return jsonify({"success": False, "error": "Preset not found"}), 404
+
+@app.route('/api/material_info')
+def get_material_info():
+    """Get material configuration information"""
+    return jsonify(lightburn_exporter.get_material_info())
 
 @app.route('/api/quick-test', methods=['POST'])
 def generate_quick_test():
