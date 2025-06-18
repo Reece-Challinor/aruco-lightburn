@@ -389,12 +389,32 @@ class ArUCOGenerator {
                 
                 // Initialize advanced mode features after dictionaries are loaded
                 this.initializeAdvancedMode();
+                
+                // Load presets after dictionaries
+                await this.loadPresets();
             } else {
                 throw new Error(`Failed to load dictionaries: ${response.status}`);
             }
         } catch (error) {
             this.logError('Dictionary Loading', error);
             this.showError('Failed to load ArUCO dictionaries. Please refresh the page.');
+        }
+    }
+
+    async loadPresets() {
+        try {
+            this.log('Loading presets');
+            const response = await fetch('/api/presets');
+            if (response.ok) {
+                this.presets = await response.json();
+                this.log('Presets loaded successfully', this.presets);
+            } else {
+                this.log('Presets not available, using defaults');
+                this.presets = {};
+            }
+        } catch (error) {
+            this.logError('Preset Loading', error);
+            this.presets = {};
         }
     }
 
@@ -686,11 +706,27 @@ class ArUCOGenerator {
             const response = await fetch('/api/quick-test/download', { method: 'POST' });
             
             if (response.ok) {
-                const blob = await response.blob();
-                this.downloadBlob(blob, 'aruco_quick_test.lbrn2');
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    // Handle JSON error response
+                    const error = await response.json();
+                    throw new Error(error.error || 'Quick test download failed');
+                } else {
+                    // Handle file download
+                    const blob = await response.blob();
+                    this.downloadBlob(blob, 'aruco_quick_test.lbrn2');
+                }
             } else {
-                const error = await response.json();
-                throw new Error(error.error || 'Quick test download failed');
+                // Try to parse error as JSON, fallback to text
+                let errorMessage = 'Quick test download failed';
+                try {
+                    const error = await response.json();
+                    errorMessage = error.error || errorMessage;
+                } catch (parseError) {
+                    const errorText = await response.text();
+                    errorMessage = errorText || errorMessage;
+                }
+                throw new Error(errorMessage);
             }
         } catch (error) {
             this.logError('Quick Test Download', error);
@@ -709,12 +745,28 @@ class ArUCOGenerator {
             });
 
             if (response.ok) {
-                const blob = await response.blob();
-                const filename = `aruco_${data.dictionary}_${data.rows}x${data.cols}_id${data.start_id}.lbrn2`;
-                this.downloadBlob(blob, filename);
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    // Handle JSON error response
+                    const error = await response.json();
+                    throw new Error(error.error || 'LightBurn download failed');
+                } else {
+                    // Handle file download
+                    const blob = await response.blob();
+                    const filename = `aruco_${data.dictionary}_${data.rows}x${data.cols}_id${data.start_id}.lbrn2`;
+                    this.downloadBlob(blob, filename);
+                }
             } else {
-                const error = await response.json();
-                throw new Error(error.error || 'LightBurn download failed');
+                // Try to parse error as JSON, fallback to text
+                let errorMessage = 'LightBurn download failed';
+                try {
+                    const error = await response.json();
+                    errorMessage = error.error || errorMessage;
+                } catch (parseError) {
+                    const errorText = await response.text();
+                    errorMessage = errorText || errorMessage;
+                }
+                throw new Error(errorMessage);
             }
         } catch (error) {
             this.logError('LightBurn Download', error);

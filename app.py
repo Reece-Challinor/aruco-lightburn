@@ -56,12 +56,12 @@ from aruco_generator.web import *
 
 # Initialize database tables
 def init_db():
-    with app.app_context():
-        try:
+    try:
+        with app.app_context():
             db.create_all()
             print("Database tables initialized successfully")
-        except Exception as e:
-            print(f"Database initialization warning: {e}")
+    except Exception as e:
+        print(f"Database initialization warning: {e}")
 
 # Initialize database after app context is available
 if __name__ != "__main__":
