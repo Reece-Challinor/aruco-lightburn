@@ -339,6 +339,42 @@ def download_quick_test():
     except Exception as e:
         return jsonify({'error': f'Unexpected error: {str(e)}'}), 500
 
+@app.route('/api/batch_generate', methods=['POST'])
+def batch_generate():
+    """Generate batch of ArUCO files with sequential IDs"""
+    try:
+        data = request.get_json()
+        
+        # Extract batch parameters
+        batch_size = int(data.get('batch_size', 5))
+        markers_per_file = int(data.get('markers_per_file', 10))
+        
+        # Validate batch parameters
+        if batch_size < 1 or batch_size > 50:
+            return jsonify({'error': 'Batch size must be between 1 and 50'}), 400
+        if markers_per_file < 1 or markers_per_file > 100:
+            return jsonify({'error': 'Markers per file must be between 1 and 100'}), 400
+        
+        # Generate batch
+        batch_generator = BatchGenerator()
+        zip_file = batch_generator.generate_batch_files(data, batch_size, markers_per_file)
+        
+        # Generate filename for batch
+        total_markers = batch_size * markers_per_file
+        filename = f"aruco_batch_{batch_size}files_{total_markers}markers.zip"
+        
+        return send_file(
+            zip_file,
+            as_attachment=True,
+            download_name=filename,
+            mimetype='application/zip'
+        )
+        
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Unexpected error: {str(e)}'}), 500
+
 @app.errorhandler(404)
 def not_found_error(error):
     return render_template('index.html', dictionaries=aruco_gen.get_dictionary_info()), 404
