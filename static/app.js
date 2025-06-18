@@ -114,6 +114,82 @@ class ArUCOGenerator {
         }
     }
 
+    async loadPresets() {
+        try {
+            const response = await fetch('/api/presets');
+            const presets = await response.json();
+            this.renderPresetButtons(presets);
+        } catch (error) {
+            console.error('Failed to load presets:', error);
+        }
+    }
+
+    renderPresetButtons(presets) {
+        const container = document.getElementById('preset-buttons');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        Object.entries(presets).forEach(([key, preset]) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'preset-btn';
+            button.innerHTML = `
+                <span class="preset-name">${preset.name}</span>
+                <span class="preset-desc">${preset.description}</span>
+            `;
+            button.addEventListener('click', () => this.applyPreset(preset));
+            container.appendChild(button);
+        });
+    }
+
+    applyPreset(preset) {
+        // Apply preset values to form
+        Object.entries(preset).forEach(([key, value]) => {
+            if (key === 'name' || key === 'description') return;
+            
+            const element = document.getElementById(key) || document.querySelector(`[name="${key}"]`);
+            if (element) {
+                if (element.type === 'checkbox') {
+                    element.checked = value;
+                } else {
+                    element.value = value;
+                }
+            }
+        });
+        
+        // Update border width visibility
+        this.toggleBorderWidth();
+        
+        // Update form validation and generate preview
+        this.validateForm();
+        this.generatePreview();
+        
+        // Show success message
+        this.showSuccessMessage(`Applied "${preset.name}" preset`);
+    }
+
+    showSuccessMessage(message) {
+        // Create success alert
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-success alert-dismissible fade show position-fixed';
+        alert.style.cssText = 'top: 20px; right: 20px; z-index: 1050; max-width: 400px;';
+        alert.innerHTML = `
+            <i class="bi bi-check-circle me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(alert);
+        
+        // Auto-remove after 3 seconds
+        setTimeout(() => {
+            if (alert.parentNode) {
+                alert.remove();
+            }
+        }, 3000);
+    }
+
     getFormData() {
         return {
             dictionary: this.dictionarySelect.value,
