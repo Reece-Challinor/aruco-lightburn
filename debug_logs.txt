@@ -44,3 +44,21 @@ LightBurn Exporter initialized: True
 ArUCO Generator initialized: True
 LightBurn Exporter initialized: True
 --------------------------------------------------------------------------------
+2025-06-18T04:14:55.760139 - 404 ERROR
+Path: /api/quick-test/download
+Method: POST
+--------------------------------------------------------------------------------
+2025-06-18T04:14:55.844780 - FRONTEND ERROR
+Context: Quick Test Download
+Message: JSON.parse: unexpected character at line 1 column 1 of the JSON data
+Stack: 
+URL: https://6f5fcc61-eb21-490b-b175-2e6520846728-00-20do9th6sa7ga.picard.replit.dev/
+--------------------------------------------------------------------------------
+2025-06-18T04:16:52.452763 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
+2025-06-18T04:18:21.339778 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------

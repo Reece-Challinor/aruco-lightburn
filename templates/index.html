@@ -202,51 +202,129 @@
                             </div>
                             <div class="card-body">
                                 <form id="advancedForm">
-                                    <!-- Dictionary Selection -->
-                                    <div class="mb-3">
-                                        <label for="dictionary" class="form-label">ArUCO Dictionary</label>
+                                    <!-- OpenCV ArUCO Dictionary Selection -->
+                                    <div class="mb-4">
+                                        <label for="dictionary" class="form-label fw-bold">
+                                            <i class="bi bi-grid-3x3-gap me-1"></i>ArUCO Dictionary
+                                        </label>
                                         <select class="form-select" id="dictionary" name="dictionary" required>
-                                            {% for dict_name, dict_info in dictionaries.items() %}
-                                            <option value="{{ dict_name }}" 
-                                                    {% if dict_name == '6X6_250' %}selected{% endif %}>
-                                                {{ dict_name }} - {{ dict_info.description }}
-                                            </option>
-                                            {% endfor %}
+                                            <optgroup label="Standard Dictionaries (Original ArUCO)">
+                                                {% for dict_name, dict_info in dictionaries.items() if dict_name.startswith('4X4') %}
+                                                <option value="{{ dict_name }}" 
+                                                        {% if dict_name == '4X4_250' %}selected{% endif %}>
+                                                    {{ dict_name }} - {{ dict_info.description }}
+                                                </option>
+                                                {% endfor %}
+                                                {% for dict_name, dict_info in dictionaries.items() if dict_name.startswith('5X5') %}
+                                                <option value="{{ dict_name }}">
+                                                    {{ dict_name }} - {{ dict_info.description }}
+                                                </option>
+                                                {% endfor %}
+                                                {% for dict_name, dict_info in dictionaries.items() if dict_name.startswith('6X6') %}
+                                                <option value="{{ dict_name }}">
+                                                    {{ dict_name }} - {{ dict_info.description }}
+                                                </option>
+                                                {% endfor %}
+                                                {% for dict_name, dict_info in dictionaries.items() if dict_name.startswith('7X7') %}
+                                                <option value="{{ dict_name }}">
+                                                    {{ dict_name }} - {{ dict_info.description }}
+                                                </option>
+                                                {% endfor %}
+                                            </optgroup>
+                                            <optgroup label="AprilTag Compatible">
+                                                {% for dict_name, dict_info in dictionaries.items() if 'APRILTAG' in dict_name or 'MIP' in dict_name %}
+                                                <option value="{{ dict_name }}">
+                                                    {{ dict_name }} - {{ dict_info.description }}
+                                                </option>
+                                                {% endfor %}
+                                            </optgroup>
                                         </select>
-                                    </div>
-
-                                    <!-- Grid Dimensions -->
-                                    <div class="row mb-3">
-                                        <div class="col-6">
-                                            <label for="rows" class="form-label">Rows</label>
-                                            <input type="number" class="form-control" id="rows" name="rows" 
-                                                   value="2" min="1" max="20" required>
-                                        </div>
-                                        <div class="col-6">
-                                            <label for="cols" class="form-label">Columns</label>
-                                            <input type="number" class="form-control" id="cols" name="cols" 
-                                                   value="1" min="1" max="20" required>
+                                        <div class="form-text">
+                                            <small>
+                                                <strong>4x4:</strong> Fast detection, limited IDs | 
+                                                <strong>5x5:</strong> Balanced | 
+                                                <strong>6x6:</strong> High precision (recommended) | 
+                                                <strong>7x7:</strong> Maximum robustness
+                                            </small>
                                         </div>
                                     </div>
 
-                                    <!-- Starting ID -->
-                                    <div class="mb-3">
-                                        <label for="start_id" class="form-label">Starting Marker ID</label>
-                                        <input type="number" class="form-control" id="start_id" name="start_id" 
-                                               value="0" min="0" required>
+                                    <!-- Marker Configuration -->
+                                    <div class="mb-4">
+                                        <h6 class="fw-bold mb-3">
+                                            <i class="bi bi-bullseye me-1"></i>Marker Configuration
+                                        </h6>
+                                        
+                                        <!-- Single Marker ID -->
+                                        <div class="mb-3">
+                                            <label for="start_id" class="form-label">Marker ID</label>
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" id="start_id" name="start_id" 
+                                                       value="0" min="0" max="999" required>
+                                                <span class="input-group-text" id="maxIdInfo">/ 250</span>
+                                            </div>
+                                            <div class="form-text">
+                                                <small>Each dictionary has a maximum number of unique markers</small>
+                                            </div>
+                                        </div>
+
+                                        <!-- Grid Layout -->
+                                        <div class="row mb-3">
+                                            <div class="col-6">
+                                                <label for="rows" class="form-label">Rows</label>
+                                                <input type="number" class="form-control" id="rows" name="rows" 
+                                                       value="1" min="1" max="10" required>
+                                            </div>
+                                            <div class="col-6">
+                                                <label for="cols" class="form-label">Columns</label>
+                                                <input type="number" class="form-control" id="cols" name="cols" 
+                                                       value="1" min="1" max="10" required>
+                                            </div>
+                                        </div>
+                                        <div class="form-text mb-3">
+                                            <small><span id="totalMarkers">Total markers: 1</span> | IDs: <span id="idRange">0-0</span></small>
+                                        </div>
                                     </div>
 
-                                    <!-- Dimensions -->
-                                    <div class="row mb-3">
-                                        <div class="col-6">
-                                            <label for="size_mm" class="form-label">Size (mm)</label>
-                                            <input type="number" class="form-control" id="size_mm" name="size_mm" 
-                                                   value="20" min="1" max="500" step="0.1" required>
+                                    <!-- Physical Dimensions -->
+                                    <div class="mb-4">
+                                        <h6 class="fw-bold mb-3">
+                                            <i class="bi bi-rulers me-1"></i>Physical Dimensions
+                                        </h6>
+                                        <div class="row mb-3">
+                                            <div class="col-6">
+                                                <label for="size_mm" class="form-label">Marker Size</label>
+                                                <div class="input-group">
+                                                    <input type="number" class="form-control" id="size_mm" name="size_mm" 
+                                                           value="50" min="5" max="500" step="0.1" required>
+                                                    <span class="input-group-text">mm</span>
+                                                </div>
+                                                <div class="form-text">
+                                                    <small>Recommended: 20-100mm for detection</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <label for="spacing_mm" class="form-label">Spacing</label>
+                                                <div class="input-group">
+                                                    <input type="number" class="form-control" id="spacing_mm" name="spacing_mm" 
+                                                           value="10" min="0" max="100" step="0.1" required>
+                                                    <span class="input-group-text">mm</span>
+                                                </div>
+                                                <div class="form-text">
+                                                    <small>Gap between markers</small>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="col-6">
-                                            <label for="spacing_mm" class="form-label">Spacing (mm)</label>
-                                            <input type="number" class="form-control" id="spacing_mm" name="spacing_mm" 
-                                                   value="5" min="0" max="100" step="0.1" required>
+                                        
+                                        <!-- Size Presets -->
+                                        <div class="mb-3">
+                                            <label class="form-label">Common Sizes</label>
+                                            <div class="btn-group w-100" role="group">
+                                                <button type="button" class="btn btn-outline-secondary btn-sm size-preset" data-size="25">25mm</button>
+                                                <button type="button" class="btn btn-outline-secondary btn-sm size-preset" data-size="50">50mm</button>
+                                                <button type="button" class="btn btn-outline-secondary btn-sm size-preset" data-size="100">100mm</button>
+                                                <button type="button" class="btn btn-outline-secondary btn-sm size-preset" data-size="50.8">2"</button>
+                                            </div>
                                         </div>
                                     </div>
 
