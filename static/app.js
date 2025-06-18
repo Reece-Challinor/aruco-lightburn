@@ -18,6 +18,9 @@ class ArUCOGenerator {
         this.spacingMmInput = document.getElementById('spacing_mm');
         this.includeBordersCheck = document.getElementById('include_borders');
         this.includeLabelsCheck = document.getElementById('include_labels');
+        this.includeOuterBorderCheck = document.getElementById('include_outer_border');
+        this.borderWidthInput = document.getElementById('border_width');
+        this.borderWidthContainer = document.getElementById('borderWidthContainer');
 
         // Buttons
         this.generateBtn = document.getElementById('generatePreview');

@@ -7,7 +7,7 @@ class DrawingContext:
         self.bounds = {'min_x': 0, 'min_y': 0, 'max_x': 0, 'max_y': 0}
     
     def add_rectangle(self, x: float, y: float, width: float, height: float, 
-                     fill: bool = True, layer: int = 0, marker_id: int = None):
+                     fill: bool = True, layer: int = 0, marker_id: int | None = None):
         """Add rectangle to drawing context"""
         element = {
             'type': 'rect',
@@ -49,10 +49,10 @@ class DrawingContext:
         # Add outer border around entire grid if requested
         if include_outer_border and markers:
             # Calculate grid bounds
-            min_x = min(marker['x'] for marker in markers)
-            min_y = min(marker['y'] for marker in markers)
-            max_x = max(marker['x'] + marker['size'] for marker in markers)
-            max_y = max(marker['y'] + marker['size'] for marker in markers)
+            min_x = min(float(marker['x']) for marker in markers)
+            min_y = min(float(marker['y']) for marker in markers)
+            max_x = max(float(marker['x'] + marker['size']) for marker in markers)
+            max_y = max(float(marker['y'] + marker['size']) for marker in markers)
             
             # Add outer border rectangle
             border_x = min_x - border_width

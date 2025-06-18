@@ -95,12 +95,43 @@
                                         Include marker borders
                                     </label>
                                 </div>
-                                <div class="form-check">
+                                <div class="form-check mb-2">
                                     <input class="form-check-input" type="checkbox" id="include_labels" 
                                            name="include_labels" checked>
                                     <label class="form-check-label" for="include_labels">
                                         Include ID labels
                                     </label>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="include_outer_border" 
+                                           name="include_outer_border">
+                                    <label class="form-check-label" for="include_outer_border">
+                                        Add outer border around grid
+                                    </label>
+                                </div>
+                                
+                                <!-- Border Width (only show when outer border is enabled) -->
+                                <div class="mb-3" id="borderWidthContainer" style="display: none;">
+                                    <label for="border_width" class="form-label">Border Width (mm)</label>
+                                    <input type="number" class="form-control" id="border_width" name="border_width" 
+                                           value="2.0" min="0.1" max="10" step="0.1">
+                                    <div class="form-text">Width of the outer border</div>
+                                </div>
+                            </div>
+
+                            <!-- Quick Test Section -->
+                            <div class="alert alert-info mb-3">
+                                <h6 class="alert-heading mb-2">
+                                    <i class="bi bi-lightning me-2"></i>Quick Test
+                                </h6>
+                                <p class="mb-2 small">Generate two 2"×2" ArUCO markers stacked vertically with border (total ~6" height)</p>
+                                <div class="d-grid gap-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" id="generateQuickTest">
+                                        <i class="bi bi-zap me-2"></i>Generate Test
+                                    </button>
+                                    <button type="button" class="btn btn-outline-success btn-sm" id="downloadQuickTest" disabled>
+                                        <i class="bi bi-download me-2"></i>Download Test File
+                                    </button>
                                 </div>
                             </div>
 
