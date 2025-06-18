@@ -98,6 +98,51 @@ class DrawingContext:
             
             self.add_rectangle(border_x, border_y, border_w, border_h, fill=False, layer=1)
     
+    def add_marker_grid_preview(self, markers: List[Dict[str, Any]], include_borders: bool = True, include_outer_border: bool = False, border_width: float = 2.0):
+        """Add ArUCO markers with optimized preview rendering"""
+        for marker in markers:
+            image = marker['image']
+            size = marker['size']
+            x, y = marker['x'], marker['y']
+            marker_id = marker['id']
+            
+            # Add border if requested
+            if include_borders:
+                self.add_rectangle(x, y, size, size, fill=False, layer=1, marker_id=marker_id)
+            
+            # Convert ArUCO image to rectangles with optimization for preview
+            pixel_size = size / image.shape[0]
+            
+            # Sample every 2nd pixel for preview to reduce complexity
+            step = 2
+            for row in range(0, image.shape[0], step):
+                for col in range(0, image.shape[1], step):
+                    if image[row, col] == 0:  # Black pixel in ArUCO
+                        px_x = x + col * pixel_size
+                        px_y = y + row * pixel_size
+                        # Use larger rectangles to represent sampled pixels
+                        self.add_rectangle(px_x, px_y, pixel_size * step, pixel_size * step, 
+                                         fill=True, layer=0, marker_id=marker_id)
+            
+            # Update bounds
+            self._update_bounds(x, y, size, size)
+        
+        # Add outer border around entire grid if requested
+        if include_outer_border and markers:
+            # Calculate grid bounds
+            min_x = min(float(marker['x']) for marker in markers)
+            min_y = min(float(marker['y']) for marker in markers)
+            max_x = max(float(marker['x'] + marker['size']) for marker in markers)
+            max_y = max(float(marker['y'] + marker['size']) for marker in markers)
+            
+            # Add outer border rectangle
+            border_x = min_x - border_width
+            border_y = min_y - border_width
+            border_w = (max_x - min_x) + (2 * border_width)
+            border_h = (max_y - min_y) + (2 * border_width)
+            
+            self.add_rectangle(border_x, border_y, border_w, border_h, fill=False, layer=1)
+    
     def add_text_labels(self, markers: List[Dict[str, Any]], font_size: float = 3.0):
         """Add text labels below each marker"""
         import html

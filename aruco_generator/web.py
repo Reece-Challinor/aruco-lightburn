@@ -84,59 +84,71 @@ def generate_preview():
         if rows <= 0 or cols <= 0:
             return jsonify({'error': 'Grid dimensions must be positive.'}), 400
         
-        # Calculate total dimensions directly without complex generation
-        total_width, total_height = aruco_gen.calculate_total_size(rows, cols, size_mm, spacing_mm)
+        # Generate markers efficiently for preview
+        markers = []
+        svg_elements = []
         
-        # Add border width to dimensions if outer border is included
-        if include_outer_border:
-            total_width += 2 * border_width
-            total_height += 2 * border_width
-        
-        # Create simplified SVG preview directly
-        svg_content = f'''<svg width="{total_width:.1f}mm" height="{total_height:.1f}mm" 
-                             viewBox="0 0 {total_width:.1f} {total_height:.1f}" 
-                             xmlns="http://www.w3.org/2000/svg">
-                          <style>
-                            .marker {{ fill: white; stroke: blue; stroke-width: 0.5; }}
-                            .border {{ fill: none; stroke: red; stroke-width: 0.2; }}
-                            .text {{ fill: black; font-family: Arial; font-size: 3px; }}
-                          </style>'''
-        
-        # Generate grid positions and create simplified markers
-        marker_count = 0
         for row in range(rows):
             for col in range(cols):
                 marker_id = start_id + (row * cols + col)
                 x = col * (size_mm + spacing_mm)
                 y = row * (size_mm + spacing_mm)
                 
-                # Add marker rectangle
-                svg_content += f'''<rect x="{x:.1f}" y="{y:.1f}" 
-                                       width="{size_mm:.1f}" height="{size_mm:.1f}" 
-                                       class="marker" />'''
+                # Generate actual ArUCO marker with small resolution for preview
+                marker_image = aruco_gen.generate_marker(marker_id, dictionary, size_pixels=20)
                 
-                # Add marker ID text in center
-                center_x = x + size_mm / 2
-                center_y = y + size_mm / 2
-                svg_content += f'''<text x="{center_x:.1f}" y="{center_y:.1f}" 
-                                       text-anchor="middle" dominant-baseline="central" 
-                                       class="text">ID: {marker_id}</text>'''
+                markers.append({
+                    'id': marker_id,
+                    'x': x,
+                    'y': y,
+                    'size': size_mm,
+                    'dict': dictionary
+                })
+                
+                # Convert ArUCO to SVG path directly
+                pixel_size = size_mm / marker_image.shape[0]
                 
                 # Add border if requested
                 if include_borders:
-                    svg_content += f'''<rect x="{x:.1f}" y="{y:.1f}" 
-                                           width="{size_mm:.1f}" height="{size_mm:.1f}" 
-                                           class="border" />'''
+                    svg_elements.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{size_mm:.1f}" height="{size_mm:.1f}" fill="none" stroke="red" stroke-width="0.2"/>')
                 
-                marker_count += 1
+                # Add ArUCO pattern as black squares
+                for img_row in range(marker_image.shape[0]):
+                    for img_col in range(marker_image.shape[1]):
+                        if marker_image[img_row, img_col] == 0:  # Black pixel
+                            px_x = x + img_col * pixel_size
+                            px_y = y + img_row * pixel_size
+                            svg_elements.append(f'<rect x="{px_x:.2f}" y="{px_y:.2f}" width="{pixel_size:.2f}" height="{pixel_size:.2f}" fill="black"/>')
+                
+                # Add labels if requested
+                if include_labels:
+                    label_x = x + size_mm / 2
+                    label_y = y + size_mm + 3
+                    svg_elements.append(f'<text x="{label_x:.1f}" y="{label_y:.1f}" text-anchor="middle" font-family="Arial" font-size="3" fill="black">ID: {marker_id}</text>')
+        
+        # Calculate total dimensions
+        total_width, total_height = aruco_gen.calculate_total_size(rows, cols, size_mm, spacing_mm)
+        
+        # Add label space if needed
+        if include_labels:
+            total_height += 6
         
         # Add outer border if requested
         if include_outer_border:
-            svg_content += f'''<rect x="{border_width:.1f}" y="{border_width:.1f}" 
-                                   width="{total_width - 2*border_width:.1f}" height="{total_height - 2*border_width:.1f}" 
-                                   class="border" stroke-width="1" />'''
+            border_x = -border_width
+            border_y = -border_width
+            border_w = total_width + (2 * border_width)
+            border_h = total_height + (2 * border_width)
+            svg_elements.insert(0, f'<rect x="{border_x:.1f}" y="{border_y:.1f}" width="{border_w:.1f}" height="{border_h:.1f}" fill="none" stroke="red" stroke-width="1"/>')
+            total_width += 2 * border_width
+            total_height += 2 * border_width
         
-        svg_content += '</svg>'
+        # Create final SVG
+        svg_content = f'''<svg width="{total_width:.1f}mm" height="{total_height:.1f}mm" 
+                             viewBox="0 0 {total_width:.1f} {total_height:.1f}" 
+                             xmlns="http://www.w3.org/2000/svg">
+                          {''.join(svg_elements)}
+                          </svg>'''
         
         return jsonify({
             'svg': svg_content,
@@ -146,7 +158,7 @@ def generate_preview():
             },
             'total_width': total_width,
             'total_height': total_height,
-            'marker_count': marker_count,
+            'marker_count': len(markers),
             'success': True
         })
         
