@@ -100,8 +100,17 @@ def generate_preview():
         # Calculate total dimensions
         total_width, total_height = aruco_gen.calculate_total_size(rows, cols, size_mm, spacing_mm)
         
+        # Add border width to dimensions if outer border is included
+        if include_outer_border:
+            total_width += 2 * border_width
+            total_height += 2 * border_width
+        
         return jsonify({
             'svg': svg_content,
+            'dimensions': {
+                'width': round(total_width, 2),
+                'height': round(total_height, 2)
+            },
             'total_width': total_width,
             'total_height': total_height,
             'marker_count': len(markers),
@@ -286,6 +295,10 @@ def generate_quick_test():
         
         return jsonify({
             'svg': svg_content,
+            'dimensions': {
+                'width': round(total_width_with_border, 2),
+                'height': round(total_height_with_border, 2)
+            },
             'total_width': total_width_with_border,
             'total_height': total_height_with_border,
             'marker_count': len(markers),
