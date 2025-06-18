@@ -5,27 +5,44 @@ from .drawing import DrawingContext
 
 class LightBurnExporter:
     def __init__(self):
+        # Material-specific settings for 1/16" White/Black 2-Ply Cast Acrylic
+        self.material_settings = {
+            "1_16_cast_acrylic": {
+                "name": "1/16\" Cast Acrylic (Default)",
+                "description": "White/Black 2-Ply Cast Acrylic",
+                "cut_speed": 150,      # mm/min
+                "cut_power": 75,       # %
+                "cut_passes": 1,
+                "engrave_speed": 800,  # mm/min
+                "engrave_power": 45,   # %
+                "mark_speed": 1000,    # mm/min
+                "mark_power": 20,      # %
+            }
+        }
+        
+        # Layer configuration with material-specific settings
         self.layer_settings = {
-            0: {"index": "0", "name": "ArUCO Fill", "type": "Cut", "priority": "2"},      # Black fill
-            1: {"index": "1", "name": "ArUCO Border", "type": "Cut", "priority": "1"},   # Blue borders  
-            2: {"index": "30", "name": "ArUCO Labels", "type": "Tool", "priority": "0"}  # Red text
+            0: {"index": "0", "name": "ArUCO Fill", "type": "Cut", "priority": "2", "operation": "engrave"},
+            1: {"index": "1", "name": "ArUCO Border", "type": "Cut", "priority": "1", "operation": "cut"},  
+            2: {"index": "30", "name": "ArUCO Labels", "type": "Tool", "priority": "0", "operation": "mark"}
         }
     
-    def export(self, context: DrawingContext, metadata: Dict[str, Any] = None) -> BytesIO:
-        """Export drawing context to LightBurn .lbrn2 format"""
+    def export(self, context: DrawingContext, metadata: Dict[str, Any] = None, 
+               material: str = "1_16_cast_acrylic") -> BytesIO:
+        """Export drawing context to LightBurn .lbrn2 format with material settings"""
         
         # Create root element
         root = ET.Element('LightBurnProject', {
             'AppVersion': "1.0.06",
             'FormatVersion': "1",
-            'MaterialHeight': "0",
+            'MaterialHeight': "1.5875",  # 1/16" in mm
             'MirrorX': "False", 
             'MirrorY': "False"
         })
         root.text = "\n"
         
-        # Add layer cut settings
-        self._add_cut_settings(root)
+        # Add material-specific cut settings
+        self._add_material_cut_settings(root, material)
         
         # Create main shape group
         main_group = ET.SubElement(root, "Shape", Type="Group")
@@ -43,9 +60,9 @@ class LightBurnExporter:
             elif element['type'] == 'text':
                 self._add_text(children, element)
         
-        # Add metadata as notes if provided
+        # Add enhanced metadata with material info
         if metadata:
-            self._add_notes(root, metadata)
+            self._add_enhanced_notes(root, metadata, material)
         
         # Generate XML output
         tree = ET.ElementTree(root)
@@ -54,13 +71,45 @@ class LightBurnExporter:
         output.seek(0)
         return output
     
-    def _add_cut_settings(self, root):
-        """Add cut settings for different layers"""
-        for layer_id, settings in self.layer_settings.items():
-            cs = ET.SubElement(root, "CutSetting", Type=settings["type"])
-            ET.SubElement(cs, "index", Value=settings["index"])
-            ET.SubElement(cs, "name", Value=settings["name"])
-            ET.SubElement(cs, "priority", Value=settings["priority"])
+    def _add_material_cut_settings(self, root, material: str):
+        """Add material-specific cut settings for different layers"""
+        material_config = self.material_settings.get(material, self.material_settings["1_16_cast_acrylic"])
+        
+        for layer_id, layer_config in self.layer_settings.items():
+            operation = layer_config["operation"]
+            
+            # Create cut setting element
+            cs = ET.SubElement(root, "CutSetting", Type=layer_config["type"])
+            ET.SubElement(cs, "index", Value=layer_config["index"])
+            ET.SubElement(cs, "name", Value=layer_config["name"])
+            ET.SubElement(cs, "priority", Value=layer_config["priority"])
+            
+            # Add operation-specific settings
+            if operation == "cut":
+                ET.SubElement(cs, "runBlower", Value="1")
+                ET.SubElement(cs, "speed", Value=str(material_config["cut_speed"]))
+                ET.SubElement(cs, "maxPower", Value=str(material_config["cut_power"]))
+                ET.SubElement(cs, "minPower", Value=str(material_config["cut_power"]))
+                ET.SubElement(cs, "numPasses", Value=str(material_config["cut_passes"]))
+                ET.SubElement(cs, "zOffset", Value="0")
+                ET.SubElement(cs, "perforate", Value="0")
+                ET.SubElement(cs, "overcut", Value="0")
+                ET.SubElement(cs, "tabsEnabled", Value="0")
+                
+            elif operation == "engrave":
+                ET.SubElement(cs, "runBlower", Value="1")
+                ET.SubElement(cs, "speed", Value=str(material_config["engrave_speed"]))
+                ET.SubElement(cs, "maxPower", Value=str(material_config["engrave_power"]))
+                ET.SubElement(cs, "minPower", Value=str(material_config["engrave_power"]))
+                ET.SubElement(cs, "perforate", Value="0")
+                ET.SubElement(cs, "overcut", Value="0")
+                ET.SubElement(cs, "priority", Value=layer_config["priority"])
+                
+            elif operation == "mark":
+                ET.SubElement(cs, "speed", Value=str(material_config["mark_speed"]))
+                ET.SubElement(cs, "maxPower", Value=str(material_config["mark_power"]))
+                ET.SubElement(cs, "minPower", Value=str(material_config["mark_power"]))
+                ET.SubElement(cs, "perforate", Value="0")
     
     def _add_rectangle(self, parent, element):
         """Add rectangle shape to LightBurn XML"""
@@ -102,16 +151,36 @@ class LightBurnExporter:
         ET.SubElement(shape, "Font", Size=str(element['font_size']), Bold="False", Italic="False")
         ET.SubElement(shape, "Pos", x=str(element['x']), y=str(element['y']))
     
-    def _add_notes(self, root, metadata):
-        """Add project notes with generation metadata"""
-        notes_text = f"""ArUCO Marker Generation Report
-Generated: {metadata.get('timestamp', 'Unknown')}
-Dictionary: {metadata.get('dictionary', 'Unknown')}
-Grid Size: {metadata.get('rows', 'N/A')} x {metadata.get('cols', 'N/A')}
-Marker Size: {metadata.get('size_mm', 'N/A')} mm
-Spacing: {metadata.get('spacing_mm', 'N/A')} mm
-Total Markers: {metadata.get('total_markers', 'N/A')}
-Start ID: {metadata.get('start_id', 'N/A')}"""
+    def _add_enhanced_notes(self, root, metadata, material: str):
+        """Add enhanced metadata with material and settings info"""
+        material_config = self.material_settings.get(material, self.material_settings["1_16_cast_acrylic"])
+        
+        notes_text = "ArUCO Marker Generator - Optimized for Laser Cutting\n\n"
+        notes_text += "=== GENERATION SETTINGS ===\n"
+        for key, value in metadata.items():
+            notes_text += f"{key}: {value}\n"
+        
+        notes_text += f"\n=== MATERIAL SETTINGS ===\n"
+        notes_text += f"Material: {material_config['name']}\n"
+        notes_text += f"Description: {material_config['description']}\n"
+        notes_text += f"Thickness: 1/16\" (1.5875mm)\n\n"
+        
+        notes_text += f"=== RECOMMENDED LASER SETTINGS ===\n"
+        notes_text += f"Border Cut: {material_config['cut_speed']}mm/min @ {material_config['cut_power']}% power\n"
+        notes_text += f"Fill Engrave: {material_config['engrave_speed']}mm/min @ {material_config['engrave_power']}% power\n"
+        notes_text += f"Label Mark: {material_config['mark_speed']}mm/min @ {material_config['mark_power']}% power\n\n"
+        
+        notes_text += f"=== LAYER INFORMATION ===\n"
+        notes_text += f"Layer 00 (Black): ArUCO marker fill areas - ENGRAVE\n"
+        notes_text += f"Layer 01 (Blue): Border outlines - CUT\n"
+        notes_text += f"Layer T1 (Red): ID labels - MARK/ENGRAVE\n\n"
+        
+        notes_text += f"=== USAGE INSTRUCTIONS ===\n"
+        notes_text += f"1. Load material and set focus height\n"
+        notes_text += f"2. Review and adjust laser settings if needed\n"
+        notes_text += f"3. Run test cuts on scrap material first\n"
+        notes_text += f"4. Process layers in order: Fill (engrave) → Borders (cut) → Labels (mark)\n"
+        notes_text += f"5. Use air assist for clean cuts and prevent charring"
         
         notes = ET.SubElement(root, "Notes")
         notes.text = notes_text
