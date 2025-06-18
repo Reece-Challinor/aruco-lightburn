@@ -55,16 +55,21 @@ class DrawingContext:
             if include_borders:
                 self.add_rectangle(x, y, size, size, fill=False, layer=1, marker_id=marker_id)
             
-            # Convert ArUCO image to rectangles
-            pixel_size = size / image.shape[0]
+            # For preview, use simplified representation to prevent hanging
+            # Add a placeholder rectangle for the marker content
+            self.elements.append({
+                'type': 'marker_placeholder',
+                'x': x,
+                'y': y,
+                'width': size,
+                'height': size,
+                'marker_id': marker_id,
+                'image_data': image.tolist(),  # Convert numpy to list for JSON serialization
+                'layer': 0
+            })
             
-            for row in range(image.shape[0]):
-                for col in range(image.shape[1]):
-                    if image[row, col] == 0:  # Black pixel in ArUCO
-                        px_x = x + col * pixel_size
-                        px_y = y + row * pixel_size
-                        self.add_rectangle(px_x, px_y, pixel_size, pixel_size, 
-                                         fill=True, layer=0, marker_id=marker_id)
+            # Update bounds
+            self._update_bounds(x, y, size, size)
         
         # Add outer border around entire grid if requested
         if include_outer_border and markers:
@@ -124,6 +129,8 @@ class DrawingContext:
                     .cut {{ fill: black; stroke: none; }}
                     .mark {{ fill: none; stroke: blue; stroke-width: 0.1; }}
                     .text {{ fill: red; font-family: Arial; font-size: 3px; }}
+                    .marker {{ fill: black; stroke: none; }}
+                    .marker-bg {{ fill: white; stroke: black; stroke-width: 0.1; }}
                   </style>'''
         
         for element in self.elements:
@@ -136,6 +143,35 @@ class DrawingContext:
                 svg += f'''<rect x="{element['x']:.3f}" y="{element['y']:.3f}" 
                                width="{element['width']:.3f}" height="{element['height']:.3f}" 
                                class="{css_class}" />'''
+            elif element['type'] == 'marker_placeholder':
+                # Render a simplified representation of the ArUCO marker
+                x, y = element['x'], element['y']
+                size = element['width']
+                marker_id = element['marker_id']
+                
+                # Add white background
+                svg += f'''<rect x="{x:.3f}" y="{y:.3f}" 
+                               width="{size:.3f}" height="{size:.3f}" 
+                               class="marker-bg" />'''
+                
+                # Add simplified pattern to represent ArUCO marker
+                pattern_size = size / 6
+                for i in range(6):
+                    for j in range(6):
+                        if (i + j) % 2 == 0:  # Checkerboard pattern
+                            px = x + i * pattern_size
+                            py = y + j * pattern_size
+                            svg += f'''<rect x="{px:.3f}" y="{py:.3f}" 
+                                           width="{pattern_size:.3f}" height="{pattern_size:.3f}" 
+                                           class="marker" />'''
+                
+                # Add ID text in center
+                center_x = x + size / 2
+                center_y = y + size / 2
+                svg += f'''<text x="{center_x:.3f}" y="{center_y:.3f}" 
+                               text-anchor="middle" dominant-baseline="central"
+                               style="fill: red; font-family: Arial; font-size: {size/10:.1f}px; font-weight: bold;">{marker_id}</text>'''
+                
             elif element['type'] == 'text':
                 svg += f'''<text x="{element['x']:.3f}" y="{element['y']:.3f}" 
                                class="text">{element['text']}</text>'''
