@@ -12,6 +12,19 @@ class ArUCOGenerator {
         this.log('ArUCO Generator initialized successfully');
     }
 
+    // HTML escaping utility function to prevent XSS
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Safely set innerHTML with escaped content
+    safeSetInnerHTML(element, htmlContent) {
+        if (!element) return;
+        element.innerHTML = htmlContent;
+    }
+
     setupErrorLogging() {
         // Global error handler
         window.addEventListener('error', (event) => {
@@ -852,41 +865,82 @@ class ArUCOGenerator {
     showAdvancedPreview(result, data) {
         this.hideAdvancedStates();
         if (this.advancedPreview) {
-            this.advancedPreview.innerHTML = `
-                <div class="text-center">
-                    <div class="mb-3">
-                        ${result.svg}
-                    </div>
-                    <div class="text-muted">
-                        <small>
-                            <i class="bi bi-rulers me-1"></i>
-                            Dimensions: ${result.dimensions.width}mm × ${result.dimensions.height}mm
-                        </small>
-                    </div>
-                    <div class="text-muted mt-2">
-                        <small>
-                            <i class="bi bi-grid me-1"></i>
-                            ${data.rows}×${data.cols} grid | IDs: ${data.start_id}-${data.start_id + (data.rows * data.cols) - 1}
-                        </small>
-                    </div>
-                </div>
-            `;
+            // Create elements safely using DOM methods
+            const container = document.createElement('div');
+            container.className = 'text-center';
+            
+            // SVG container
+            const svgContainer = document.createElement('div');
+            svgContainer.className = 'mb-3';
+            svgContainer.innerHTML = result.svg; // SVG is server-generated and safe
+            container.appendChild(svgContainer);
+            
+            // Dimensions info
+            const dimensionsDiv = document.createElement('div');
+            dimensionsDiv.className = 'text-muted';
+            const dimensionsSmall = document.createElement('small');
+            dimensionsSmall.innerHTML = '<i class="bi bi-rulers me-1"></i>';
+            dimensionsSmall.appendChild(document.createTextNode(
+                `Dimensions: ${this.escapeHtml(result.dimensions.width)}mm × ${this.escapeHtml(result.dimensions.height)}mm`
+            ));
+            dimensionsDiv.appendChild(dimensionsSmall);
+            container.appendChild(dimensionsDiv);
+            
+            // Grid info
+            const gridDiv = document.createElement('div');
+            gridDiv.className = 'text-muted mt-2';
+            const gridSmall = document.createElement('small');
+            gridSmall.innerHTML = '<i class="bi bi-grid me-1"></i>';
+            const endId = data.start_id + (data.rows * data.cols) - 1;
+            gridSmall.appendChild(document.createTextNode(
+                `${this.escapeHtml(data.rows)}×${this.escapeHtml(data.cols)} grid | IDs: ${this.escapeHtml(data.start_id)}-${this.escapeHtml(endId)}`
+            ));
+            gridDiv.appendChild(gridSmall);
+            container.appendChild(gridDiv);
+            
+            // Clear and set new content
+            this.advancedPreview.innerHTML = '';
+            this.advancedPreview.appendChild(container);
         }
     }
 
     showAdvancedError(message) {
         this.hideAdvancedStates();
         if (this.advancedPreview) {
-            this.advancedPreview.innerHTML = `
-                <div class="text-center py-5 text-danger">
-                    <i class="bi bi-exclamation-triangle display-2 mb-3"></i>
-                    <h5>Error</h5>
-                    <p class="text-muted">${message}</p>
-                    <button class="btn btn-outline-primary btn-sm" onclick="location.reload()">
-                        <i class="bi bi-arrow-clockwise me-1"></i>Refresh Page
-                    </button>
-                </div>
-            `;
+            // Create elements safely using DOM methods
+            const container = document.createElement('div');
+            container.className = 'text-center py-5 text-danger';
+            
+            // Error icon
+            const icon = document.createElement('i');
+            icon.className = 'bi bi-exclamation-triangle display-2 mb-3';
+            container.appendChild(icon);
+            
+            // Error title
+            const title = document.createElement('h5');
+            title.textContent = 'Error';
+            container.appendChild(title);
+            
+            // Error message
+            const errorMsg = document.createElement('p');
+            errorMsg.className = 'text-muted';
+            errorMsg.textContent = message; // Use textContent to prevent XSS
+            container.appendChild(errorMsg);
+            
+            // Refresh button
+            const button = document.createElement('button');
+            button.className = 'btn btn-outline-primary btn-sm';
+            button.addEventListener('click', () => location.reload());
+            
+            const buttonIcon = document.createElement('i');
+            buttonIcon.className = 'bi bi-arrow-clockwise me-1';
+            button.appendChild(buttonIcon);
+            button.appendChild(document.createTextNode('Refresh Page'));
+            container.appendChild(button);
+            
+            // Clear and set new content
+            this.advancedPreview.innerHTML = '';
+            this.advancedPreview.appendChild(container);
         }
         this.log('Advanced error displayed', message);
     }
@@ -897,14 +951,26 @@ class ArUCOGenerator {
 
     showSuccess(message) {
         try {
-            // Create temporary success alert
+            // Create temporary success alert using safe DOM methods
             const alertDiv = document.createElement('div');
             alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed';
             alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 1060; min-width: 300px;';
-            alertDiv.innerHTML = `
-                <i class="bi bi-check-circle me-2"></i>${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
+            
+            // Success icon
+            const icon = document.createElement('i');
+            icon.className = 'bi bi-check-circle me-2';
+            alertDiv.appendChild(icon);
+            
+            // Success message
+            alertDiv.appendChild(document.createTextNode(message)); // Use textContent to prevent XSS
+            
+            // Close button
+            const closeBtn = document.createElement('button');
+            closeBtn.type = 'button';
+            closeBtn.className = 'btn-close';
+            closeBtn.setAttribute('data-bs-dismiss', 'alert');
+            alertDiv.appendChild(closeBtn);
+            
             document.body.appendChild(alertDiv);
 
             // Auto-remove after 3 seconds
