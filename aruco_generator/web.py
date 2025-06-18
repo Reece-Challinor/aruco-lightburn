@@ -38,6 +38,8 @@ def generate_preview():
         spacing_mm = float(data.get('spacing_mm', 5))
         include_borders = data.get('include_borders', True)
         include_labels = data.get('include_labels', True)
+        include_outer_border = data.get('include_outer_border', False)
+        border_width = float(data.get('border_width', 2.0))
         
         # Validate dictionary
         if dictionary not in aruco_gen.dictionaries:

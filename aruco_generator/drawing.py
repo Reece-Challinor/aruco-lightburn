@@ -23,7 +23,7 @@ class DrawingContext:
         self.elements.append(element)
         self._update_bounds(x, y, width, height)
     
-    def add_marker_grid(self, markers: List[Dict[str, Any]], include_borders: bool = True):
+    def add_marker_grid(self, markers: List[Dict[str, Any]], include_borders: bool = True, include_outer_border: bool = False, border_width: float = 2.0):
         """Add ArUCO markers as filled rectangles"""
         for marker in markers:
             image = marker['image']
@@ -45,6 +45,22 @@ class DrawingContext:
                         px_y = y + row * pixel_size
                         self.add_rectangle(px_x, px_y, pixel_size, pixel_size, 
                                          fill=True, layer=0, marker_id=marker_id)
+        
+        # Add outer border around entire grid if requested
+        if include_outer_border and markers:
+            # Calculate grid bounds
+            min_x = min(marker['x'] for marker in markers)
+            min_y = min(marker['y'] for marker in markers)
+            max_x = max(marker['x'] + marker['size'] for marker in markers)
+            max_y = max(marker['y'] + marker['size'] for marker in markers)
+            
+            # Add outer border rectangle
+            border_x = min_x - border_width
+            border_y = min_y - border_width
+            border_w = (max_x - min_x) + (2 * border_width)
+            border_h = (max_y - min_y) + (2 * border_width)
+            
+            self.add_rectangle(border_x, border_y, border_w, border_h, fill=False, layer=1)
     
     def add_text_labels(self, markers: List[Dict[str, Any]], font_size: float = 3.0):
         """Add text labels below each marker"""
