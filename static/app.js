@@ -25,6 +25,8 @@ class ArUCOGenerator {
         // Buttons
         this.generateBtn = document.getElementById('generatePreview');
         this.downloadBtn = document.getElementById('downloadLightBurn');
+        this.quickTestBtn = document.getElementById('generateQuickTest');
+        this.quickTestDownloadBtn = document.getElementById('downloadQuickTest');
 
         // Preview elements
         this.loadingState = document.getElementById('loadingState');
@@ -46,6 +48,13 @@ class ArUCOGenerator {
 
         // Download button
         this.downloadBtn.addEventListener('click', () => this.downloadLightBurn());
+
+        // Quick test buttons
+        this.quickTestBtn.addEventListener('click', () => this.generateQuickTest());
+        this.quickTestDownloadBtn.addEventListener('click', () => this.downloadQuickTest());
+
+        // Outer border toggle
+        this.includeOuterBorderCheck.addEventListener('change', () => this.toggleBorderWidth());
 
         // Auto-update on form changes
         const autoUpdateInputs = [
@@ -95,7 +104,9 @@ class ArUCOGenerator {
             size_mm: parseFloat(this.sizeMmInput.value) || 20,
             spacing_mm: parseFloat(this.spacingMmInput.value) || 5,
             include_borders: this.includeBordersCheck.checked,
-            include_labels: this.includeLabelsCheck.checked
+            include_labels: this.includeLabelsCheck.checked,
+            include_outer_border: this.includeOuterBorderCheck.checked,
+            border_width: parseFloat(this.borderWidthInput.value) || 2.0
         };
     }
 
@@ -290,6 +301,98 @@ class ArUCOGenerator {
         this.loadingState.style.display = 'none';
         this.emptyState.style.display = 'none';
         this.previewContainer.style.display = 'none';
+    }
+
+    toggleBorderWidth() {
+        // Show/hide border width input based on outer border checkbox
+        if (this.includeOuterBorderCheck.checked) {
+            this.borderWidthContainer.style.display = 'block';
+        } else {
+            this.borderWidthContainer.style.display = 'none';
+        }
+    }
+
+    async generateQuickTest() {
+        try {
+            this.showLoading();
+            
+            const response = await fetch('/api/quick-test', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Failed to generate quick test');
+            }
+
+            this.showPreview(result);
+            this.quickTestDownloadBtn.disabled = false;
+            this.downloadBtn.disabled = true; // Disable regular download for quick test
+
+        } catch (error) {
+            console.error('Error generating quick test:', error);
+            this.showError(error.message || 'Failed to generate quick test');
+            this.quickTestDownloadBtn.disabled = true;
+        }
+    }
+
+    async downloadQuickTest() {
+        try {
+            // Show loading state on download button
+            const originalText = this.quickTestDownloadBtn.innerHTML;
+            this.quickTestDownloadBtn.innerHTML = '<i class="bi bi-spinner-border me-2"></i>Generating...';
+            this.quickTestDownloadBtn.disabled = true;
+
+            const response = await fetch('/api/quick-test-download', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to generate quick test file');
+            }
+
+            // Get filename from response or use default
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let filename = 'aruco_quick_test_2x1_2inch.lbrn2';
+            
+            if (contentDisposition) {
+                const matches = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                if (matches && matches[1]) {
+                    filename = matches[1].replace(/['"]/g, '');
+                }
+            }
+
+            // Create blob and download
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            // Show success feedback
+            this.showSuccess('Quick test LightBurn file downloaded successfully!');
+
+        } catch (error) {
+            console.error('Error downloading quick test file:', error);
+            this.showError(error.message || 'Failed to download quick test file');
+        } finally {
+            // Restore download button
+            this.quickTestDownloadBtn.innerHTML = '<i class="bi bi-download me-2"></i>Download Test File';
+            this.quickTestDownloadBtn.disabled = false;
+        }
     }
 }
 
