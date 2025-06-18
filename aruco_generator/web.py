@@ -20,6 +20,8 @@
 """
 
 import os
+import logging
+import traceback
 from datetime import datetime
 from flask import render_template, request, jsonify, send_file
 from .aruco import ArUCOGenerator
@@ -396,10 +398,91 @@ def batch_generate():
     except Exception as e:
         return jsonify({'error': f'Unexpected error: {str(e)}'}), 500
 
+# Error logging and debugging endpoints
+@app.route('/api/log-error', methods=['POST'])
+def log_error():
+    """Log frontend errors for debugging"""
+    try:
+        error_data = request.get_json()
+        
+        # Log to console
+        print(f"[FRONTEND ERROR] {error_data.get('context', 'Unknown')}: {error_data.get('message', 'No message')}")
+        
+        # Log to file for AI debugging
+        with open('debug_logs.txt', 'a') as f:
+            f.write(f"{datetime.now().isoformat()} - FRONTEND ERROR\n")
+            f.write(f"Context: {error_data.get('context', 'Unknown')}\n")
+            f.write(f"Message: {error_data.get('message', 'No message')}\n")
+            f.write(f"Stack: {error_data.get('stack', 'No stack trace')}\n")
+            f.write(f"URL: {error_data.get('url', 'Unknown')}\n")
+            f.write("-" * 80 + "\n")
+        
+        return jsonify({'status': 'logged'}), 200
+    except Exception as e:
+        print(f"Failed to log frontend error: {e}")
+        return jsonify({'error': 'Failed to log error'}), 500
+
+@app.route('/api/debug/status')
+def debug_status():
+    """Get application debug status"""
+    try:
+        status = {
+            'timestamp': datetime.now().isoformat(),
+            'app_running': True,
+            'aruco_generator': bool(aruco_gen),
+            'lightburn_exporter': bool(lightburn_exporter),
+            'dictionaries_loaded': len(aruco_gen.get_dictionary_info()) > 0,
+            'debug_mode': app.debug,
+            'environment': os.environ.get('FLASK_ENV', 'production')
+        }
+        
+        # Log status for AI debugging
+        with open('debug_logs.txt', 'a') as f:
+            f.write(f"{datetime.now().isoformat()} - STATUS CHECK\n")
+            f.write(f"Status: {status}\n")
+            f.write("-" * 80 + "\n")
+        
+        return jsonify(status)
+    except Exception as e:
+        return jsonify({'error': str(e), 'app_running': False}), 500
+
 @app.errorhandler(404)
 def not_found_error(error):
+    # Log 404 errors for debugging
+    with open('debug_logs.txt', 'a') as f:
+        f.write(f"{datetime.now().isoformat()} - 404 ERROR\n")
+        f.write(f"Path: {request.path}\n")
+        f.write(f"Method: {request.method}\n")
+        f.write("-" * 80 + "\n")
+    
     return render_template('index.html', dictionaries=aruco_gen.get_dictionary_info()), 404
 
 @app.errorhandler(500)
 def internal_error(error):
+    # Log 500 errors with full traceback
+    with open('debug_logs.txt', 'a') as f:
+        f.write(f"{datetime.now().isoformat()} - 500 ERROR\n")
+        f.write(f"Path: {request.path}\n")
+        f.write(f"Method: {request.method}\n")
+        f.write(f"Error: {str(error)}\n")
+        f.write(f"Traceback: {traceback.format_exc()}\n")
+        f.write("-" * 80 + "\n")
+    
     return jsonify({'error': 'Internal server error'}), 500
+
+# Enhanced logging setup
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('debug_logs.txt'),
+        logging.StreamHandler()
+    ]
+)
+
+# Log application startup
+with open('debug_logs.txt', 'a') as f:
+    f.write(f"{datetime.now().isoformat()} - APPLICATION STARTUP\n")
+    f.write(f"ArUCO Generator initialized: {bool(aruco_gen)}\n")
+    f.write(f"LightBurn Exporter initialized: {bool(lightburn_exporter)}\n")
+    f.write("-" * 80 + "\n")
