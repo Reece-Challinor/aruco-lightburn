@@ -27,7 +27,7 @@ class LightBurnExporter:
             2: {"index": "30", "name": "ArUCO Labels", "type": "Tool", "priority": "0", "operation": "mark"}
         }
     
-    def export(self, context: DrawingContext, metadata: Dict[str, Any] = None, 
+    def export(self, context: DrawingContext, metadata: Dict[str, Any] | None = None, 
                material: str = "1_16_cast_acrylic") -> BytesIO:
         """Export drawing context to LightBurn .lbrn2 format with material settings"""
         
