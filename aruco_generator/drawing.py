@@ -46,7 +46,6 @@ class DrawingContext:
     def add_marker_grid(self, markers: List[Dict[str, Any]], include_borders: bool = True, include_outer_border: bool = False, border_width: float = 2.0):
         """Add ArUCO markers as filled rectangles"""
         for marker in markers:
-            image = marker['image']
             size = marker['size']
             x, y = marker['x'], marker['y']
             marker_id = marker['id']
@@ -55,18 +54,30 @@ class DrawingContext:
             if include_borders:
                 self.add_rectangle(x, y, size, size, fill=False, layer=1, marker_id=marker_id)
             
-            # For preview, use simplified representation to prevent hanging
-            # Add a placeholder rectangle for the marker content
-            self.elements.append({
-                'type': 'marker_placeholder',
-                'x': x,
-                'y': y,
-                'width': size,
-                'height': size,
-                'marker_id': marker_id,
-                'image_data': image.tolist(),  # Convert numpy to list for JSON serialization
-                'layer': 0
-            })
+            # Check if we have actual image data or just placeholder
+            if 'image' in marker:
+                # Full ArUCO marker generation for file export
+                image = marker['image']
+                pixel_size = size / image.shape[0]
+                
+                for row in range(image.shape[0]):
+                    for col in range(image.shape[1]):
+                        if image[row, col] == 0:  # Black pixel in ArUCO
+                            px_x = x + col * pixel_size
+                            px_y = y + row * pixel_size
+                            self.add_rectangle(px_x, px_y, pixel_size, pixel_size, 
+                                             fill=True, layer=0, marker_id=marker_id)
+            else:
+                # For preview, use simplified representation
+                self.elements.append({
+                    'type': 'marker_placeholder',
+                    'x': x,
+                    'y': y,
+                    'width': size,
+                    'height': size,
+                    'marker_id': marker_id,
+                    'layer': 0
+                })
             
             # Update bounds
             self._update_bounds(x, y, size, size)
