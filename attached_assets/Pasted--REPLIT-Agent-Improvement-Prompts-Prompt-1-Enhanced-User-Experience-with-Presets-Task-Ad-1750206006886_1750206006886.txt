@@ -1,0 +1,1792 @@
+# REPLIT Agent Improvement Prompts
+
+## Prompt 1: Enhanced User Experience with Presets
+
+### Task: Add Preset Configurations and Quick Actions
+Implement a preset system that allows users to quickly select common ArUCO configurations and add quick action buttons for common use cases.
+
+### Files to Modify:
+
+#### 1. Add to `aruco_generator/web.py`:
+```python
+# Add this new route after the existing routes
+@app.route('/presets')
+def get_presets():
+    """Get common preset configurations"""
+    return jsonify({
+        "business_cards": {
+            "name": "Business Cards",
+            "description": "Small markers for business cards",
+            "dictionary": "4X4_50",
+            "rows": 2,
+            "cols": 5,
+            "size_mm": 15,
+            "spacing_mm": 3,
+            "include_borders": True,
+            "include_labels": False
+        },
+        "inventory_tags": {
+            "name": "Inventory Tags", 
+            "description": "Medium markers for inventory management",
+            "dictionary": "4X4_100",
+            "rows": 5,
+            "cols": 10,
+            "size_mm": 10,
+            "spacing_mm": 2,
+            "include_borders": True,
+            "include_labels": True
+        },
+        "large_markers": {
+            "name": "Large Display Markers",
+            "description": "Large markers for wall displays",
+            "dictionary": "6X6_50",
+            "rows": 1,
+            "cols": 1,
+            "size_mm": 50,
+            "spacing_mm": 10,
+            "include_borders": True,
+            "include_labels": True
+        },
+        "test_sheet": {
+            "name": "Test Sheet",
+            "description": "Standard test grid",
+            "dictionary": "4X4_50",
+            "rows": 3,
+            "cols": 3,
+            "size_mm": 20,
+            "spacing_mm": 5,
+            "include_borders": True,
+            "include_labels": True
+        },
+        "production_run": {
+            "name": "Production Run",
+            "description": "Large batch for production",
+            "dictionary": "5X5_250",
+            "rows": 10,
+            "cols": 10,
+            "size_mm": 8,
+            "spacing_mm": 1,
+            "include_borders": False,
+            "include_labels": False
+        }
+    })
+
+@app.route('/apply_preset/<preset_name>')
+def apply_preset(preset_name):
+    """Apply a specific preset configuration"""
+    presets = get_presets().json
+    if preset_name in presets:
+        return jsonify({"success": True, "preset": presets[preset_name]})
+    return jsonify({"success": False, "error": "Preset not found"}), 404
+```
+
+#### 2. Update `templates/index.html` - Add preset section BEFORE the form:
+```html
+<!-- Add this section right after the <form id="aruco-form"> opening tag -->
+<div class="preset-section">
+    <h4>Quick Presets</h4>
+    <div class="preset-buttons" id="preset-buttons">
+        <!-- Preset buttons will be populated by JavaScript -->
+    </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- Keep all existing form content here -->
+```
+
+#### 3. Update `static/style.css` - Add these styles at the end:
+```css
+.preset-section {
+    margin-bottom: 25px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+}
+
+.preset-section h4 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 1.1em;
+}
+
+.preset-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+.preset-btn {
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.preset-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.preset-btn .preset-name {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.preset-btn .preset-desc {
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+.section-divider {
+    border: none;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #e9ecef, transparent);
+    margin: 25px 0;
+}
+
+.quick-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+}
+
+.quick-action-btn {
+    padding: 8px 16px;
+    background-color: #17a2b8;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+.quick-action-btn:hover {
+    background-color: #138496;
+}
+```
+
+#### 4. Update `static/app.js` - Add preset functionality to the ArUCOGenerator class:
+```javascript
+// Add these methods to the ArUCOGenerator class after the constructor
+
+async loadPresets() {
+    try {
+        const response = await fetch('/presets');
+        const presets = await response.json();
+        this.renderPresetButtons(presets);
+    } catch (error) {
+        console.error('Failed to load presets:', error);
+    }
+}
+
+renderPresetButtons(presets) {
+    const container = document.getElementById('preset-buttons');
+    container.innerHTML = '';
+    
+    Object.entries(presets).forEach(([key, preset]) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'preset-btn';
+        button.innerHTML = `
+            <span class="preset-name">${preset.name}</span>
+            <span class="preset-desc">${preset.description}</span>
+        `;
+        button.addEventListener('click', () => this.applyPreset(preset));
+        container.appendChild(button);
+    });
+}
+
+applyPreset(preset) {
+    // Apply preset values to form
+    Object.entries(preset).forEach(([key, value]) => {
+        if (key === 'name' || key === 'description') return;
+        
+        const element = document.getElementById(key) || document.querySelector(`[name="${key}"]`);
+        if (element) {
+            if (element.type === 'checkbox') {
+                element.checked = value;
+            } else {
+                element.value = value;
+            }
+        }
+    });
+    
+    // Update info and generate preview
+    this.updateInfo();
+    this.generatePreview();
+    
+    // Show success message
+    this.showSuccessMessage(`Applied "${preset.name}" preset`);
+}
+
+showSuccessMessage(message) {
+    const infoContent = this.infoContent;
+    const successMsg = document.createElement('p');
+    successMsg.style.color = '#27ae60';
+    successMsg.style.fontWeight = 'bold';
+    successMsg.textContent = `✓ ${message}`;
+    infoContent.appendChild(successMsg);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        if (successMsg.parentNode) {
+            successMsg.parentNode.removeChild(successMsg);
+        }
+    }, 3000);
+}
+
+// Update the constructor to call loadPresets
+constructor() {
+    // ... existing code ...
+    this.loadPresets(); // Add this line at the end of constructor
+}
+```
+
+### Expected Result:
+- Preset buttons appear above the form with professional styling
+- Clicking a preset immediately applies all settings and generates preview
+- Users can quickly switch between common configurations
+- Success messages confirm preset application
+
+---
+
+## Prompt 2: Material Templates with 1/16" Cast Acrylic Default & Print Settings Export
+
+### Task: Implement material-specific LightBurn settings with 1/16" White/Black 2-Ply cast acrylic as default
+Add material templates that automatically configure LightBurn cut/engrave settings, with 1/16" cast acrylic as the default material for all operations.
+
+### Files to Modify:
+
+#### 1. Update `aruco_generator/lightburn.py` - Replace the entire LightBurnExporter class:
+```python
+import xml.etree.ElementTree as ET
+from io import BytesIO
+from typing import Dict, Any
+from .drawing import DrawingContext
+
+class LightBurnExporter:
+    def __init__(self):
+        # Material-specific settings for 1/16" White/Black 2-Ply Cast Acrylic
+        self.material_settings = {
+            "1_16_cast_acrylic": {
+                "name": "1/16\" Cast Acrylic (Default)",
+                "description": "White/Black 2-Ply Cast Acrylic",
+                "cut_speed": 150,      # mm/min
+                "cut_power": 75,       # %
+                "cut_passes": 1,
+                "engrave_speed": 800,  # mm/min
+                "engrave_power": 45,   # %
+                "mark_speed": 1000,    # mm/min
+                "mark_power": 20,      # %
+            }
+        }
+        
+        # Layer configuration with material-specific settings
+        self.layer_settings = {
+            0: {"index": "0", "name": "ArUCO Fill", "type": "Cut", "priority": "2", "operation": "engrave"},
+            1: {"index": "1", "name": "ArUCO Border", "type": "Cut", "priority": "1", "operation": "cut"},  
+            2: {"index": "30", "name": "ArUCO Labels", "type": "Tool", "priority": "0", "operation": "mark"}
+        }
+    
+    def export(self, context: DrawingContext, metadata: Dict[str, Any] = None, 
+               material: str = "1_16_cast_acrylic") -> BytesIO:
+        """Export drawing context to LightBurn .lbrn2 format with material settings"""
+        
+        # Create root element
+        root = ET.Element('LightBurnProject', {
+            'AppVersion': "1.0.06",
+            'FormatVersion': "1",
+            'MaterialHeight': "1.5875",  # 1/16" in mm
+            'MirrorX': "False", 
+            'MirrorY': "False"
+        })
+        root.text = "\n"
+        
+        # Add material-specific cut settings
+        self._add_material_cut_settings(root, material)
+        
+        # Create main shape group
+        main_group = ET.SubElement(root, "Shape", Type="Group")
+        main_group.text = "\n "
+        main_group.tail = "\n"
+        
+        children = ET.SubElement(main_group, "Children")
+        children.text = "\n "
+        children.tail = "\n"
+        
+        # Add all drawing elements
+        for element in context.elements:
+            if element['type'] == 'rect':
+                self._add_rectangle(children, element)
+            elif element['type'] == 'text':
+                self._add_text(children, element)
+        
+        # Add enhanced metadata with material info
+        if metadata:
+            self._add_enhanced_notes(root, metadata, material)
+        
+        # Generate XML output
+        tree = ET.ElementTree(root)
+        output = BytesIO()
+        tree.write(output, encoding="utf-8", xml_declaration=True, method="xml")
+        output.seek(0)
+        return output
+    
+    def _add_material_cut_settings(self, root, material: str):
+        """Add material-specific cut settings for different layers"""
+        material_config = self.material_settings.get(material, self.material_settings["1_16_cast_acrylic"])
+        
+        for layer_id, layer_config in self.layer_settings.items():
+            operation = layer_config["operation"]
+            
+            # Create cut setting element
+            cs = ET.SubElement(root, "CutSetting", Type=layer_config["type"])
+            ET.SubElement(cs, "index", Value=layer_config["index"])
+            ET.SubElement(cs, "name", Value=layer_config["name"])
+            ET.SubElement(cs, "priority", Value=layer_config["priority"])
+            
+            # Add operation-specific settings
+            if operation == "cut":
+                ET.SubElement(cs, "runBlower", Value="1")
+                ET.SubElement(cs, "speed", Value=str(material_config["cut_speed"]))
+                ET.SubElement(cs, "maxPower", Value=str(material_config["cut_power"]))
+                ET.SubElement(cs, "minPower", Value=str(material_config["cut_power"]))
+                ET.SubElement(cs, "numPasses", Value=str(material_config["cut_passes"]))
+                ET.SubElement(cs, "zOffset", Value="0")
+                ET.SubElement(cs, "perforate", Value="0")
+                ET.SubElement(cs, "overcut", Value="0")
+                ET.SubElement(cs, "tabsEnabled", Value="0")
+                
+            elif operation == "engrave":
+                ET.SubElement(cs, "runBlower", Value="1")
+                ET.SubElement(cs, "speed", Value=str(material_config["engrave_speed"]))
+                ET.SubElement(cs, "maxPower", Value=str(material_config["engrave_power"]))
+                ET.SubElement(cs, "minPower", Value=str(material_config["engrave_power"]))
+                ET.SubElement(cs, "perforate", Value="0")
+                ET.SubElement(cs, "overcut", Value="0")
+                ET.SubElement(cs, "priority", Value=layer_config["priority"])
+                
+            elif operation == "mark":
+                ET.SubElement(cs, "speed", Value=str(material_config["mark_speed"]))
+                ET.SubElement(cs, "maxPower", Value=str(material_config["mark_power"]))
+                ET.SubElement(cs, "minPower", Value=str(material_config["mark_power"]))
+                ET.SubElement(cs, "perforate", Value="0")
+    
+    def _add_rectangle(self, parent, element):
+        """Add rectangle shape to LightBurn XML"""
+        layer_idx = str(self.layer_settings[element['layer']]['index'])
+        
+        shape = ET.SubElement(parent, "Shape", Type="Path", CutIndex=layer_idx)
+        shape.text = "\n "
+        shape.tail = "\n "
+        
+        # Create rectangle vertices
+        x, y = element['x'], element['y']
+        w, h = element['width'], element['height']
+        
+        vertices = [
+            f"V{x:.3f} {y:.3f}c0x1c1x1",
+            f"V{x+w:.3f} {y:.3f}c0x1c1x1",
+            f"V{x+w:.3f} {y+h:.3f}c0x1c1x1", 
+            f"V{x:.3f} {y+h:.3f}c0x1c1x1"
+        ]
+        
+        vl = ET.SubElement(shape, "VertList")
+        vl.text = "".join(vertices)
+        vl.tail = "\n "
+        
+        pl = ET.SubElement(shape, "PrimList")
+        pl.text = "LineClosed"
+        pl.tail = "\n "
+    
+    def _add_text(self, parent, element):
+        """Add text shape to LightBurn XML"""
+        layer_idx = str(self.layer_settings[element['layer']]['index'])
+        
+        shape = ET.SubElement(parent, "Shape", {
+            'Type': "Text",
+            'CutIndex': layer_idx,
+            'Font': "Arial",
+            'H': f"{element['font_size']:.3f}",
+            'Str': element['text'],
+            'Bold': "0",
+            'Italic': "0",
+            'Ah': "0",  # Left align
+            'Av': "1"   # Bottom align
+        })
+        shape.text = "\n "
+        shape.tail = "\n "
+        
+        # Transform matrix for positioning
+        xf = ET.SubElement(shape, "XForm")
+        xf.text = f"1.000 0.000 0.000 1.000 {element['x']:.3f} {element['y']:.3f}"
+        xf.tail = "\n "
+    
+    def _add_enhanced_notes(self, root, metadata, material: str):
+        """Add enhanced metadata with material and settings info"""
+        material_config = self.material_settings.get(material, self.material_settings["1_16_cast_acrylic"])
+        
+        notes_text = "ArUCO Marker Generator - Optimized for Laser Cutting\n\n"
+        notes_text += "=== GENERATION SETTINGS ===\n"
+        for key, value in metadata.items():
+            notes_text += f"{key}: {value}\n"
+        
+        notes_text += f"\n=== MATERIAL SETTINGS ===\n"
+        notes_text += f"Material: {material_config['name']}\n"
+        notes_text += f"Description: {material_config['description']}\n"
+        notes_text += f"Thickness: 1/16\" (1.5875mm)\n\n"
+        
+        notes_text += f"=== RECOMMENDED LASER SETTINGS ===\n"
+        notes_text += f"Border Cut: {material_config['cut_speed']}mm/min @ {material_config['cut_power']}% power\n"
+        notes_text += f"Fill Engrave: {material_config['engrave_speed']}mm/min @ {material_config['engrave_power']}% power\n"
+        notes_text += f"Label Mark: {material_config['mark_speed']}mm/min @ {material_config['mark_power']}% power\n\n"
+        
+        notes_text += f"=== LAYER INFORMATION ===\n"
+        notes_text += f"Layer 00 (Black): ArUCO marker fill areas - ENGRAVE\n"
+        notes_text += f"Layer 01 (Blue): Border outlines - CUT\n"
+        notes_text += f"Layer T1 (Red): ID labels - MARK/ENGRAVE\n\n"
+        
+        notes_text += f"=== USAGE NOTES ===\n"
+        notes_text += f"• Use 1/16\" white/black 2-ply cast acrylic for best contrast\n"
+        notes_text += f"• Engrave black side up for white ArUCO markers\n"
+        notes_text += f"• Test settings on scrap material first\n"
+        notes_text += f"• Clean lens and mirrors before cutting\n"
+        notes_text += f"• Generated by ArUCO LightBurn Generator v1.0\n"
+        
+        notes = ET.SubElement(root, "Notes", ShowOnLoad="1", Notes=notes_text)
+        notes.text = ""
+        notes.tail = "\n"
+    
+    def get_material_info(self) -> Dict[str, Any]:
+        """Return material configuration info for UI"""
+        return self.material_settings
+```
+
+#### 2. Update `aruco_generator/web.py` - Add material info route:
+```python
+# Add this route after existing routes
+@app.route('/material_info')
+def get_material_info():
+    """Get material configuration information"""
+    from .lightburn import LightBurnExporter
+    exporter = LightBurnExporter()
+    return jsonify(exporter.get_material_info())
+```
+
+#### 3. Update `templates/index.html` - Add material info display in the info panel:
+```html
+<!-- Replace the existing info-panel div with this enhanced version -->
+<div id="info-panel" class="info-panel">
+    <h3>Generation Info</h3>
+    <div id="info-content">
+        <p>Configure parameters above and click Preview</p>
+    </div>
+    
+    <div class="material-info">
+        <h4>🔧 Material Settings</h4>
+        <div id="material-details">
+            <p><strong>Default:</strong> 1/16" White/Black 2-Ply Cast Acrylic</p>
+            <p><strong>Cut:</strong> 150mm/min @ 75% power</p>
+            <p><strong>Engrave:</strong> 800mm/min @ 45% power</p>
+            <p><strong>Mark:</strong> 1000mm/min @ 20% power</p>
+        </div>
+        <div class="material-note">
+            <small>💡 <strong>Tip:</strong> Engrave black side up for white markers</small>
+        </div>
+    </div>
+</div>
+```
+
+#### 4. Update `static/style.css` - Add material info styling:
+```css
+/* Add these styles to the end of the file */
+.material-info {
+    margin-top: 20px;
+    padding: 15px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 6px;
+    border-left: 4px solid #fd7e14;
+}
+
+.material-info h4 {
+    color: #fd7e14;
+    margin-bottom: 10px;
+    font-size: 1em;
+}
+
+.material-info p {
+    margin-bottom: 4px;
+    font-size: 13px;
+    color: #495057;
+}
+
+.material-info strong {
+    color: #212529;
+}
+
+.material-note {
+    margin-top: 10px;
+    padding: 8px;
+    background-color: #fff3cd;
+    border-radius: 4px;
+    border-left: 3px solid #ffc107;
+}
+
+.material-note small {
+    color: #856404;
+    font-size: 12px;
+}
+```
+
+### Expected Result:
+- All generated LightBurn files include optimized settings for 1/16" cast acrylic
+- Settings panel shows current material configuration
+- LightBurn files open with proper cut/engrave/mark settings pre-configured
+- Enhanced notes section provides complete material and usage guidance
+
+---
+
+## Prompt 3: Batch Export Features
+
+### Task: Implement batch generation for multiple ArUCO files with different ID ranges
+Add functionality to generate multiple LightBurn files with sequential ID ranges for large production runs.
+
+### Files to Modify:
+
+#### 1. Create new file `aruco_generator/batch.py`:
+```python
+import zipfile
+from io import BytesIO
+from typing import List, Dict, Any
+from .aruco import ArUCOGenerator
+from .drawing import DrawingContext
+from .lightburn import LightBurnExporter
+
+class BatchGenerator:
+    def __init__(self):
+        self.generator = ArUCOGenerator()
+        self.exporter = LightBurnExporter()
+    
+    def generate_batch_files(self, base_config: Dict[str, Any], 
+                           batch_size: int, markers_per_file: int) -> BytesIO:
+        """Generate multiple LightBurn files with sequential ID ranges"""
+        
+        zip_buffer = BytesIO()
+        
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            start_id = int(base_config.get('start_id', 0))
+            
+            for batch_num in range(batch_size):
+                # Calculate ID range for this file
+                file_start_id = start_id + (batch_num * markers_per_file)
+                file_end_id = file_start_id + markers_per_file - 1
+                
+                # Create file configuration
+                file_config = base_config.copy()
+                file_config['start_id'] = file_start_id
+                
+                # Calculate grid dimensions for markers_per_file
+                rows, cols = self._calculate_optimal_grid(markers_per_file)
+                file_config['rows'] = rows
+                file_config['cols'] = cols
+                
+                # Generate markers for this file
+                markers = self.generator.generate_grid(
+                    file_start_id,
+                    file_config['dictionary'],
+                    rows, cols,
+                    float(file_config['size_mm']),
+                    float(file_config['spacing_mm'])
+                )
+                
+                # Create drawing context
+                context = DrawingContext()
+                context.add_marker_grid(markers, 
+                                      include_borders=file_config.get('include_borders', True))
+                
+                if file_config.get('include_labels', True):
+                    context.add_text_labels(markers)
+                
+                # Generate metadata
+                metadata = {
+                    'Batch Number': f"{batch_num + 1} of {batch_size}",
+                    'Dictionary': file_config['dictionary'],
+                    'ID Range': f"{file_start_id}-{file_end_id}",
+                    'Grid Size': f"{rows}x{cols}",
+                    'Marker Size': f"{file_config['size_mm']}mm",
+                    'Spacing': f"{file_config['spacing_mm']}mm",
+                    'Total Markers': len(markers),
+                    'File Purpose': 'Batch Production'
+                }
+                
+                # Export to LightBurn
+                lbrn_file = self.exporter.export(context, metadata)
+                
+                # Add to ZIP with descriptive filename
+                filename = f"aruco_batch_{batch_num+1:03d}_ids_{file_start_id}-{file_end_id}_{rows}x{cols}.lbrn2"
+                zip_file.writestr(filename, lbrn_file.getvalue())
+            
+            # Add batch summary file
+            summary = self._generate_batch_summary(base_config, batch_size, markers_per_file)
+            zip_file.writestr("BATCH_SUMMARY.txt", summary)
+        
+        zip_buffer.seek(0)
+        return zip_buffer
+    
+    def generate_id_sequence_files(self, base_config: Dict[str, Any], 
+                                 id_ranges: List[Dict[str, int]]) -> BytesIO:
+        """Generate files with specific ID ranges"""
+        
+        zip_buffer = BytesIO()
+        
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            for i, id_range in enumerate(id_ranges):
+                start_id = id_range['start']
+                end_id = id_range['end']
+                markers_count = end_id - start_id + 1
+                
+                # Calculate optimal grid
+                rows, cols = self._calculate_optimal_grid(markers_count)
+                
+                # Generate markers
+                markers = self.generator.generate_grid(
+                    start_id,
+                    base_config['dictionary'],
+                    rows, cols,
+                    float(base_config['size_mm']),
+                    float(base_config['spacing_mm'])
+                )
+                
+                # Trim markers to exact count needed
+                markers = markers[:markers_count]
+                
+                # Create drawing context
+                context = DrawingContext()
+                context.add_marker_grid(markers,
+                                      include_borders=base_config.get('include_borders', True))
+                
+                if base_config.get('include_labels', True):
+                    context.add_text_labels(markers)
+                
+                # Generate metadata
+                metadata = {
+                    'File Number': f"{i + 1} of {len(id_ranges)}",
+                    'Dictionary': base_config['dictionary'],
+                    'ID Range': f"{start_id}-{end_id}",
+                    'Grid Size': f"{rows}x{cols}",
+                    'Marker Size': f"{base_config['size_mm']}mm",
+                    'Spacing': f"{base_config['spacing_mm']}mm",
+                    'Total Markers': len(markers),
+                    'File Purpose': 'Custom ID Range'
+                }
+                
+                # Export to LightBurn
+                lbrn_file = self.exporter.export(context, metadata)
+                
+                # Add to ZIP
+                filename = f"aruco_range_{start_id}-{end_id}_{rows}x{cols}.lbrn2"
+                zip_file.writestr(filename, lbrn_file.getvalue())
+        
+        zip_buffer.seek(0)
+        return zip_buffer
+    
+    def _calculate_optimal_grid(self, marker_count: int) -> tuple[int, int]:
+        """Calculate optimal rows/cols for given marker count"""
+        if marker_count == 1:
+            return 1, 1
+        
+        # Try to make as square as possible
+        rows = int(marker_count ** 0.5)
+        while marker_count % rows != 0:
+            rows -= 1
+        cols = marker_count // rows
+        
+        # Prefer landscape orientation
+        if rows > cols:
+            rows, cols = cols, rows
+            
+        return rows, cols
+    
+    def _generate_batch_summary(self, config: Dict[str, Any], 
+                              batch_size: int, markers_per_file: int) -> str:
+        """Generate batch summary documentation"""
+        total_markers = batch_size * markers_per_file
+        start_id = int(config.get('start_id', 0))
+        end_id = start_id + total_markers - 1
+        
+        summary = f"""ArUCO BATCH GENERATION SUMMARY
+==============================
+
+Generation Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+Generated by: ArUCO LightBurn Generator v1.0
+
+BATCH CONFIGURATION:
+- Dictionary: {config['dictionary']}
+- Total Files: {batch_size}
+- Markers per File: {markers_per_file}
+- Total Markers: {total_markers}
+- ID Range: {start_id} to {end_id}
+- Marker Size: {config['size_mm']}mm
+- Spacing: {config['spacing_mm']}mm
+- Include Borders: {config.get('include_borders', True)}
+- Include Labels: {config.get('include_labels', True)}
+
+FILE LIST:
+"""
+        
+        for i in range(batch_size):
+            file_start = start_id + (i * markers_per_file)
+            file_end = file_start + markers_per_file - 1
+            rows, cols = self._calculate_optimal_grid(markers_per_file)
+            
+            summary += f"  {i+1:3d}. aruco_batch_{i+1:03d}_ids_{file_start}-{file_end}_{rows}x{cols}.lbrn2\n"
+        
+        summary += f"""
+MATERIAL SETTINGS:
+- Optimized for 1/16" White/Black 2-Ply Cast Acrylic
+- Cut: 150mm/min @ 75% power
+- Engrave: 800mm/min @ 45% power
+- Mark: 1000mm/min @ 20% power
+
+PRODUCTION NOTES:
+- Test settings on scrap material first
+- Engrave black side up for white markers
+- Clean laser optics before production run
+- Verify ArUCO detection with test scan
+- Store completed markers in anti-static bags
+
+For support: ArUCO LightBurn Generator Documentation
+"""
+        return summary
+```
+
+#### 2. Update `aruco_generator/web.py` - Add batch routes:
+```python
+# Add these imports at the top
+from .batch import BatchGenerator
+from datetime import datetime
+
+# Add these routes after existing routes
+@app.route('/batch_generate', methods=['POST'])
+def batch_generate():
+    """Generate batch of ArUCO files with sequential IDs"""
+    try:
+        data = request.json
+        
+        # Extract batch parameters
+        batch_size = int(data.get('batch_size', 5))
+        markers_per_file = int(data.get('markers_per_file', 10))
+        
+        # Validate batch parameters
+        if batch_size < 1 or batch_size > 50:
+            return jsonify({'error': 'Batch size must be between 1 and 50'}), 400
+        if markers_per_file < 1 or markers_per_file > 100:
+            return jsonify({'error': 'Markers per file must be between 1 and 100'}), 400
+        
+        # Generate batch
+        batch_generator = BatchGenerator()
+        zip_file = batch_generator.generate_batch_files(data, batch_size, markers_per_file)
+        
+        # Calculate total info
+        total_markers = batch_size * markers_per_file
+        start_id = int(data.get('start_id', 0))
+        end_id = start_id + total_markers - 1
+        
+        filename = f"aruco_batch_{batch_size}files_ids_{start_id}-{end_id}.zip"
+        
+        return send_file(
+            zip_file,
+            mimetype='application/zip',
+            as_attachment=True,
+            download_name=filename
+        )
+        
+    except Exception as e:
+        return jsonify({'error': str(e), 'traceback': traceback.format_exc()}), 500
+
+@app.route('/custom_ranges_generate', methods=['POST'])
+def custom_ranges_generate():
+    """Generate files with custom ID ranges"""
+    try:
+        data = request.json
+        id_ranges = data.get('id_ranges', [])
+        
+        if not id_ranges or len(id_ranges) > 20:
+            return jsonify({'error': 'Must specify 1-20 ID ranges'}), 400
+        
+        # Validate ranges
+        for range_data in id_ranges:
+            start = range_data.get('start', 0)
+            end = range_data.get('end', 0)
+            if start >= end or end - start > 100:
+                return jsonify({'error': f'Invalid range {start}-{end}'}), 400
+        
+        # Generate files
+        batch_generator = BatchGenerator()
+        zip_file = batch_generator.generate_id_sequence_files(data, id_ranges)
+        
+        filename = f"aruco_custom_ranges_{len(id_ranges)}files.zip"
+        
+        return send_file(
+            zip_file,
+            mimetype='application/zip',
+            as_attachment=True,
+            download_name=filename
+        )
+        
+    except Exception as e:
+        return jsonify({'error': str(e), 'traceback': traceback.format_exc()}), 500
+```
+
+#### 3. Update `templates/index.html` - Add batch section after button-group:
+```html
+<!-- Add this section after the existing button-group div -->
+<div class="batch-section">
+    <h4>🚀 Batch Generation</h4>
+    
+    <div class="batch-option">
+        <h5>Sequential Batch</h5>
+        <p>Generate multiple files with sequential ID ranges</p>
+        <div class="batch-controls">
+            <div class="batch-input-group">
+                <label for="batch_size">Number of Files:</label>
+                <input type="number" id="batch_size" value="5" min="1" max="50">
+            </div>
+            <div class="batch-input-group">
+                <label for="markers_per_file">Markers per File:</label>
+                <input type="number" id="markers_per_file" value="10" min="1" max="100">
+            </div>
+            <button type="button" id="batch-download-btn" class="btn btn-warning">
+                📦 Download Batch ZIP
+            </button>
+        </div>
+    </div>
+    
+    <div class="batch-option">
+        <h5>Custom ID Ranges</h5>
+        <p>Generate files with specific ID ranges</p>
+        <div class="custom-ranges-controls">
+            <div id="custom-ranges-list">
+                <div class="custom-range-item">
+                    <input type="number" class="range-start" placeholder="Start ID" value="0" min="0">
+                    <span>to</span>
+                    <input type="number" class="range-end" placeholder="End ID" value="9" min="0">
+                    <button type="button" class="remove-range-btn">❌</button>
+                </div>
+            </div>
+            <button type="button" id="add-range-btn" class="btn btn-secondary btn-small">
+                ➕ Add Range
+            </button>
+            <button type="button" id="custom-ranges-download-btn" class="btn btn-warning">
+                📦 Download Custom ZIP
+            </button>
+        </div>
+    </div>
+</div>
+```
+
+#### 4. Update `static/style.css` - Add batch styling:
+```css
+/* Add to end of file */
+.batch-section {
+    margin-top: 30px;
+    padding: 25px;
+    background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
+    border-radius: 10px;
+    border: 2px solid #28a745;
+}
+
+.batch-section h4 {
+    color: #155724;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.batch-option {
+    margin-bottom: 25px;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    border-left: 4px solid #28a745;
+}
+
+.batch-option h5 {
+    color: #155724;
+    margin-bottom: 8px;
+}
+
+.batch-option p {
+    color: #6c757d;
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+.batch-controls {
+    display: flex;
+    gap: 15px;
+    align-items: end;
+    flex-wrap: wrap;
+}
+
+.batch-input-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 120px;
+}
+
+.batch-input-group label {
+    font-size: 13px;
+    color: #495057;
+    margin-bottom: 5px;
+}
+
+.batch-input-group input {
+    padding: 8px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.btn-warning {
+    background-color: #ffc107;
+    color: #212529;
+    font-weight: 600;
+}
+
+.btn-warning:hover {
+    background-color: #e0a800;
+    transform: translateY(-2px);
+}
+
+.btn-small {
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+.custom-ranges-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.custom-range-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.custom-range-item input {
+    width: 100px;
+    padding: 6px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+}
+
+.remove-range-btn {
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    opacity: 0.7;
+}
+
+.remove-range-btn:hover {
+    opacity: 1;
+}
+
+#custom-ranges-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+```
+
+#### 5. Update `static/app.js` - Add batch functionality:
+```javascript
+// Add these methods to the ArUCOGenerator class
+
+initializeBatchFeatures() {
+    // Sequential batch download
+    document.getElementById('batch-download-btn').addEventListener('click', () => {
+        this.downloadBatch();
+    });
+    
+    // Custom ranges
+    document.getElementById('add-range-btn').addEventListener('click', () => {
+        this.addCustomRange();
+    });
+    
+    document.getElementById('custom-ranges-download-btn').addEventListener('click', () => {
+        this.downloadCustomRanges();
+    });
+    
+    // Remove range handlers
+    this.updateRemoveRangeHandlers();
+}
+
+addCustomRange() {
+    const container = document.getElementById('custom-ranges-list');
+    const rangeItem = document.createElement('div');
+    rangeItem.className = 'custom-range-item';
+    rangeItem.innerHTML = `
+        <input type="number" class="range-start" placeholder="Start ID" value="0" min="0">
+        <span>to</span>
+        <input type="number" class="range-end" placeholder="End ID" value="9" min="0">
+        <button type="button" class="remove-range-btn">❌</button>
+    `;
+    container.appendChild(rangeItem);
+    this.updateRemoveRangeHandlers();
+}
+
+updateRemoveRangeHandlers() {
+    document.querySelectorAll('.remove-range-btn').forEach(btn => {
+        btn.onclick = (e) => {
+            if (document.querySelectorAll('.custom-range-item').length > 1) {
+                e.target.parentElement.remove();
+            }
+        };
+    });
+}
+
+async downloadBatch() {
+    const data = this.getFormData();
+    data.batch_size = parseInt(document.getElementById('batch_size').value);
+    data.markers_per_file = parseInt(document.getElementById('markers_per_file').value);
+    
+    this.showLoading();
+    
+    try {
+        const response = await fetch('/batch_generate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to generate batch');
+        }
+        
+        // Download ZIP file
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `aruco_batch_${data.batch_size}files.zip`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        this.hideLoading();
+        this.showSuccessMessage(`Batch of ${data.batch_size} files downloaded successfully!`);
+        
+    } catch (error) {
+        console.error('Batch download error:', error);
+        this.showError(error.message);
+    }
+}
+
+async downloadCustomRanges() {
+    const data = this.getFormData();
+    
+    // Collect custom ranges
+    const ranges = [];
+    document.querySelectorAll('.custom-range-item').forEach(item => {
+        const start = parseInt(item.querySelector('.range-start').value);
+        const end = parseInt(item.querySelector('.range-end').value);
+        if (start < end) {
+            ranges.push({start, end});
+        }
+    });
+    
+    if (ranges.length === 0) {
+        this.showError('Please specify at least one valid range');
+        return;
+    }
+    
+    data.id_ranges = ranges;
+    
+    this.showLoading();
+    
+    try {
+        const response = await fetch('/custom_ranges_generate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to generate custom ranges');
+        }
+        
+        // Download ZIP file
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `aruco_custom_ranges_${ranges.length}files.zip`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        this.hideLoading();
+        this.showSuccessMessage(`Custom ranges ZIP with ${ranges.length} files downloaded!`);
+        
+    } catch (error) {
+        console.error('Custom ranges download error:', error);
+        this.showError(error.message);
+    }
+}
+
+// Update constructor to initialize batch features
+constructor() {
+    // ... existing code ...
+    this.initializeBatchFeatures(); // Add this line
+}
+```
+
+### Expected Result:
+- Batch section appears below main controls
+- Users can generate 1-50 files with sequential IDs
+- Custom range option allows specific ID combinations
+- ZIP files contain multiple .lbrn2 files plus summary documentation
+- All files include proper material settings and metadata
+
+---
+
+## Prompt 4: Enhanced Validation & Error Handling
+
+### Task: Implement comprehensive validation and user-friendly error handling
+Add robust validation for all user inputs, dictionary limits, and provide helpful error messages with suggestions for fixes.
+
+### Files to Modify:
+
+#### 1. Update `aruco_generator/aruco.py` - Add validation methods:
+```python
+# Add these imports at the top
+from typing import Dict, List, Union, Optional
+
+# Add these methods to the ArUCOGenerator class
+def validate_parameters(self, dict_name: str, start_id: int, 
+                       rows: int, cols: int, size_mm: float, 
+                       spacing_mm: float) -> Dict[str, Union[List[str], bool]]:
+    """Comprehensive parameter validation with detailed feedback"""
+    errors = []
+    warnings = []
+    suggestions = []
+    
+    # Dictionary validation
+    if dict_name not in self.dictionaries:
+        errors.append(f"Unknown dictionary '{dict_name}'")
+        suggestions.append("Choose from: " + ", ".join(self.dictionaries.keys()))
+    else:
+        dict_info = self.get_dictionary_info()[dict_name]
+        max_markers = dict_info['max_markers']
+        total_markers = rows * cols
+        
+        # ID range validation
+        if start_id < 0:
+            errors.append("Start ID cannot be negative")
+            suggestions.append("Use a start ID of 0 or higher")
+        
+        if start_id + total_markers > max_markers:
+            errors.append(f"ID range {start_id}-{start_id + total_markers - 1} exceeds dictionary limit ({max_markers})")
+            max_possible = max_markers - start_id
+            if max_possible > 0:
+                suggestions.append(f"Maximum markers with start ID {start_id}: {max_possible}")
+                optimal_grid = self._suggest_optimal_grid(max_possible)
+                if optimal_grid:
+                    suggestions.append(f"Suggested grid: {optimal_grid[0]}×{optimal_grid[1]}")
+            else:
+                suggestions.append(f"Lower start ID to maximum of {max_markers - 1}")
+        
+        # Warn about large grids
+        if total_markers > 100:
+            warnings.append(f"Large grid ({total_markers} markers) may take longer to process")
+        
+        if total_markers > 200:
+            warnings.append("Very large grids may cause browser performance issues")
+            suggestions.append("Consider using batch generation for large quantities")
+    
+    # Grid size validation
+    if rows < 1 or rows > 50:
+        errors.append("Rows must be between 1 and 50")
+    if cols < 1 or cols > 50:
+        errors.append("Columns must be between 1 and 50")
+    
+    # Size validation
+    if size_mm < 1:
+        errors.append("Marker size must be at least 1mm")
+        suggestions.append("Recommended minimum: 5mm for reliable scanning")
+    elif size_mm < 5:
+        warnings.append("Small markers (<5mm) may be difficult to scan")
+        suggestions.append("Consider 10mm+ for mobile phone scanning")
+    
+    if size_mm > 200:
+        errors.append("Marker size cannot exceed 200mm")
+    elif size_mm > 100:
+        warnings.append("Large markers (>100mm) use significant material")
+    
+    # Spacing validation
+    if spacing_mm < 0:
+        errors.append("Spacing cannot be negative")
+    elif spacing_mm > 100:
+        errors.append("Spacing cannot exceed 100mm")
+    elif spacing_mm < 1 and rows * cols > 1:
+        warnings.append("Very small spacing may cause cutting issues")
+        suggestions.append("Recommended minimum: 2mm spacing for clean cuts")
+    
+    # Material optimization suggestions
+    total_width = cols * size_mm + (cols - 1) * spacing_mm
+    total_height = rows * size_mm + (rows - 1) * spacing_mm
+    
+    if total_width > 300 or total_height > 300:
+        warnings.append(f"Large total size ({total_width:.1f}×{total_height:.1f}mm)")
+        suggestions.append("Verify material sheet size before cutting")
+    
+    # Efficiency suggestions
+    if rows * cols > 1:
+        efficiency = self._calculate_material_efficiency(rows, cols, size_mm, spacing_mm)
+        if efficiency < 0.5:
+            suggestions.append(f"Material efficiency: {efficiency:.1%} - consider optimizing grid layout")
+    
+    return {
+        'errors': errors,
+        'warnings': warnings,
+        'suggestions': suggestions,
+        'valid': len(errors) == 0,
+        'error_count': len(errors),
+        'warning_count': len(warnings)
+    }
+
+def validate_batch_parameters(self, batch_size: int, markers_per_file: int, 
+                            base_config: Dict) -> Dict[str, Union[List[str], bool]]:
+    """Validate batch generation parameters"""
+    errors = []
+    warnings = []
+    suggestions = []
+    
+    # Batch size validation
+    if batch_size < 1:
+        errors.append("Batch size must be at least 1")
+    elif batch_size > 50:
+        errors.append("Batch size cannot exceed 50 files")
+        suggestions.append("Use multiple smaller batches for very large quantities")
+    elif batch_size > 20:
+        warnings.append("Large batches may take several minutes to generate")
+    
+    # Markers per file validation
+    if markers_per_file < 1:
+        errors.append("Markers per file must be at least 1")
+    elif markers_per_file > 100:
+        errors.append("Markers per file cannot exceed 100")
+        suggestions.append("Consider smaller files for easier handling")
+    elif markers_per_file > 50:
+        warnings.append("Large files may be difficult to manage")
+    
+    # Total markers validation
+    total_markers = batch_size * markers_per_file
+    start_id = int(base_config.get('start_id', 0))
+    dict_name = base_config.get('dictionary', '4X4_50')
+    
+    if dict_name in self.dictionaries:
+        max_markers = self.get_dictionary_info()[dict_name]['max_markers']
+        if start_id + total_markers > max_markers:
+            errors.append(f"Total ID range ({start_id}-{start_id + total_markers - 1}) exceeds dictionary limit ({max_markers})")
+            max_possible_total = max_markers - start_id
+            if max_possible_total > 0:
+                max_batch_size = max_possible_total // markers_per_file
+                suggestions.append(f"Maximum batch size with {markers_per_file} markers/file: {max_batch_size}")
+            else:
+                suggestions.append(f"Reduce start ID to maximum of {max_markers - total_markers}")
+    
+    # Resource warnings
+    if total_markers > 500:
+        warnings.append(f"Very large batch ({total_markers} total markers)")
+        suggestions.append("Consider processing in smaller batches")
+    
+    return {
+        'errors': errors,
+        'warnings': warnings, 
+        'suggestions': suggestions,
+        'valid': len(errors) == 0,
+        'total_markers': total_markers
+    }
+
+def _suggest_optimal_grid(self, marker_count: int) -> Optional[tuple[int, int]]:
+    """Suggest optimal grid dimensions for marker count"""
+    if marker_count < 1:
+        return None
+    
+    # Find factors close to square
+    best_ratio = float('inf')
+    best_grid = None
+    
+    for rows in range(1, min(marker_count + 1, 21)):
+        if marker_count % rows == 0:
+            cols = marker_count // rows
+            if cols <= 50:  # Max columns limit
+                ratio = max(rows, cols) / min(rows, cols)
+                if ratio < best_ratio:
+                    best_ratio = ratio
+                    best_grid = (rows, cols)
+    
+    return best_grid
+
+def _calculate_material_efficiency(self, rows: int, cols: int, 
+                                 size_mm: float, spacing_mm: float) -> float:
+    """Calculate material usage efficiency"""
+    total_width = cols * size_mm + (cols - 1) * spacing_mm
+    total_height = rows * size_mm + (rows - 1) * spacing_mm
+    total_area = total_width * total_height
+    
+    marker_area = rows * cols * size_mm * size_mm
+    
+    return marker_area / total_area if total_area > 0 else 0
+
+def get_dictionary_recommendations(self, use_case: str = "general") -> Dict[str, str]:
+    """Get dictionary recommendations for different use cases"""
+    recommendations = {
+        "general": "4X4_50 - Good balance of simplicity and variety",
+        "high_density": "6X6_250 - Maximum marker variety for large projects", 
+        "simple_tracking": "4X4_100 - Simple patterns, adequate variety",
+        "mobile_scanning": "5X5_50 - Good size for mobile phone cameras",
+        "industrial": "6X6_1000 - Maximum reliability and variety",
+        "prototyping": "4X4_50 - Quick and easy for testing"
+    }
+    return recommendations
+```
+
+#### 2. Update `aruco_generator/web.py` - Add validation endpoints and middleware:
+```python
+# Add these imports
+import logging
+from functools import wraps
+
+# Add validation middleware decorator
+def validate_request(validation_func):
+    """Decorator to validate request data"""
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            try:
+                data = request.json
+                validation_result = validation_func(data)
+                
+                if not validation_result['valid']:
+                    return jsonify({
+                        'error': 'Validation failed',
+                        'validation': validation_result
+                    }), 400
+                
+                # Add warnings to response if any
+                if validation_result.get('warnings'):
+                    # Store warnings in request context for later use
+                    request.validation_warnings = validation_result['warnings']
+                
+                return f(*args, **kwargs)
+                
+            except Exception as e:
+                logging.error(f"Validation error: {str(e)}")
+                return jsonify({
+                    'error': 'Validation error',
+                    'details': str(e)
+                }), 500
+        return wrapper
+    return decorator
+
+def validate_preview_data(data):
+    """Validate data for preview generation"""
+    generator = ArUCOGenerator()
+    return generator.validate_parameters(
+        data.get('dictionary', '4X4_50'),
+        int(data.get('start_id', 0)),
+        int(data.get('rows', 1)),
+        int(data.get('cols', 1)),
+        float(data.get('size_mm', 20)),
+        float(data.get('spacing_mm', 5))
+    )
+
+def validate_batch_data(data):
+    """Validate data for batch generation"""
+    generator = ArUCOGenerator()
+    return generator.validate_batch_parameters(
+        int(data.get('batch_size', 5)),
+        int(data.get('markers_per_file', 10)),
+        data
+    )
+
+# Add new validation endpoint
+@app.route('/validate', methods=['POST'])
+def validate_parameters():
+    """Validate parameters without generating output"""
+    try:
+        data = request.json
+        generator = ArUCOGenerator()
+        
+        validation_result = generator.validate_parameters(
+            data.get('dictionary', '4X4_50'),
+            int(data.get('start_id', 0)),
+            int(data.get('rows', 1)),
+            int(data.get('cols', 1)),
+            float(data.get('size_mm', 20)),
+            float(data.get('spacing_mm', 5))
+        )
+        
+        return jsonify(validation_result)
+        
+    except Exception as e:
+        return jsonify({
+            'error': 'Validation failed',
+            'details': str(e),
+            'valid': False
+        }), 500
+
+# Update existing routes to use validation
+@validate_request(validate_preview_data)
+@app.route('/preview', methods=['POST'])
+def preview():
+    """Generate SVG preview of ArUCO markers with validation"""
+    try:
+        data = request.json
+        
+        # ... existing preview code ...
+        
+        # Add warnings to response if present
+        response_data = {
+            'svg': context.get_svg(),
+            'width': total_width,
+            'height': total_height,
+            'markers_count': len(markers)
+        }
+        
+        if hasattr(request, 'validation_warnings'):
+            response_data['warnings'] = request.validation_warnings
+        
+        return jsonify(response_data)
+        
+    except Exception as e:
+        return jsonify({
+            'error': str(e), 
+            'traceback': traceback.format_exc(),
+            'user_message': 'Failed to generate preview. Please check your parameters.'
+        }), 500
+
+@validate_request(validate_batch_data)
+@app.route('/batch_generate', methods=['POST'])
+def batch_generate():
+    """Generate batch with validation"""
+    # ... existing batch code with validation applied ...
+    pass
+
+# Add recommendation endpoint
+@app.route('/recommendations/<use_case>')
+def get_recommendations(use_case):
+    """Get recommendations for specific use cases"""
+    generator = ArUCOGenerator()
+    recommendations = generator.get_dictionary_recommendations(use_case)
+    
+    return jsonify({
+        'use_case': use_case,
+        'recommendation': recommendations.get(use_case, recommendations['general']),
+        'all_recommendations': recommendations
+    })
+```
+
+#### 3. Update `static/app.js` - Add real-time validation:
+```javascript
+// Add these methods to the ArUCOGenerator class
+
+initializeValidation() {
+    // Real-time validation on input changes
+    const inputs = this.form.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        input.addEventListener('input', () => {
+            this.debounceValidation();
+        });
+        
+        input.addEventListener('blur', () => {
+            this.validateCurrentParameters();
+        });
+    });
+    
+    // Create validation display area
+    this.createValidationDisplay();
+}
+
+createValidationDisplay() {
+    const validationDiv = document.createElement('div');
+    validationDiv.id = 'validation-display';
+    validationDiv.className = 'validation-display';
+    
+    const formPanel = document.querySelector('.form-panel');
+    formPanel.insertBefore(validationDiv, document.getElementById('info-panel'));
+}
+
+debounceValidation() {
+    clearTimeout(this.validationTimeout);
+    this.validationTimeout = setTimeout(() => {
+        this.validateCurrentParameters();
+    }, 500);
+}
+
+async validateCurrentParameters() {
+    const data = this.getFormData();
+    
+    try {
+        const response = await fetch('/validate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        
+        const validation = await response.json();
+        this.displayValidationResults(validation);
+        
+        // Enable/disable buttons based on validation
+        this.updateButtonStates(validation.valid);
+        
+    } catch (error) {
+        console.error('Validation error:', error);
+    }
+}
+
+displayValidationResults(validation) {
+    const display = document.getElementById('validation-display');
+    
+    if (!validation.valid || validation.warnings?.length > 0) {
+        display.style.display = 'block';
+        
+        let html = '';
+        
+        // Show errors
+        if (validation.errors?.length > 0) {
+            html += `<div class="validation-errors">
+                <h5>❌ Errors (${validation.errors.length})</h5>
+                <ul>`;
+            validation.errors.forEach(error => {
+                html += `<li>${error}</li>`;
+            });
+            html += '</ul></div>';
+        }
+        
+        // Show warnings
+        if (validation.warnings?.length > 0) {
+            html += `<div class="validation-warnings">
+                <h5>⚠️ Warnings (${validation.warnings.length})</h5>
+                <ul>`;
+            validation.warnings.forEach(warning => {
+                html += `<li>${warning}</li>`;
+            });
+            html += '</ul></div>';
+        }
+        
+        // Show suggestions
+        if (validation.suggestions?.length > 0) {
+            html += `<div class="validation-suggestions">
+                <h5>💡 Suggestions</h5>
+                <ul>`;
+            validation.suggestions.forEach(suggestion => {
+                html += `<li>${suggestion}</li>`;
+            });
+            html += '</ul></div>';
+        }
+        
+        display.innerHTML = html;
+    } else {
+        display.style.display = 'none';
+    }
+}
+
+updateButtonStates(isValid) {
+    this.previewBtn.disabled = !isValid;
+    this.downloadBtn.disabled = !isValid;
+    
+    const batchBtn = document.getElementById('batch-download-btn');
+    const customBtn = document.getElementById('custom-ranges-download-btn');
+    
+    if (batchBtn) batchBtn.disabled = !isValid;
+    if (customBtn) customBtn.disabled = !isValid;
+}
+
+showDetailedError(error, context = '') {
+    let errorMessage = error.message || error;
+    
+    // Add context-specific help
+    if (errorMessage.includes('dictionary limit')) {
+        errorMessage += '\n\n💡 Try reducing the grid size or using a larger dictionary (e.g., 6X6_250).';
+    } else if (errorMessage.includes('size')) {
+        errorMessage += '\n\n💡 Recommended marker sizes: 10-50mm for most applications.';
+    } else if (errorMessage.includes('spacing')) {
+        errorMessage += '\n\n💡 Minimum 2mm spacing recommended for clean laser cutting.';
+    }
+    
+    if (context) {
+        errorMessage = `${context}: ${errorMessage}`;
+    }
+    
+    this.errorDiv.innerHTML = `
+        <div class="error-content">
+            <h5>❌ Error</h5>
+            <p>${errorMessage.replace(/\n/g, '<br>')}</p>
+            <button onclick="this.parentElement.parentElement.style.display='none'" 
+                    class="error-dismiss">Dismiss</button>
+        </div>
+    `;
+    this.errorDiv.style.display = 'block';
+}
+
+// Update constructor
+constructor() {
+    // ... existing code ...
+    this.initializeValidation(); // Add this line
+    this.validationTimeout = null;
+}
+```
+
+#### 4. Update `static/style.css` - Add validation styling:
+```css
+/* Add to end of file */
+.validation-display {
+    display: none;
+    margin: 20px 0;
+    padding: 20px;
+    border-radius: 8px;
+    background: #fff;
+    border: 2px solid #e9ecef;
+}
+
+.validation-errors {
+    margin-bottom: 15px;
+    padding: 15px;
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 6px;
+    color: #721c24;
+}
+
+.validation-warnings {
+    margin-bottom: 15px;
+    padding: 15px;
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 6px;
+    color: #856404;
+}
+
+.validation-suggestions {
+    margin-bottom: 15px;
+    padding: 15px;
+    background: #d1ecf1;
+    border: 1px solid #bee5eb;
+    border-radius: 6px;
+    color: #0c5460;
+}
+
+.validation-errors h5,
+.validation-warnings h5,
+.validation-suggestions h5 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.validation-display ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.validation-display li {
+    margin-bottom: 5px;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.error-message {
+    position: relative;
+}
+
+.error-content {
+    padding: 15px;
+}
+
+.error-content h5 {
+    margin: 0 0 10px 0;
+    color: #721c24;
+}
+
+.error-content p {
+    margin: 0 0 15px 0;
+    line-height: 1.5;
+}
+
+.error-dismiss {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.error-dismiss:hover {
+    background: #c82333;
+}
+
+/* Button state styling */
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.btn:disabled:hover {
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Validation status indicators */
+.form-group.error input,
+.form-group.error select {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.form-group.warning input,
+.form-group.warning select {
+    border-color: #ffc107;
+    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+}
+
+.form-group.valid input,
+.form-group.valid select {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+```
+
+### Expected Result:
+- Real-time validation appears as users type
+- Clear error messages with specific suggestions
+- Buttons disabled when parameters are invalid
+- Comprehensive warnings for edge cases
+- Helpful recommendations for common use cases
+- Detailed error context for troubleshooting
+
+**IMPLEMENTATION ORDER**: Implement these prompts in sequence (1→2→3→4) as each builds upon the previous functionality. Test each feature thoroughly before proceeding to the next.
