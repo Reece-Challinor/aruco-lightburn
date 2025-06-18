@@ -1,70 +1,35 @@
-# Commit Summary: Production ArUCO Generator
-
-## Major Enhancements Completed
-
-### ✅ Advanced Tab Functionality
-- Fixed API response format with proper `dimensions` field
-- Enhanced UI with OpenCV ArUCO standards categorization
-- Real-time validation with marker range checking
-- Size presets (25mm, 50mm, 100mm, 2 inches)
-- Live marker count updates and ID range display
-
-### ✅ Comprehensive Error Handling
-- Frontend error logging to `/api/log-error` endpoint
-- Backend error logging to `debug_logs.txt`
-- Global error handlers for unhandled exceptions
-- Real-time form validation with visual feedback
-
-### ✅ AI Agent Debugging System
-- `debug_monitor.sh` script for system diagnostics
-- Comprehensive API endpoint testing
-- Error log aggregation for troubleshooting
-- Status endpoint at `/api/debug/status`
-
-### ✅ OpenCV ArUCO Standards Compliance
-- Dictionary categorization (4x4, 5x5, 6x6, 7x7, AprilTag)
-- Proper marker ID validation against dictionary limits
-- Professional UI grouping and layout
-- Real-time parameter updates
-
-### ✅ Production Ready
-- MIT License for maximum openness
-- Comprehensive documentation (README, SETUP, AI_DEBUGGING)
-- Professional badges and clean repository structure
-- One-command setup and deployment
+# Commit Summary: ArUCO Preview Optimization v1.1.0
 
 ## Fixed Issues
+- **JSON Parsing Error**: Resolved "unexpected end of data" errors in advanced preview
+- **Performance**: Eliminated API timeouts through optimized ArUCO rendering
+- **Preview Quality**: Advanced mode now displays actual ArUCO QR codes instead of placeholders
 
-1. **Advanced tab preview not working** - Fixed API response format
-2. **Quick test download error** - Corrected endpoint URL mismatch
-3. **Missing error messages** - Added comprehensive error handling
-4. **Form validation** - Real-time validation with visual feedback
-5. **Documentation** - Professional, simple, AI-agent friendly
+## Technical Changes
 
-## Repository Structure
+### Core Optimizations
+- **Preview Rendering**: Uses 10px base resolution with 2px pixel sampling for fast preview generation
+- **Export Quality**: Maintains full 200px resolution for laser cutting precision
+- **API Performance**: Direct SVG generation eliminates complex drawing context overhead
 
-```
-aruco-generator/
-├── README.md              # Simple, professional landing page
-├── LICENSE                # MIT License
-├── SETUP.md               # One-command setup instructions
-├── AI_DEBUGGING.md        # Comprehensive debugging guide
-├── COMMIT_SUMMARY.md      # This summary
-├── debug_monitor.sh       # System diagnostics script
-├── app.py                 # Flask configuration with AI documentation
-├── main.py                # Application entry point
-├── aruco_generator/       # Core ArUCO generation modules
-├── static/app.js          # Enhanced frontend with error handling
-└── templates/index.html   # Advanced mode UI
-```
+### Code Changes
+- `aruco_generator/web.py`: Optimized preview endpoint with efficient ArUCO-to-SVG conversion
+- `aruco_generator/aruco.py`: Added `generate_images` parameter for preview/export differentiation
+- `aruco_generator/drawing.py`: Enhanced with preview-specific rendering methods
 
-## Ready for Production
+### Documentation Updates
+- `README.md`: Updated features and performance sections
+- `SETUP.md`: Added performance optimization notes
+- `AI_DEBUGGING.md`: Documented v1.1.0 fixes and troubleshooting
+- `pyproject.toml`: Version bump to 1.1.0 with updated description
 
-- All API endpoints tested and working
-- Frontend and backend error handling implemented
-- Real-time validation and user feedback
-- OpenCV ArUCO standards compliance
-- Comprehensive debugging tools for AI agents
-- Professional documentation and licensing
+## Test Results
+- ✅ Advanced preview shows real ArUCO QR codes
+- ✅ No JSON parsing errors
+- ✅ Fast response times (<1 second)
+- ✅ Proper dimensions and marker counts
+- ✅ Full export functionality maintained
 
-**Status: Ready for deployment and open source distribution**
+## Version: 1.1.0
+**Status**: Production Ready  
+**Performance**: Optimized for real-time preview with laser cutting precision
