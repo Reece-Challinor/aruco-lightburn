@@ -151,6 +151,76 @@ def download_lightburn():
     except Exception as e:
         return jsonify({'error': f'Unexpected error: {str(e)}'}), 500
 
+@app.route('/api/presets')
+def get_presets():
+    """Get common preset configurations"""
+    return jsonify({
+        "business_cards": {
+            "name": "Business Cards",
+            "description": "Small markers for business cards",
+            "dictionary": "4X4_50",
+            "rows": 2,
+            "cols": 5,
+            "size_mm": 15,
+            "spacing_mm": 3,
+            "include_borders": True,
+            "include_labels": False
+        },
+        "inventory_tags": {
+            "name": "Inventory Tags", 
+            "description": "Medium markers for inventory management",
+            "dictionary": "4X4_100",
+            "rows": 5,
+            "cols": 10,
+            "size_mm": 10,
+            "spacing_mm": 2,
+            "include_borders": True,
+            "include_labels": True
+        },
+        "large_markers": {
+            "name": "Large Display Markers",
+            "description": "Large markers for wall displays",
+            "dictionary": "6X6_50",
+            "rows": 1,
+            "cols": 1,
+            "size_mm": 50,
+            "spacing_mm": 10,
+            "include_borders": True,
+            "include_labels": True
+        },
+        "test_sheet": {
+            "name": "Test Sheet",
+            "description": "Standard test grid",
+            "dictionary": "4X4_50",
+            "rows": 3,
+            "cols": 3,
+            "size_mm": 20,
+            "spacing_mm": 5,
+            "include_borders": True,
+            "include_labels": True
+        },
+        "production_run": {
+            "name": "Production Run",
+            "description": "Large batch for production",
+            "dictionary": "5X5_250",
+            "rows": 10,
+            "cols": 10,
+            "size_mm": 8,
+            "spacing_mm": 1,
+            "include_borders": False,
+            "include_labels": False
+        }
+    })
+
+@app.route('/api/apply_preset/<preset_name>')
+def apply_preset(preset_name):
+    """Apply a specific preset configuration"""
+    presets_response = get_presets()
+    presets = presets_response.get_json()
+    if preset_name in presets:
+        return jsonify({"success": True, "preset": presets[preset_name]})
+    return jsonify({"success": False, "error": "Preset not found"}), 404
+
 @app.route('/api/quick-test', methods=['POST'])
 def generate_quick_test():
     """Generate quick test: 2 ArUCO codes (2" x 2") stacked vertically with outer border"""

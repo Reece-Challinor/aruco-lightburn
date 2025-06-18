@@ -5,6 +5,7 @@ class ArUCOGenerator {
         this.initializeElements();
         this.attachEventListeners();
         this.loadDictionaries();
+        this.loadPresets();
         console.log('ArUCO Generator initialized');
     }
 
