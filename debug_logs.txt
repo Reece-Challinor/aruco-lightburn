@@ -32,3 +32,15 @@ generateAdvancedPreview@https://6f5fcc61-eb21-490b-b175-2e6520846728-00-20do9th6
 
 URL: https://6f5fcc61-eb21-490b-b175-2e6520846728-00-20do9th6sa7ga.picard.replit.dev/
 --------------------------------------------------------------------------------
+2025-06-18T04:13:33.650479 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
+2025-06-18T04:13:42.320568 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
+2025-06-18T04:13:54.089609 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
