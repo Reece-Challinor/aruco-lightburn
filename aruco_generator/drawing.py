@@ -84,10 +84,12 @@ class DrawingContext:
     
     def add_text_labels(self, markers: List[Dict[str, Any]], font_size: float = 3.0):
         """Add text labels below each marker"""
+        import html
         for marker in markers:
             x = marker['x']
             y = marker['y'] + marker['size'] + font_size
-            text = f"ID: {marker['id']}"
+            # Escape HTML/XML special characters to prevent XSS
+            text = f"ID: {html.escape(str(marker['id']))}"
             
             self.elements.append({
                 'type': 'text',
