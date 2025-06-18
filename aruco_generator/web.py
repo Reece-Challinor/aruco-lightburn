@@ -84,26 +84,59 @@ def generate_preview():
         if rows <= 0 or cols <= 0:
             return jsonify({'error': 'Grid dimensions must be positive.'}), 400
         
-        # Generate markers without images for preview (faster)
-        markers = aruco_gen.generate_grid(start_id, dictionary, rows, cols, size_mm, spacing_mm, generate_images=False)
-        
-        # Create drawing context
-        context = DrawingContext()
-        context.add_marker_grid(markers, include_borders, include_outer_border, border_width)
-        
-        if include_labels:
-            context.add_text_labels(markers)
-        
-        # Generate SVG
-        svg_content = context.get_svg()
-        
-        # Calculate total dimensions
+        # Calculate total dimensions directly without complex generation
         total_width, total_height = aruco_gen.calculate_total_size(rows, cols, size_mm, spacing_mm)
         
         # Add border width to dimensions if outer border is included
         if include_outer_border:
             total_width += 2 * border_width
             total_height += 2 * border_width
+        
+        # Create simplified SVG preview directly
+        svg_content = f'''<svg width="{total_width:.1f}mm" height="{total_height:.1f}mm" 
+                             viewBox="0 0 {total_width:.1f} {total_height:.1f}" 
+                             xmlns="http://www.w3.org/2000/svg">
+                          <style>
+                            .marker {{ fill: white; stroke: blue; stroke-width: 0.5; }}
+                            .border {{ fill: none; stroke: red; stroke-width: 0.2; }}
+                            .text {{ fill: black; font-family: Arial; font-size: 3px; }}
+                          </style>'''
+        
+        # Generate grid positions and create simplified markers
+        marker_count = 0
+        for row in range(rows):
+            for col in range(cols):
+                marker_id = start_id + (row * cols + col)
+                x = col * (size_mm + spacing_mm)
+                y = row * (size_mm + spacing_mm)
+                
+                # Add marker rectangle
+                svg_content += f'''<rect x="{x:.1f}" y="{y:.1f}" 
+                                       width="{size_mm:.1f}" height="{size_mm:.1f}" 
+                                       class="marker" />'''
+                
+                # Add marker ID text in center
+                center_x = x + size_mm / 2
+                center_y = y + size_mm / 2
+                svg_content += f'''<text x="{center_x:.1f}" y="{center_y:.1f}" 
+                                       text-anchor="middle" dominant-baseline="central" 
+                                       class="text">ID: {marker_id}</text>'''
+                
+                # Add border if requested
+                if include_borders:
+                    svg_content += f'''<rect x="{x:.1f}" y="{y:.1f}" 
+                                           width="{size_mm:.1f}" height="{size_mm:.1f}" 
+                                           class="border" />'''
+                
+                marker_count += 1
+        
+        # Add outer border if requested
+        if include_outer_border:
+            svg_content += f'''<rect x="{border_width:.1f}" y="{border_width:.1f}" 
+                                   width="{total_width - 2*border_width:.1f}" height="{total_height - 2*border_width:.1f}" 
+                                   class="border" stroke-width="1" />'''
+        
+        svg_content += '</svg>'
         
         return jsonify({
             'svg': svg_content,
@@ -113,7 +146,7 @@ def generate_preview():
             },
             'total_width': total_width,
             'total_height': total_height,
-            'marker_count': len(markers),
+            'marker_count': marker_count,
             'success': True
         })
         
