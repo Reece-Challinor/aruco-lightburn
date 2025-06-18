@@ -174,3 +174,15 @@ LightBurn Exporter initialized: True
 ArUCO Generator initialized: True
 LightBurn Exporter initialized: True
 --------------------------------------------------------------------------------
+2025-06-18T05:24:56.458684 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
+2025-06-18T05:25:18.125598 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
+2025-06-18T05:25:52.489507 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
