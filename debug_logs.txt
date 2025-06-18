@@ -16,3 +16,19 @@ Status: {'timestamp': '2025-06-18T04:12:20.443876', 'app_running': True, 'aruco_
 ArUCO Generator initialized: True
 LightBurn Exporter initialized: True
 --------------------------------------------------------------------------------
+2025-06-18T04:13:02.665347 - FRONTEND ERROR
+Context: Advanced Preview Generation
+Message: result.dimensions is undefined
+Stack: showAdvancedPreview@https://6f5fcc61-eb21-490b-b175-2e6520846728-00-20do9th6sa7ga.picard.replit.dev/static/app.js:599:43
+generateAdvancedPreview@https://6f5fcc61-eb21-490b-b175-2e6520846728-00-20do9th6sa7ga.picard.replit.dev/static/app.js:433:22
+
+URL: https://6f5fcc61-eb21-490b-b175-2e6520846728-00-20do9th6sa7ga.picard.replit.dev/
+--------------------------------------------------------------------------------
+2025-06-18T04:13:11.674095 - FRONTEND ERROR
+Context: Advanced Preview Generation
+Message: result.dimensions is undefined
+Stack: showAdvancedPreview@https://6f5fcc61-eb21-490b-b175-2e6520846728-00-20do9th6sa7ga.picard.replit.dev/static/app.js:599:43
+generateAdvancedPreview@https://6f5fcc61-eb21-490b-b175-2e6520846728-00-20do9th6sa7ga.picard.replit.dev/static/app.js:433:22
+
+URL: https://6f5fcc61-eb21-490b-b175-2e6520846728-00-20do9th6sa7ga.picard.replit.dev/
+--------------------------------------------------------------------------------
