@@ -26,8 +26,9 @@ git clone <repo-url> && cd aruco-generator && python main.py
 
 4. **Access Application**
    - Open: `http://localhost:5000`
-   - Advanced mode: Full OpenCV ArUCO configuration
+   - Advanced mode: Real-time ArUCO QR code preview with OpenCV configuration
    - Simple mode: One-click generation
+   - Performance: Optimized rendering prevents JSON parsing errors
 
 ## Environment Variables (Optional)
 
