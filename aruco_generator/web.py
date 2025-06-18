@@ -1,13 +1,34 @@
+"""
+{
+  "file_type": "flask_routes",
+  "purpose": "All Flask routes and API endpoints for ArUCO generator",
+  "routes": {
+    "/": "Main application page with streamlined UI",
+    "/api/dictionaries": "Get available ArUCO dictionaries",
+    "/api/preview": "Generate SVG preview",
+    "/api/download": "Download LightBurn file",
+    "/api/quick-test": "Quick test generation",
+    "/api/quick-test/download": "Download quick test file"
+  },
+  "dependencies": ["aruco.py", "drawing.py", "lightburn.py", "batch.py"],
+  "ai_navigation": {
+    "modify_for": "Adding new routes or API endpoints",
+    "frontend_integration": "static/app.js calls these endpoints",
+    "ui_templates": "templates/index.html"
+  }
+}
+"""
+
 import os
 from datetime import datetime
-from flask import Flask, render_template, request, jsonify, send_file
+from flask import render_template, request, jsonify, send_file
 from .aruco import ArUCOGenerator
 from .drawing import DrawingContext
 from .lightburn import LightBurnExporter
 from .batch import BatchGenerator
 
-app = Flask(__name__, template_folder='../templates', static_folder='../static')
-app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-production")
+# Get Flask app from main app.py
+from app import app
 
 # Initialize generators
 aruco_gen = ArUCOGenerator()
