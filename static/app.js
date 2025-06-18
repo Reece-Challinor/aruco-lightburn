@@ -5,6 +5,7 @@ class ArUCOGenerator {
         this.initializeElements();
         this.attachEventListeners();
         this.loadDictionaries();
+        console.log('ArUCO Generator initialized');
     }
 
     initializeElements() {
@@ -27,6 +28,10 @@ class ArUCOGenerator {
         this.downloadBtn = document.getElementById('downloadLightBurn');
         this.quickTestBtn = document.getElementById('generateQuickTest');
         this.quickTestDownloadBtn = document.getElementById('downloadQuickTest');
+        
+        // Debug: Check if elements exist
+        if (!this.quickTestBtn) console.error('Quick test button not found!');
+        if (!this.quickTestDownloadBtn) console.error('Quick test download button not found!');
 
         // Preview elements
         this.loadingState = document.getElementById('loadingState');
@@ -50,8 +55,18 @@ class ArUCOGenerator {
         this.downloadBtn.addEventListener('click', () => this.downloadLightBurn());
 
         // Quick test buttons
-        this.quickTestBtn.addEventListener('click', () => this.generateQuickTest());
-        this.quickTestDownloadBtn.addEventListener('click', () => this.downloadQuickTest());
+        if (this.quickTestBtn) {
+            this.quickTestBtn.addEventListener('click', () => {
+                console.log('Quick test button clicked');
+                this.generateQuickTest();
+            });
+        }
+        if (this.quickTestDownloadBtn) {
+            this.quickTestDownloadBtn.addEventListener('click', () => {
+                console.log('Quick test download button clicked');
+                this.downloadQuickTest();
+            });
+        }
 
         // Outer border toggle
         this.includeOuterBorderCheck.addEventListener('change', () => this.toggleBorderWidth());
@@ -74,6 +89,9 @@ class ArUCOGenerator {
         [this.sizeMmInput, this.spacingMmInput].forEach(input => {
             input.addEventListener('input', () => this.validateForm());
         });
+
+        // Initialize border width visibility
+        this.toggleBorderWidth();
 
         // Form submission
         this.form.addEventListener('submit', (e) => {
@@ -253,6 +271,11 @@ class ArUCOGenerator {
             `Total dimensions: ${result.total_width.toFixed(1)} × ${result.total_height.toFixed(1)} mm`;
         
         this.previewContainer.style.display = 'block';
+        
+        // Enable regular download if this is not a quick test
+        if (!result.test_config) {
+            this.downloadBtn.disabled = false;
+        }
     }
 
     showError(message) {
@@ -315,6 +338,7 @@ class ArUCOGenerator {
     async generateQuickTest() {
         try {
             this.showLoading();
+            this.hideError(); // Clear any existing errors
             
             const response = await fetch('/api/quick-test', {
                 method: 'POST',
@@ -329,9 +353,12 @@ class ArUCOGenerator {
                 throw new Error(result.error || 'Failed to generate quick test');
             }
 
+            // Show the preview with quick test data
             this.showPreview(result);
+            
+            // Enable quick test download, disable regular download
             this.quickTestDownloadBtn.disabled = false;
-            this.downloadBtn.disabled = true; // Disable regular download for quick test
+            this.downloadBtn.disabled = true;
 
         } catch (error) {
             console.error('Error generating quick test:', error);
