@@ -1,3 +1,23 @@
+"""
+{
+  "file_type": "svg_drawing_context",
+  "purpose": "SVG drawing and rendering system for ArUCO markers",
+  "dependencies": ["numpy"],
+  "main_class": "DrawingContext",
+  "key_methods": {
+    "add_rectangle": "Add rectangle shapes to drawing context",
+    "add_marker_grid": "Add ArUCO markers as filled rectangles",
+    "add_text_labels": "Add text labels below markers",
+    "get_svg": "Generate SVG preview output"
+  },
+  "ai_navigation": {
+    "modify_for": "Adding new drawing elements or SVG features",
+    "used_by": ["web.py", "lightburn.py"],
+    "output_format": "SVG strings for web preview"
+  }
+}
+"""
+
 import numpy as np
 from typing import List, Dict, Any
 

@@ -1,3 +1,23 @@
+"""
+{
+  "file_type": "batch_processor",
+  "purpose": "Batch processing for generating multiple ArUCO marker files",
+  "dependencies": ["aruco.py", "drawing.py", "lightburn.py"],
+  "main_class": "BatchGenerator",
+  "key_methods": {
+    "generate_batch_files": "Generate multiple LightBurn files with sequential IDs",
+    "generate_id_sequence_files": "Generate files with specific ID ranges",
+    "_calculate_optimal_grid": "Calculate optimal grid layout for marker count",
+    "_generate_batch_summary": "Create documentation for batch operations"
+  },
+  "ai_navigation": {
+    "modify_for": "Adding new batch processing patterns or optimization",
+    "used_by": ["web.py for advanced batch operations"],
+    "output_format": "ZIP files containing multiple .lbrn2 files"
+  }
+}
+"""
+
 import zipfile
 from io import BytesIO
 from typing import List, Dict, Any
