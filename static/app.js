@@ -1,3 +1,27 @@
+/**
+ * {
+ *   "file_type": "frontend_javascript",
+ *   "purpose": "Streamlined frontend for ArUCO generator with golden path UX",
+ *   "main_class": "ArUCOGenerator",
+ *   "ui_architecture": {
+ *     "simple_tab": "One-click generation for common use cases",
+ *     "advanced_tab": "Full parameter control and batch operations",
+ *     "golden_path": "2x2 grid generation for computer vision localization"
+ *   },
+ *   "api_endpoints": {
+ *     "/api/preview": "Generate SVG preview",
+ *     "/api/download": "Download LightBurn file",
+ *     "/api/quick-test": "Quick laser test generation",
+ *     "/api/dictionaries": "Get available ArUCO dictionaries"
+ *   },
+ *   "ai_navigation": {
+ *     "modify_for": "Adding new UI interactions or API integrations",
+ *     "ui_template": "templates/index.html",
+ *     "styling": "static/style.css"
+ *   }
+ * }
+ */
+
 // ArUCO Generator - Streamlined Frontend
 
 class ArUCOGenerator {

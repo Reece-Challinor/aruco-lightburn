@@ -1,3 +1,23 @@
+"""
+{
+  "file_type": "core_aruco_generator",
+  "purpose": "Core ArUCO marker generation using OpenCV",
+  "dependencies": ["opencv-python", "numpy"],
+  "main_class": "ArUCOGenerator",
+  "key_methods": {
+    "get_dictionary_info": "Returns available ArUCO dictionaries",
+    "generate_marker": "Creates single ArUCO marker as numpy array",
+    "generate_grid": "Creates grid of markers with positions",
+    "calculate_total_size": "Calculates grid dimensions"
+  },
+  "ai_navigation": {
+    "modify_for": "Adding new dictionary types or marker generation logic",
+    "used_by": ["web.py", "drawing.py"],
+    "output_format": "numpy arrays for OpenCV processing"
+  }
+}
+"""
+
 import cv2
 import numpy as np
 from typing import Tuple, List, Dict, Any

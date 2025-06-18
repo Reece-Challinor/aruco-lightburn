@@ -1,3 +1,29 @@
+"""
+{
+  "file_type": "lightburn_exporter",
+  "purpose": "Export ArUCO markers to LightBurn .lbrn2 format for laser cutting",
+  "dependencies": ["xml.etree.ElementTree", "drawing.py"],
+  "main_class": "LightBurnExporter",
+  "key_methods": {
+    "export": "Export drawing context to LightBurn format with material settings",
+    "get_material_info": "Return material configuration for UI",
+    "_add_material_cut_settings": "Add laser cutting parameters",
+    "_add_enhanced_notes": "Add metadata and material info"
+  },
+  "material_presets": {
+    "1_16_cast_acrylic": "Default 1/16 inch cast acrylic settings",
+    "cut_layer": "Layer 1 - cutting operations",
+    "engrave_layer": "Layer 0 - engraving operations",
+    "mark_layer": "Layer 30 - marking operations"
+  },
+  "ai_navigation": {
+    "modify_for": "Adding new materials or laser settings",
+    "used_by": ["web.py"],
+    "output_format": "LightBurn .lbrn2 XML files"
+  }
+}
+"""
+
 import xml.etree.ElementTree as ET
 from io import BytesIO
 from typing import Dict, Any
