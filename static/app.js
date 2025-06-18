@@ -1,17 +1,24 @@
-// ArUCO Marker Generator - Frontend JavaScript
+// ArUCO Generator - Streamlined Frontend
 
 class ArUCOGenerator {
     constructor() {
         this.initializeElements();
         this.attachEventListeners();
         this.loadDictionaries();
-        this.loadPresets();
         console.log('ArUCO Generator initialized');
     }
 
     initializeElements() {
-        // Form elements
-        this.form = document.getElementById('parameterForm');
+        // Simple tab elements
+        this.singleMarkerIdInput = document.getElementById('singleMarkerId');
+        this.gridStartIdInput = document.getElementById('gridStartId');
+        this.generateSingleBtn = document.getElementById('generateSingle');
+        this.generateGridBtn = document.getElementById('generateGrid');
+        this.generateQuickTestBtn = document.getElementById('generateQuickTest');
+        this.downloadBtn = document.getElementById('downloadBtn');
+
+        // Advanced tab elements
+        this.advancedForm = document.getElementById('advancedForm');
         this.dictionarySelect = document.getElementById('dictionary');
         this.rowsInput = document.getElementById('rows');
         this.colsInput = document.getElementById('cols');
@@ -23,16 +30,8 @@ class ArUCOGenerator {
         this.includeOuterBorderCheck = document.getElementById('include_outer_border');
         this.borderWidthInput = document.getElementById('border_width');
         this.borderWidthContainer = document.getElementById('borderWidthContainer');
-
-        // Buttons
-        this.generateBtn = document.getElementById('generatePreview');
-        this.downloadBtn = document.getElementById('downloadLightBurn');
-        this.quickTestBtn = document.getElementById('generateQuickTest');
-        this.quickTestDownloadBtn = document.getElementById('downloadQuickTest');
-        
-        // Debug: Check if elements exist
-        if (!this.quickTestBtn) console.error('Quick test button not found!');
-        if (!this.quickTestDownloadBtn) console.error('Quick test download button not found!');
+        this.generateAdvancedBtn = document.getElementById('generateAdvanced');
+        this.downloadAdvancedBtn = document.getElementById('downloadAdvanced');
 
         // Preview elements
         this.loadingState = document.getElementById('loadingState');
@@ -41,466 +40,302 @@ class ArUCOGenerator {
         this.errorMessage = document.getElementById('errorMessage');
         this.previewContainer = document.getElementById('previewContainer');
         this.svgPreview = document.getElementById('svgPreview');
-        this.previewInfo = document.getElementById('previewInfo');
         this.dimensionsInfo = document.getElementById('dimensionsInfo');
 
-        // Store dictionaries info
+        // Store current generation data for downloads
+        this.currentGenerationData = null;
         this.dictionaries = {};
     }
 
     attachEventListeners() {
-        // Generate preview button
-        this.generateBtn.addEventListener('click', () => this.generatePreview());
-
-        // Download button
-        this.downloadBtn.addEventListener('click', () => this.downloadLightBurn());
-
-        // Quick test buttons
-        if (this.quickTestBtn) {
-            this.quickTestBtn.addEventListener('click', () => {
-                console.log('Quick test button clicked');
-                this.generateQuickTest();
-            });
+        // Simple tab event listeners
+        if (this.generateSingleBtn) {
+            this.generateSingleBtn.addEventListener('click', () => this.generateSingle());
         }
-        if (this.quickTestDownloadBtn) {
-            this.quickTestDownloadBtn.addEventListener('click', () => {
-                console.log('Quick test download button clicked');
-                this.downloadQuickTest();
-            });
+        if (this.generateGridBtn) {
+            this.generateGridBtn.addEventListener('click', () => this.generateGrid());
+        }
+        if (this.generateQuickTestBtn) {
+            this.generateQuickTestBtn.addEventListener('click', () => this.generateQuickTest());
+        }
+        if (this.downloadBtn) {
+            this.downloadBtn.addEventListener('click', () => this.downloadCurrent());
         }
 
-        // Outer border toggle
-        this.includeOuterBorderCheck.addEventListener('change', () => this.toggleBorderWidth());
-
-        // Auto-update on form changes
-        const autoUpdateInputs = [
-            this.dictionarySelect,
-            this.rowsInput,
-            this.colsInput,
-            this.startIdInput,
-            this.includeBordersCheck,
-            this.includeLabelsCheck
-        ];
-
-        autoUpdateInputs.forEach(input => {
-            input.addEventListener('change', () => this.validateForm());
-        });
-
-        // Validate on input for number fields
-        [this.sizeMmInput, this.spacingMmInput].forEach(input => {
-            input.addEventListener('input', () => this.validateForm());
-        });
+        // Advanced tab event listeners
+        if (this.generateAdvancedBtn) {
+            this.generateAdvancedBtn.addEventListener('click', () => this.generateAdvanced());
+        }
+        if (this.downloadAdvancedBtn) {
+            this.downloadAdvancedBtn.addEventListener('click', () => this.downloadAdvanced());
+        }
+        if (this.includeOuterBorderCheck) {
+            this.includeOuterBorderCheck.addEventListener('change', () => this.toggleBorderWidth());
+        }
 
         // Initialize border width visibility
         this.toggleBorderWidth();
-
-        // Form submission
-        this.form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.generatePreview();
-        });
     }
 
     async loadDictionaries() {
         try {
             const response = await fetch('/api/dictionaries');
-            if (!response.ok) throw new Error('Failed to load dictionaries');
-            
-            this.dictionaries = await response.json();
-            this.validateForm();
+            if (response.ok) {
+                this.dictionaries = await response.json();
+            }
         } catch (error) {
-            console.error('Error loading dictionaries:', error);
-            this.showError('Failed to load ArUCO dictionaries');
+            console.error('Failed to load dictionaries:', error);
         }
     }
 
-    async loadPresets() {
-        try {
-            const response = await fetch('/api/presets');
-            const presets = await response.json();
-            this.renderPresetButtons(presets);
-        } catch (error) {
-            console.error('Failed to load presets:', error);
-        }
-    }
-
-    renderPresetButtons(presets) {
-        const container = document.getElementById('preset-buttons');
-        if (!container) return;
-        
-        container.innerHTML = '';
-        
-        Object.entries(presets).forEach(([key, preset]) => {
-            const button = document.createElement('button');
-            button.type = 'button';
-            button.className = 'preset-btn';
-            button.innerHTML = `
-                <span class="preset-name">${preset.name}</span>
-                <span class="preset-desc">${preset.description}</span>
-            `;
-            button.addEventListener('click', () => this.applyPreset(preset));
-            container.appendChild(button);
-        });
-    }
-
-    applyPreset(preset) {
-        // Apply preset values to form
-        Object.entries(preset).forEach(([key, value]) => {
-            if (key === 'name' || key === 'description') return;
-            
-            const element = document.getElementById(key) || document.querySelector(`[name="${key}"]`);
-            if (element) {
-                if (element.type === 'checkbox') {
-                    element.checked = value;
-                } else {
-                    element.value = value;
-                }
-            }
-        });
-        
-        // Update border width visibility
-        this.toggleBorderWidth();
-        
-        // Update form validation and generate preview
-        this.validateForm();
-        this.generatePreview();
-        
-        // Show success message
-        this.showSuccessMessage(`Applied "${preset.name}" preset`);
-    }
-
-    showSuccessMessage(message) {
-        // Create success alert
-        const alert = document.createElement('div');
-        alert.className = 'alert alert-success alert-dismissible fade show position-fixed';
-        alert.style.cssText = 'top: 20px; right: 20px; z-index: 1050; max-width: 400px;';
-        alert.innerHTML = `
-            <i class="bi bi-check-circle me-2"></i>
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        `;
-        
-        document.body.appendChild(alert);
-        
-        // Auto-remove after 3 seconds
-        setTimeout(() => {
-            if (alert.parentNode) {
-                alert.remove();
-            }
-        }, 3000);
-    }
-
-    getFormData() {
-        return {
-            dictionary: this.dictionarySelect.value,
-            start_id: parseInt(this.startIdInput.value) || 0,
-            rows: parseInt(this.rowsInput.value) || 1,
-            cols: parseInt(this.colsInput.value) || 1,
-            size_mm: parseFloat(this.sizeMmInput.value) || 20,
-            spacing_mm: parseFloat(this.spacingMmInput.value) || 5,
-            include_borders: this.includeBordersCheck.checked,
-            include_labels: this.includeLabelsCheck.checked,
-            include_outer_border: this.includeOuterBorderCheck.checked,
-            border_width: parseFloat(this.borderWidthInput.value) || 2.0
+    // Simple tab methods
+    async generateSingle() {
+        const markerId = parseInt(this.singleMarkerIdInput.value) || 0;
+        const data = {
+            dictionary: '6X6_250',
+            rows: 1,
+            cols: 1,
+            start_id: markerId,
+            size_mm: 50.8, // 2 inches
+            spacing_mm: 5,
+            include_borders: true,
+            include_labels: true,
+            include_outer_border: true,
+            border_width: 2.0
         };
-    }
-
-    validateForm() {
-        const data = this.getFormData();
-        const dictionary = this.dictionaries[data.dictionary];
         
-        if (!dictionary) {
-            this.generateBtn.disabled = true;
-            this.downloadBtn.disabled = true;
-            return false;
-        }
-
-        // Validate marker count
-        const totalMarkers = data.rows * data.cols;
-        const maxMarkersExceeded = data.start_id + totalMarkers > dictionary.max_markers;
-
-        // Validate dimensions
-        const invalidDimensions = data.size_mm <= 0 || data.spacing_mm < 0 || 
-                                  data.rows <= 0 || data.cols <= 0;
-
-        // Update form validation state
-        const isValid = !maxMarkersExceeded && !invalidDimensions;
-        this.generateBtn.disabled = !isValid;
-
-        // Update validation feedback
-        if (maxMarkersExceeded) {
-            this.showError(`Too many markers! Dictionary ${data.dictionary} supports maximum ${dictionary.max_markers} markers.`);
-        } else if (invalidDimensions) {
-            this.showError('Invalid dimensions. Please check your input values.');
-        } else {
-            this.hideError();
-        }
-
-        return isValid;
+        await this.generatePreview(data, 'single');
     }
 
-    async generatePreview() {
-        if (!this.validateForm()) return;
-
-        const data = this.getFormData();
+    async generateGrid() {
+        const startId = parseInt(this.gridStartIdInput.value) || 0;
+        const data = {
+            dictionary: '6X6_250',
+            rows: 2,
+            cols: 1,
+            start_id: startId,
+            size_mm: 50.8, // 2 inches each
+            spacing_mm: 10,
+            include_borders: true,
+            include_labels: true,
+            include_outer_border: true,
+            border_width: 2.0
+        };
         
-        try {
-            this.showLoading();
-            
-            const response = await fetch('/api/preview', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data)
-            });
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(result.error || 'Failed to generate preview');
-            }
-
-            this.showPreview(result, data);
-            this.downloadBtn.disabled = false;
-
-        } catch (error) {
-            console.error('Error generating preview:', error);
-            this.showError(error.message || 'Failed to generate preview');
-            this.downloadBtn.disabled = true;
-        }
-    }
-
-    async downloadLightBurn() {
-        if (!this.validateForm()) return;
-
-        const data = this.getFormData();
-        
-        try {
-            // Show loading state on download button
-            const originalText = this.downloadBtn.innerHTML;
-            this.downloadBtn.innerHTML = '<i class="bi bi-spinner-border me-2"></i>Generating...';
-            this.downloadBtn.disabled = true;
-
-            const response = await fetch('/api/download', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data)
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to generate LightBurn file');
-            }
-
-            // Get filename from response headers or generate one
-            const contentDisposition = response.headers.get('Content-Disposition');
-            let filename = `aruco_${data.dictionary}_${data.rows}x${data.cols}_id${data.start_id}.lbrn2`;
-            
-            if (contentDisposition) {
-                const matches = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-                if (matches && matches[1]) {
-                    filename = matches[1].replace(/['"]/g, '');
-                }
-            }
-
-            // Create blob and download
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-
-            // Show success feedback
-            this.showSuccess('LightBurn file downloaded successfully!');
-
-        } catch (error) {
-            console.error('Error downloading file:', error);
-            this.showError(error.message || 'Failed to download LightBurn file');
-        } finally {
-            // Restore download button
-            this.downloadBtn.innerHTML = '<i class="bi bi-download me-2"></i>Download LightBurn File';
-            this.downloadBtn.disabled = false;
-        }
-    }
-
-    showLoading() {
-        this.hideAllStates();
-        this.loadingState.style.display = 'block';
-    }
-
-    showPreview(result, data) {
-        this.hideAllStates();
-        
-        // Update SVG content
-        this.svgPreview.innerHTML = result.svg;
-        
-        // Update info
-        this.previewInfo.textContent = `${result.marker_count} markers generated`;
-        this.dimensionsInfo.textContent = 
-            `Total dimensions: ${result.total_width.toFixed(1)} × ${result.total_height.toFixed(1)} mm`;
-        
-        this.previewContainer.style.display = 'block';
-        
-        // Enable regular download if this is not a quick test
-        if (!result.test_config) {
-            this.downloadBtn.disabled = false;
-        }
-    }
-
-    showError(message) {
-        this.errorMessage.textContent = message;
-        this.errorState.style.display = 'block';
-        
-        // If preview is showing, don't hide it, just show error above
-        if (this.previewContainer.style.display !== 'block') {
-            this.hideOtherStates();
-        }
-    }
-
-    hideError() {
-        this.errorState.style.display = 'none';
-    }
-
-    showSuccess(message) {
-        // Create temporary success alert
-        const alert = document.createElement('div');
-        alert.className = 'alert alert-success alert-dismissible fade show position-fixed';
-        alert.style.cssText = 'top: 20px; right: 20px; z-index: 1050; max-width: 400px;';
-        alert.innerHTML = `
-            <i class="bi bi-check-circle me-2"></i>
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        `;
-        
-        document.body.appendChild(alert);
-        
-        // Auto-remove after 5 seconds
-        setTimeout(() => {
-            if (alert.parentNode) {
-                alert.remove();
-            }
-        }, 5000);
-    }
-
-    hideAllStates() {
-        this.loadingState.style.display = 'none';
-        this.emptyState.style.display = 'none';
-        this.errorState.style.display = 'none';
-        this.previewContainer.style.display = 'none';
-    }
-
-    hideOtherStates() {
-        this.loadingState.style.display = 'none';
-        this.emptyState.style.display = 'none';
-        this.previewContainer.style.display = 'none';
-    }
-
-    toggleBorderWidth() {
-        // Show/hide border width input based on outer border checkbox
-        if (this.includeOuterBorderCheck.checked) {
-            this.borderWidthContainer.style.display = 'block';
-        } else {
-            this.borderWidthContainer.style.display = 'none';
-        }
+        await this.generatePreview(data, 'grid');
     }
 
     async generateQuickTest() {
         try {
             this.showLoading();
-            this.hideError(); // Clear any existing errors
+            const response = await fetch('/api/quick-test', { method: 'POST' });
             
-            const response = await fetch('/api/quick-test', {
+            if (response.ok) {
+                const result = await response.json();
+                this.showPreview(result, { type: 'quick-test' });
+                this.currentGenerationData = { type: 'quick-test' };
+            } else {
+                const error = await response.json();
+                this.showError(error.error || 'Failed to generate quick test');
+            }
+        } catch (error) {
+            this.showError('Network error occurred');
+            console.error('Quick test generation failed:', error);
+        }
+    }
+
+    // Advanced tab methods
+    async generateAdvanced() {
+        const data = this.getAdvancedFormData();
+        if (this.validateAdvancedForm(data)) {
+            await this.generatePreview(data, 'advanced');
+        }
+    }
+
+    async downloadAdvanced() {
+        const data = this.getAdvancedFormData();
+        if (this.validateAdvancedForm(data)) {
+            await this.downloadLightBurn(data);
+        }
+    }
+
+    getAdvancedFormData() {
+        return {
+            dictionary: this.dictionarySelect.value,
+            rows: parseInt(this.rowsInput.value),
+            cols: parseInt(this.colsInput.value),
+            start_id: parseInt(this.startIdInput.value),
+            size_mm: parseFloat(this.sizeMmInput.value),
+            spacing_mm: parseFloat(this.spacingMmInput.value),
+            include_borders: this.includeBordersCheck.checked,
+            include_labels: this.includeLabelsCheck.checked,
+            include_outer_border: this.includeOuterBorderCheck.checked,
+            border_width: parseFloat(this.borderWidthInput.value)
+        };
+    }
+
+    validateAdvancedForm(data) {
+        if (!data.dictionary || data.rows < 1 || data.cols < 1 || data.size_mm <= 0) {
+            this.showError('Please fill in all required fields with valid values');
+            return false;
+        }
+        return true;
+    }
+
+    toggleBorderWidth() {
+        if (this.includeOuterBorderCheck && this.borderWidthContainer) {
+            this.borderWidthContainer.style.display = this.includeOuterBorderCheck.checked ? 'block' : 'none';
+        }
+    }
+
+    // Core generation method
+    async generatePreview(data, type) {
+        try {
+            this.showLoading();
+            
+            const response = await fetch('/api/preview', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
             });
 
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(result.error || 'Failed to generate quick test');
+            if (response.ok) {
+                const result = await response.json();
+                this.showPreview(result, data);
+                this.currentGenerationData = { data, type };
+            } else {
+                const error = await response.json();
+                this.showError(error.error || 'Generation failed');
             }
-
-            // Show the preview with quick test data
-            this.showPreview(result);
-            
-            // Enable quick test download, disable regular download
-            this.quickTestDownloadBtn.disabled = false;
-            this.downloadBtn.disabled = true;
-
         } catch (error) {
-            console.error('Error generating quick test:', error);
-            this.showError(error.message || 'Failed to generate quick test');
-            this.quickTestDownloadBtn.disabled = true;
+            this.showError('Network error occurred');
+            console.error('Preview generation failed:', error);
+        }
+    }
+
+    // Download methods
+    async downloadCurrent() {
+        if (!this.currentGenerationData) {
+            this.showError('No data to download');
+            return;
+        }
+
+        if (this.currentGenerationData.type === 'quick-test') {
+            await this.downloadQuickTest();
+        } else {
+            await this.downloadLightBurn(this.currentGenerationData.data);
         }
     }
 
     async downloadQuickTest() {
         try {
-            // Show loading state on download button
-            const originalText = this.quickTestDownloadBtn.innerHTML;
-            this.quickTestDownloadBtn.innerHTML = '<i class="bi bi-spinner-border me-2"></i>Generating...';
-            this.quickTestDownloadBtn.disabled = true;
+            const response = await fetch('/api/quick-test/download', { method: 'POST' });
+            if (response.ok) {
+                const blob = await response.blob();
+                this.downloadBlob(blob, 'aruco_quick_test.lbrn2');
+            } else {
+                const error = await response.json();
+                this.showError(error.error || 'Download failed');
+            }
+        } catch (error) {
+            this.showError('Download failed');
+            console.error('Quick test download failed:', error);
+        }
+    }
 
-            const response = await fetch('/api/quick-test-download', {
+    async downloadLightBurn(data) {
+        try {
+            const response = await fetch('/api/download', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to generate quick test file');
+            if (response.ok) {
+                const blob = await response.blob();
+                const filename = `aruco_${data.dictionary}_${data.rows}x${data.cols}_id${data.start_id}.lbrn2`;
+                this.downloadBlob(blob, filename);
+            } else {
+                const error = await response.json();
+                this.showError(error.error || 'Download failed');
             }
-
-            // Get filename from response or use default
-            const contentDisposition = response.headers.get('Content-Disposition');
-            let filename = 'aruco_quick_test_2x1_2inch.lbrn2';
-            
-            if (contentDisposition) {
-                const matches = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-                if (matches && matches[1]) {
-                    filename = matches[1].replace(/['"]/g, '');
-                }
-            }
-
-            // Create blob and download
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-
-            // Show success feedback
-            this.showSuccess('Quick test LightBurn file downloaded successfully!');
-
         } catch (error) {
-            console.error('Error downloading quick test file:', error);
-            this.showError(error.message || 'Failed to download quick test file');
-        } finally {
-            // Restore download button
-            this.quickTestDownloadBtn.innerHTML = '<i class="bi bi-download me-2"></i>Download Test File';
-            this.quickTestDownloadBtn.disabled = false;
+            this.showError('Download failed');
+            console.error('LightBurn download failed:', error);
         }
+    }
+
+    downloadBlob(blob, filename) {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        this.showSuccess('File downloaded successfully');
+    }
+
+    // UI State Management
+    showLoading() {
+        this.hideAllStates();
+        if (this.loadingState) this.loadingState.style.display = 'block';
+    }
+
+    showPreview(result, data) {
+        this.hideAllStates();
+        if (this.previewContainer && this.svgPreview) {
+            this.previewContainer.style.display = 'block';
+            this.svgPreview.innerHTML = result.svg;
+            
+            if (this.dimensionsInfo && result.dimensions) {
+                this.dimensionsInfo.textContent = 
+                    `Dimensions: ${result.dimensions.width}mm × ${result.dimensions.height}mm`;
+            }
+
+            // Enable download button
+            if (this.downloadBtn) this.downloadBtn.disabled = false;
+            if (this.downloadAdvancedBtn) this.downloadAdvancedBtn.disabled = false;
+        }
+    }
+
+    showError(message) {
+        this.hideAllStates();
+        if (this.errorState && this.errorMessage) {
+            this.errorState.style.display = 'block';
+            this.errorMessage.textContent = message;
+        }
+    }
+
+    showSuccess(message) {
+        // Create temporary success alert
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed';
+        alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 1060; min-width: 300px;';
+        alertDiv.innerHTML = `
+            <i class="bi bi-check-circle me-2"></i>${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(alertDiv);
+
+        // Auto-remove after 3 seconds
+        setTimeout(() => {
+            if (alertDiv.parentElement) {
+                alertDiv.remove();
+            }
+        }, 3000);
+    }
+
+    hideAllStates() {
+        if (this.loadingState) this.loadingState.style.display = 'none';
+        if (this.emptyState) this.emptyState.style.display = 'none';
+        if (this.errorState) this.errorState.style.display = 'none';
+        if (this.previewContainer) this.previewContainer.style.display = 'none';
     }
 }
 
-// Initialize application when DOM is loaded
+// Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     new ArUCOGenerator();
 });

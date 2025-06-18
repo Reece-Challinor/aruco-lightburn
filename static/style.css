@@ -1,4 +1,52 @@
-/* Custom styles for ArUCO Generator */
+/* Custom styles for ArUCO Generator - Streamlined */
+
+/* Golden Path Card Styling */
+.golden-path-card {
+    border: 2px solid transparent;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    border-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%) 1;
+}
+
+.golden-path-card .card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-bottom: none;
+}
+
+/* Quick Action Items */
+.quick-action-item {
+    padding: 1rem;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.quick-action-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Tab Navigation */
+.nav-pills .nav-link {
+    background: transparent;
+    border: 1px solid var(--bs-border-color);
+    color: var(--bs-body-color);
+    margin: 0 2px;
+    transition: all 0.3s ease;
+}
+
+.nav-pills .nav-link.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: transparent;
+    color: white;
+}
+
+.nav-pills .nav-link:hover:not(.active) {
+    background: rgba(102, 126, 234, 0.1);
+    border-color: #667eea;
+}
 
 .preview-wrapper {
     max-height: 500px;

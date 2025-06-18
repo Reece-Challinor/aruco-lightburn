@@ -4,7 +4,7 @@ from typing import List, Dict, Any
 class DrawingContext:
     def __init__(self):
         self.elements = []
-        self.bounds = {'min_x': 0, 'min_y': 0, 'max_x': 0, 'max_y': 0}
+        self.bounds = {'min_x': 0.0, 'min_y': 0.0, 'max_x': 0.0, 'max_y': 0.0}
     
     def add_rectangle(self, x: float, y: float, width: float, height: float, 
                      fill: bool = True, layer: int = 0, marker_id: int | None = None):
@@ -81,10 +81,14 @@ class DrawingContext:
     
     def _update_bounds(self, x: float, y: float, width: float, height: float):
         """Update drawing bounds"""
-        self.bounds['min_x'] = min(self.bounds['min_x'], x)
-        self.bounds['min_y'] = min(self.bounds['min_y'], y)
-        self.bounds['max_x'] = max(self.bounds['max_x'], x + width)
-        self.bounds['max_y'] = max(self.bounds['max_y'], y + height)
+        if self.bounds['min_x'] is None or x < self.bounds['min_x']:
+            self.bounds['min_x'] = x
+        if self.bounds['min_y'] is None or y < self.bounds['min_y']:
+            self.bounds['min_y'] = y
+        if self.bounds['max_x'] is None or (x + width) > self.bounds['max_x']:
+            self.bounds['max_x'] = x + width
+        if self.bounds['max_y'] is None or (y + height) > self.bounds['max_y']:
+            self.bounds['max_y'] = y + height
     
     def get_svg(self) -> str:
         """Generate SVG preview"""
