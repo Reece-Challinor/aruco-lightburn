@@ -1,17 +1,28 @@
 """
-{
-  "file_type": "flask_app_main",
-  "purpose": "Main Flask application configuration and database setup",
-  "dependencies": ["flask", "flask_sqlalchemy", "werkzeug", "os"],
-  "routes": "Defined in aruco_generator/web.py",
-  "database": "PostgreSQL with SQLAlchemy ORM",
-  "architecture": "MVC pattern with modular design",
-  "ai_navigation": {
-    "primary_config": "Database and app initialization",
-    "modify_for": "Adding new extensions or middleware",
-    "related_files": ["main.py", "aruco_generator/web.py"]
-  }
-}
+ArUCO Generator - Flask Application Configuration
+================================================
+
+AI AGENT DOCUMENTATION:
+- Entry point: main.py imports this module
+- Database: PostgreSQL with SQLAlchemy ORM (optional, falls back to SQLite)
+- Error handling: Comprehensive logging to debug_logs.txt
+- Routes: All defined in aruco_generator/web.py
+- Static files: static/ directory (app.js with full error logging)
+- Templates: templates/ directory (index.html with advanced mode)
+
+DEBUGGING FOR AI AGENTS:
+- Error logs: debug_logs.txt (auto-created)
+- Status endpoint: GET /api/debug/status
+- Frontend errors: POST /api/log-error
+- Monitor script: ./debug_monitor.sh
+- All API endpoints tested and working
+
+ARCHITECTURE:
+- Flask backend with modular ArUCO generation
+- Vanilla JavaScript frontend with real-time validation
+- SVG preview with LightBurn export
+- OpenCV ArUCO standards compliance
+- Production-ready error handling
 """
 
 import os
@@ -48,8 +59,10 @@ def init_db():
     with app.app_context():
         try:
             db.create_all()
+            print("Database tables initialized successfully")
         except Exception as e:
             print(f"Database initialization warning: {e}")
 
-# Initialize database
-init_db()
+# Initialize database after app context is available
+if __name__ != "__main__":
+    init_db()
