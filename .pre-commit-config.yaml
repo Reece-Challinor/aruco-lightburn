@@ -1,0 +1,43 @@
+# Pre-commit configuration for ArUCO Generator
+# Ensures code quality and consistency for AI agent development
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-json
+      - id: pretty-format-json
+        args: ['--autofix']
+      - id: check-merge-conflict
+      - id: check-case-conflict
+
+  - repo: https://github.com/psf/black
+    rev: 23.3.0
+    hooks:
+      - id: black
+        language_version: python3.11
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        args: ["--profile", "black"]
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.0.0
+    hooks:
+      - id: flake8
+        args: [--max-line-length=88, --extend-ignore=E203,W503]
+
+  - repo: local
+    hooks:
+      - id: validate-json-headers
+        name: Validate JSON headers in files
+        entry: python -c "import json; import sys; [json.loads(open(f).read().split('"""')[1]) for f in sys.argv[1:] if f.endswith('.py')]"
+        language: system
+        files: \.py$
+        pass_filenames: true

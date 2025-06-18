@@ -1,0 +1,64 @@
+{
+  "repository_info": {
+    "name": "ArUCO Generator for LightBurn",
+    "version": "1.0.0",
+    "purpose": "Streamlined ArUCO marker generation for computer vision with laser cutting export",
+    "architecture": "Flask backend with streamlined frontend, golden path UX design"
+  },
+  "ai_navigation_map": {
+    "entry_points": {
+      "routes_and_api": "aruco_generator/web.py",
+      "core_generation": "aruco_generator/aruco.py", 
+      "ui_template": "templates/index.html",
+      "frontend_logic": "static/app.js",
+      "styling": "static/style.css",
+      "app_config": "app.py"
+    },
+    "golden_path_components": {
+      "simple_tab": "One-click generation for computer vision use cases",
+      "advanced_tab": "Full parameter control and batch operations",
+      "preview_system": "Real-time SVG rendering with material settings",
+      "download_integration": "LightBurn export with laser parameters"
+    }
+  },
+  "development_guidelines": {
+    "file_headers": "All files contain JSON metadata for AI navigation",
+    "ui_philosophy": "Simple tab for golden path, advanced tab for full control",
+    "code_style": "Python Black formatting, modern JavaScript ES6+",
+    "documentation": "Update README.md when adding features",
+    "testing": "Verify frontend/backend API integration"
+  },
+  "common_tasks": {
+    "add_route": {
+      "primary_file": "aruco_generator/web.py",
+      "update_files": ["static/app.js", "templates/index.html"],
+      "test_endpoint": "Use browser dev tools or API testing"
+    },
+    "modify_ui": {
+      "primary_file": "templates/index.html",
+      "update_files": ["static/style.css", "static/app.js"],
+      "maintain_theme": "Purple gradient theme with Bootstrap 5"
+    },
+    "aruco_logic": {
+      "primary_file": "aruco_generator/aruco.py",
+      "related_files": ["aruco_generator/drawing.py"],
+      "dependencies": "OpenCV, NumPy for marker generation"
+    },
+    "export_formats": {
+      "primary_file": "aruco_generator/lightburn.py",
+      "material_presets": "1/16 inch cast acrylic with laser settings",
+      "output_format": "LightBurn .lbrn2 XML files"
+    }
+  },
+  "deployment": {
+    "platform": "Replit with gunicorn",
+    "port": "5000",
+    "entry_point": "main.py",
+    "workflow": "Start application"
+  },
+  "future_branches": {
+    "feature_template": "Create from main, update AI_AGENT_CONFIG.json",
+    "documentation_updates": "Always update README.md and file headers",
+    "testing_integration": "Add tests in tests/ directory when created"
+  }
+}
