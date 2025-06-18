@@ -84,7 +84,9 @@ def generate_preview():
         if rows <= 0 or cols <= 0:
             return jsonify({'error': 'Grid dimensions must be positive.'}), 400
         
-        # Generate markers efficiently for preview
+        # Generate markers with direct SVG creation (no complex drawing context)
+        import base64
+        
         markers = []
         svg_elements = []
         
@@ -94,8 +96,8 @@ def generate_preview():
                 x = col * (size_mm + spacing_mm)
                 y = row * (size_mm + spacing_mm)
                 
-                # Generate actual ArUCO marker with small resolution for preview
-                marker_image = aruco_gen.generate_marker(marker_id, dictionary, size_pixels=20)
+                # Generate actual ArUCO marker with minimal resolution
+                marker_image = aruco_gen.generate_marker(marker_id, dictionary, size_pixels=10)
                 
                 markers.append({
                     'id': marker_id,
@@ -105,35 +107,35 @@ def generate_preview():
                     'dict': dictionary
                 })
                 
-                # Convert ArUCO to SVG path directly
-                pixel_size = size_mm / marker_image.shape[0]
+                # Add white background
+                svg_elements.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{size_mm:.1f}" height="{size_mm:.1f}" fill="white"/>')
                 
                 # Add border if requested
                 if include_borders:
                     svg_elements.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{size_mm:.1f}" height="{size_mm:.1f}" fill="none" stroke="red" stroke-width="0.2"/>')
                 
-                # Add ArUCO pattern as black squares
-                for img_row in range(marker_image.shape[0]):
-                    for img_col in range(marker_image.shape[1]):
+                # Convert ArUCO pattern to simplified SVG (sample every other pixel)
+                pixel_size = size_mm / marker_image.shape[0]
+                for img_row in range(0, marker_image.shape[0], 2):  # Step by 2 for performance
+                    for img_col in range(0, marker_image.shape[1], 2):
                         if marker_image[img_row, img_col] == 0:  # Black pixel
                             px_x = x + img_col * pixel_size
                             px_y = y + img_row * pixel_size
-                            svg_elements.append(f'<rect x="{px_x:.2f}" y="{px_y:.2f}" width="{pixel_size:.2f}" height="{pixel_size:.2f}" fill="black"/>')
+                            # Use double-sized pixels since we're sampling
+                            svg_elements.append(f'<rect x="{px_x:.1f}" y="{px_y:.1f}" width="{pixel_size*2:.1f}" height="{pixel_size*2:.1f}" fill="black"/>')
                 
                 # Add labels if requested
                 if include_labels:
                     label_x = x + size_mm / 2
                     label_y = y + size_mm + 3
-                    svg_elements.append(f'<text x="{label_x:.1f}" y="{label_y:.1f}" text-anchor="middle" font-family="Arial" font-size="3" fill="black">ID: {marker_id}</text>')
+                    svg_elements.append(f'<text x="{label_x:.1f}" y="{label_y:.1f}" text-anchor="middle" font-family="Arial" font-size="3" fill="red">ID: {marker_id}</text>')
         
-        # Calculate total dimensions
+        # Calculate dimensions
         total_width, total_height = aruco_gen.calculate_total_size(rows, cols, size_mm, spacing_mm)
         
-        # Add label space if needed
         if include_labels:
             total_height += 6
         
-        # Add outer border if requested
         if include_outer_border:
             border_x = -border_width
             border_y = -border_width
@@ -143,12 +145,8 @@ def generate_preview():
             total_width += 2 * border_width
             total_height += 2 * border_width
         
-        # Create final SVG
-        svg_content = f'''<svg width="{total_width:.1f}mm" height="{total_height:.1f}mm" 
-                             viewBox="0 0 {total_width:.1f} {total_height:.1f}" 
-                             xmlns="http://www.w3.org/2000/svg">
-                          {''.join(svg_elements)}
-                          </svg>'''
+        # Create SVG
+        svg_content = f'<svg width="{total_width:.1f}mm" height="{total_height:.1f}mm" viewBox="0 0 {total_width:.1f} {total_height:.1f}" xmlns="http://www.w3.org/2000/svg">{"".join(svg_elements)}</svg>'
         
         return jsonify({
             'svg': svg_content,
@@ -189,8 +187,8 @@ def download_lightburn():
         if dictionary not in aruco_gen.dictionaries:
             return jsonify({'error': f'Invalid dictionary: {dictionary}'}), 400
         
-        # Generate markers
-        markers = aruco_gen.generate_grid(start_id, dictionary, rows, cols, size_mm, spacing_mm)
+        # Generate markers with full resolution for export
+        markers = aruco_gen.generate_grid(start_id, dictionary, rows, cols, size_mm, spacing_mm, generate_images=True)
         
         # Create drawing context
         context = DrawingContext()
