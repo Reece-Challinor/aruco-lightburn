@@ -6,3 +6,13 @@ LightBurn Exporter initialized: True
 ArUCO Generator initialized: True
 LightBurn Exporter initialized: True
 --------------------------------------------------------------------------------
+2025-06-18T04:12:20.398368 - STATUS CHECK
+Status: {'timestamp': '2025-06-18T04:12:20.398275', 'app_running': True, 'aruco_generator': True, 'lightburn_exporter': True, 'dictionaries_loaded': True, 'debug_mode': False, 'environment': 'production'}
+--------------------------------------------------------------------------------
+2025-06-18T04:12:20.443979 - STATUS CHECK
+Status: {'timestamp': '2025-06-18T04:12:20.443876', 'app_running': True, 'aruco_generator': True, 'lightburn_exporter': True, 'dictionaries_loaded': True, 'debug_mode': False, 'environment': 'production'}
+--------------------------------------------------------------------------------
+2025-06-18T04:12:40.920930 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
