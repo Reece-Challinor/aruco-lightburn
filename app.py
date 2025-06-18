@@ -43,5 +43,9 @@ db.init_app(app)
 # Import and register routes
 from aruco_generator.web import *
 
+# Initialize database tables
 with app.app_context():
-    db.create_all()
+    try:
+        db.create_all()
+    except Exception as e:
+        print(f"Database initialization warning: {e}")

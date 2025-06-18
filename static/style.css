@@ -1,3 +1,27 @@
+/**
+ * {
+ *   "file_type": "frontend_styles",
+ *   "purpose": "Streamlined UI styling with purple gradient theme and golden path UX",
+ *   "design_system": {
+ *     "theme": "Dark mode with purple gradients (#667eea to #764ba2)",
+ *     "layout": "Bootstrap 5 grid with custom enhancements",
+ *     "golden_path_card": "Special styling for primary actions",
+ *     "tab_navigation": "Simple/Advanced tab system"
+ *   },
+ *   "key_components": {
+ *     "golden-path-card": "Primary action card with gradient styling",
+ *     "quick-action-item": "Individual action items with hover effects",
+ *     "nav-pills": "Tab navigation styling",
+ *     "preview-wrapper": "SVG preview container with scroll"
+ *   },
+ *   "ai_navigation": {
+ *     "modify_for": "Adding new UI components or theme adjustments",
+ *     "used_by": "templates/index.html",
+ *     "javascript": "static/app.js"
+ *   }
+ * }
+ */
+
 /* Custom styles for ArUCO Generator - Streamlined */
 
 /* Golden Path Card Styling */
