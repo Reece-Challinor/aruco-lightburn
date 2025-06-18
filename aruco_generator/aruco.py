@@ -66,7 +66,7 @@ class ArUCOGenerator:
         return marker_image
     
     def generate_grid(self, start_id: int, dict_name: str, rows: int, cols: int, 
-                     size_mm: float, spacing_mm: float) -> List[Dict[str, Any]]:
+                     size_mm: float, spacing_mm: float, generate_images: bool = True) -> List[Dict[str, Any]]:
         """Generate grid of markers with positions"""
         if rows * cols + start_id > self.get_dictionary_info()[dict_name]['max_markers']:
             raise ValueError(f"Too many markers requested for dictionary {dict_name}")
@@ -75,19 +75,23 @@ class ArUCOGenerator:
         for row in range(rows):
             for col in range(cols):
                 marker_id = start_id + (row * cols + col)
-                marker_image = self.generate_marker(marker_id, dict_name)
                 
                 x = col * (size_mm + spacing_mm)
                 y = row * (size_mm + spacing_mm)
                 
-                markers.append({
+                marker_data = {
                     'id': marker_id,
-                    'image': marker_image,
                     'x': x,
                     'y': y,
                     'size': size_mm,
                     'dict': dict_name
-                })
+                }
+                
+                # Only generate actual images when needed (for file export)
+                if generate_images:
+                    marker_data['image'] = self.generate_marker(marker_id, dict_name)
+                
+                markers.append(marker_data)
         return markers
     
     def calculate_total_size(self, rows: int, cols: int, size_mm: float, spacing_mm: float) -> Tuple[float, float]:

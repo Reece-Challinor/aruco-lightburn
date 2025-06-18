@@ -84,8 +84,8 @@ def generate_preview():
         if rows <= 0 or cols <= 0:
             return jsonify({'error': 'Grid dimensions must be positive.'}), 400
         
-        # Generate markers
-        markers = aruco_gen.generate_grid(start_id, dictionary, rows, cols, size_mm, spacing_mm)
+        # Generate markers without images for preview (faster)
+        markers = aruco_gen.generate_grid(start_id, dictionary, rows, cols, size_mm, spacing_mm, generate_images=False)
         
         # Create drawing context
         context = DrawingContext()
