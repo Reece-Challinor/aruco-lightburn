@@ -1,13 +1,14 @@
-<!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calibration Patterns - ArUCO Generator</title>
-    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
-    <style>
+{% extends "base.html" %}
+
+{% block title %}Calibration Patterns - ArUCO Generator{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item active">Calibration</li>
+{% endblock %}
+
+{% block extra_css %}
+<link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+<style>
         .pattern-card {
             transition: transform 0.2s;
         }
@@ -28,30 +29,27 @@
             max-height: 500px;
             border: 1px solid #333;
         }
-    </style>
-</head>
-<body>
-    <div class="container py-4">
-        <!-- Header -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <h1 class="display-5 mb-2">
-                    <i class="bi bi-camera me-2 text-primary"></i>
-                    Calibration Patterns
-                </h1>
-                <p class="text-muted">Professional calibration patterns for computer vision applications</p>
-                <a href="/" class="btn btn-outline-secondary btn-sm">
-                    <i class="bi bi-arrow-left me-2"></i>Back to ArUCO Generator
-                </a>
-            </div>
-        </div>
+</style>
+{% endblock %}
 
-        <!-- Pattern Type Selection -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">Select Pattern Type</h5>
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-6 gradient-text">
+                <i class="bi bi-camera-video me-2"></i>Calibration Patterns
+            </h1>
+            <p class="text-muted">Professional calibration patterns for computer vision applications</p>
+        </div>
+    </div>
+
+    <!-- Pattern Type Selection -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Select Pattern Type</h5>
                     </div>
                     <div class="card-body">
                         <div class="row g-3">
@@ -276,9 +274,11 @@
                 </div>
             </div>
         </div>
-    </div>
+</div>
+{% endblock %}
 
-    <script>
+{% block extra_js %}
+<script>
         let currentPattern = null;
         let currentPatternData = null;
         let currentPatternId = null;
@@ -444,6 +444,5 @@
             
             window.location.href = `/api/calibration/export/${currentPatternId}?format=${format}`;
         }
-    </script>
-</body>
-</html>
+</script>
+{% endblock %}

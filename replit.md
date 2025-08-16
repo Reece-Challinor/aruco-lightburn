@@ -4,12 +4,15 @@
 
 A comprehensive ArUCO marker generator designed for computer vision engineers, researchers, and robotics professionals. The application provides a three-tab interface for generating precise ArUCO markers, calibration patterns, and AprilTags with real-time preview and export to multiple industry-standard formats.
 
-**Version 3.0** - Released August 16, 2025
-- Three-tab architecture: Configuration, ArUco, and Advanced
-- Support for all standard ArUco dictionaries (4x4, 5x5, 6x6, 7x7)
-- Multiple export formats: LightBurn (.lbrn2), PDF, SVG, OpenCV YAML, ROS JSON
-- Computer vision focused with industry-standard parameters
-- Clean, streamlined interface with preserved purple gradient theme
+**Version 4.0** - Released August 16, 2025
+- Enhanced navigation system with global navbar and breadcrumbs
+- Dedicated pages: Home, Generate, Calibration, Validation, Documentation
+- URL-based tab navigation with state persistence
+- Responsive mobile-first design with touch controls
+- Modular JavaScript architecture (navigation, API, state, notifications)
+- Comprehensive test coverage for navigation and API endpoints
+- Consistent purple gradient theme across all pages
+- Keyboard shortcuts for quick navigation
 
 ## User Preferences
 
@@ -18,26 +21,42 @@ Preferred communication style: Simple, everyday language.
 ## System Architecture
 
 ### Frontend Architecture
-- **Technology Stack**: Vanilla JavaScript ES6+ with Bootstrap 5 dark theme
-- **UI Design Pattern**: Three-tab architecture (Configuration, ArUco, Advanced)
-- **Tab Structure**:
-  - **Configuration Tab**: ChArUco boards, AprilTag generation, detection validation
-  - **ArUco Tab**: Quick ArUco marker generation with standard dictionaries
-  - **Advanced Tab**: Full parameter control and customization
+- **Technology Stack**: Modular JavaScript ES6+ with Bootstrap 5 dark theme
+- **Navigation System**: Global navbar with breadcrumbs and URL-based routing
+- **Page Structure**:
+  - **Home Page**: Landing with feature overview and quick start guide
+  - **Generate Page**: Three tabs - Quick Generate, Advanced, Batch Generation
+  - **Calibration Page**: ChArUco boards, AprilTag generation, calibration patterns
+  - **Validation Page**: Detection testing, Hamming distance calculator, metrics
+  - **Documentation Page**: Built-in help, API reference, best practices
+- **JavaScript Modules**:
+  - `core/navigation.js`: Global navigation and keyboard shortcuts
+  - `core/api.js`: Centralized API client with error handling
+  - `core/state.js`: Application state management with localStorage
+  - `components/notifications.js`: Toast notifications and user feedback
+  - `pages/generate.js`: Generation page logic
+  - `pages/validation.js`: Validation page logic
 - **Error Handling**: Comprehensive client-side error logging with automatic backend reporting
 - **Preview System**: Real-time SVG rendering with multi-format export support
-- **Responsive Design**: Mobile-first with Bootstrap grid and purple gradient theme
+- **Responsive Design**: Mobile-first with touch-optimized controls and collapsible navigation
 
 ### Backend Architecture
 - **Framework**: Flask 3.0 with modular route organization across multiple files
+- **Route Modules**:
+  - `web.py`: Main routes and home page
+  - `calibration_web.py`: Calibration pattern routes
+  - `advanced_web.py`: Advanced features and validation
+  - `validation_web.py`: Validation, documentation, and generate pages
 - **Core Modules**: 
   - `aruco.py`: OpenCV-based marker generation with fallback support
   - `drawing.py`: SVG drawing context and rendering system
   - `lightburn.py`: LightBurn .lbrn2 XML export with material presets
   - `calibration.py`: ChArUco boards and AprilTag generation
   - `validation.py`: Detection quality assurance and metrics
+- **Template System**: Base template inheritance with consistent navigation
 - **API Design**: RESTful endpoints with JSON responses and comprehensive validation
 - **Error Management**: Automatic logging to `debug_logs.txt` with stack traces and monitoring script
+- **Testing**: Comprehensive test suites for navigation and API endpoints
 
 ### Data Storage Solutions
 - **Primary Database**: PostgreSQL with SQLAlchemy ORM for production environments
