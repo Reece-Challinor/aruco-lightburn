@@ -40,9 +40,8 @@ lightburn_exporter = LightBurnExporter()
 
 @app.route('/')
 def index():
-    """Main application page"""
-    dictionaries = aruco_gen.get_dictionary_info()
-    return render_template('index.html', dictionaries=dictionaries)
+    """Landing page"""
+    return render_template('home.html')
 
 @app.route('/api/dictionaries')
 def get_dictionaries():

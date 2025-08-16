@@ -22,17 +22,30 @@ AI AGENT NOTES:
 
 **Professional ArUCO marker generator for computer vision, calibration, and laser cutting**
 
-Generate precise ArUCO markers, ChArUco boards, and AprilTags with real-time preview, coordinate systems, and export to multiple professional formats including LightBurn, ROS, OpenCV YAML, DXF, and STL. Built for computer vision applications with OpenCV standard compliance.
+Generate precise ArUCO markers, ChArUco boards, and AprilTags with enhanced navigation, real-time preview, coordinate systems, and export to multiple professional formats including LightBurn, ROS, OpenCV YAML, DXF, and STL. Built for computer vision applications with OpenCV standard compliance.
+
+## What's New in Version 4.0
+
+• **Enhanced Navigation** - Global navbar with breadcrumbs and keyboard shortcuts  
+• **Unified UI** - Consistent base template with purple gradient theme throughout  
+• **Dedicated Pages** - Separate pages for Generate, Calibration, Validation, Documentation  
+• **Improved Routing** - URL-based tab navigation with state persistence  
+• **Responsive Design** - Mobile-optimized with touch-friendly controls  
+• **Modular JavaScript** - Separated core navigation, API client, state management  
+• **Comprehensive Testing** - Added test suites for navigation and API endpoints
 
 ## Features
 
+• **Enhanced Navigation** - Global navigation bar with breadcrumbs and keyboard shortcuts (Alt+H, Alt+G, Alt+C, Alt+V)  
 • **Multiple Pattern Types** - ArUCO markers, ChArUco boards, AprilTags for calibration  
 • **3D Coordinate Systems** - World coordinates with physical dimensions in mm  
 • **Professional Export Formats** - LightBurn, ROS, OpenCV YAML, DXF (CNC), STL (3D printing)  
-• **Detection Validation** - Hamming distance calculation, quality metrics, test patterns  
+• **Validation Center** - Dedicated page for marker testing, Hamming distance calculation, quality metrics  
+• **Documentation Hub** - Comprehensive built-in documentation with best practices  
 • **Real-time Preview** - Optimized SVG preview showing actual patterns  
 • **Database Tracking** - PostgreSQL backend for calibration patterns and detection metrics  
-• **Production Ready** - Comprehensive error handling and validation  
+• **Responsive Design** - Mobile-first design with touch-optimized controls  
+• **Production Ready** - Comprehensive error handling, validation, and testing  
 
 ## Quick Start
 
@@ -52,11 +65,28 @@ Open `http://localhost:5000` - Generate markers instantly.
 - Flask
 - PostgreSQL (optional)
 
+## Navigation
+
+### Pages
+- **Home** (`/`) - Landing page with feature overview and quick start guide
+- **Generate** (`/generate`) - Main marker generation with Quick, Advanced, and Batch tabs
+- **Calibration** (`/calibration`) - ChArUco boards, AprilTags, and calibration patterns
+- **Validation** (`/validation`) - Test detection quality, calculate Hamming distances
+- **Documentation** (`/documentation`) - Built-in help and API reference
+
+### Keyboard Shortcuts
+- `Alt + H` - Go to Home
+- `Alt + G` - Go to Generate
+- `Alt + C` - Go to Calibration  
+- `Alt + V` - Go to Validation
+- `?` - Show keyboard shortcuts
+
 ## Usage
 
-1. **Simple Mode** - One-click generation for common use cases
+1. **Quick Generate** - One-click generation for common use cases
 2. **Advanced Mode** - Full parameter control with OpenCV standards
-3. **Quick Test** - Instant 2x2 inch markers for laser testing
+3. **Batch Generation** - Generate multiple marker sets with presets
+4. **Validation Testing** - Upload images to test detection quality
 
 ## API Endpoints
 

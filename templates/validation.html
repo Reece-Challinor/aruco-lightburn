@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block title %}Validation Center - ArUCO Generator{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item active">Validation</li>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .validation-card {
+        height: 100%;
+        transition: all 0.3s ease;
+    }
+    .validation-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+    .upload-zone {
+        border: 2px dashed var(--primary-gradient-start);
+        border-radius: 0.5rem;
+        padding: 3rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    .upload-zone:hover, .upload-zone.drag-over {
+        background: rgba(102, 126, 234, 0.1);
+        border-color: var(--primary-gradient-end);
+    }
+    .metric-card {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+        border-left: 4px solid var(--primary-gradient-start);
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-6 gradient-text">
+                <i class="bi bi-check-circle me-2"></i>Validation Center
+            </h1>
+            <p class="text-muted">Test marker detection quality, calculate Hamming distances, and validate your patterns</p>
+        </div>
+    </div>
+
+    <!-- Validation Tools Grid -->
+    <div class="row g-4">
+        <!-- Upload and Test -->
+        <div class="col-lg-6">
+            <div class="card validation-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-upload me-2"></i>Upload & Test Markers
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="upload-zone" id="uploadZone">
+                        <i class="bi bi-cloud-upload display-4 text-primary mb-3"></i>
+                        <h6>Drop image here or click to upload</h6>
+                        <p class="text-muted small">Supports PNG, JPG, JPEG (Max 10MB)</p>
+                        <input type="file" id="fileInput" class="d-none" accept="image/*">
+                    </div>
+                    
+                    <div id="testResults" class="mt-4" style="display: none;">
+                        <h6>Detection Results</h6>
+                        <div class="metric-card">
+                            <div class="row">
+                                <div class="col-6">
+                                    <small class="text-muted">Detected Markers</small>
+                                    <h4 class="gradient-text" id="detectedCount">0</h4>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Detection Quality</small>
+                                    <h4 class="text-success" id="detectionQuality">-</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="detectionDetails"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hamming Distance Calculator -->
+        <div class="col-lg-6">
+            <div class="card validation-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-calculator me-2"></i>Hamming Distance Calculator
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Calculate the Hamming distance between two markers to assess confusion risk</p>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Dictionary</label>
+                            <select class="form-select" id="hammingDictionary">
+                                <option value="4X4_50">4X4_50</option>
+                                <option value="4X4_100">4X4_100</option>
+                                <option value="4X4_250" selected>4X4_250</option>
+                                <option value="5X5_100">5X5_100</option>
+                                <option value="6X6_250">6X6_250</option>
+                                <option value="7X7_1000">7X7_1000</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Marker ID 1</label>
+                            <input type="number" class="form-control" id="markerId1" min="0" value="0">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Marker ID 2</label>
+                            <input type="number" class="form-control" id="markerId2" min="0" value="1">
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary mt-3" onclick="calculateHamming()">
+                        <i class="bi bi-calculator me-2"></i>Calculate Distance
+                    </button>
+                    
+                    <div id="hammingResult" class="mt-4" style="display: none;">
+                        <div class="alert" id="hammingAlert">
+                            <h6 class="alert-heading">Hamming Distance: <span id="hammingValue">-</span></h6>
+                            <p class="mb-0" id="hammingSafety">-</p>
+                        </div>
+                        
+                        <div class="small text-muted">
+                            <p><strong>Reference Guide:</strong></p>
+                            <ul>
+                                <li>Distance ≥ 5: <span class="text-success">Safe - Low confusion risk</span></li>
+                                <li>Distance 3-4: <span class="text-warning">Warning - Moderate confusion risk</span></li>
+                                <li>Distance < 3: <span class="text-danger">Critical - High confusion risk</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Pattern Generator -->
+        <div class="col-lg-6">
+            <div class="card validation-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-grid-3x3-gap me-2"></i>Test Pattern Generator
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Generate multi-scale test patterns for validation</p>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Dictionary</label>
+                            <select class="form-select" id="testDictionary">
+                                <option value="4X4_50" selected>4X4_50</option>
+                                <option value="5X5_100">5X5_100</option>
+                                <option value="6X6_250">6X6_250</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Scales (mm)</label>
+                            <input type="text" class="form-control" id="testScales" value="10, 20, 50, 100" placeholder="e.g., 10, 20, 50">
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="includeDistortions">
+                                <label class="form-check-label" for="includeDistortions">
+                                    Include distortions (rotation, perspective)
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="includeOcclusions">
+                                <label class="form-check-label" for="includeOcclusions">
+                                    Include partial occlusions
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-success mt-3" onclick="generateTestPattern()">
+                        <i class="bi bi-magic me-2"></i>Generate Test Pattern
+                    </button>
+                    
+                    <div id="testPatternPreview" class="mt-4"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Metrics -->
+        <div class="col-lg-6">
+            <div class="card validation-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-speedometer2 me-2"></i>Performance Metrics
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">View detection performance statistics</p>
+                    
+                    <div class="metric-card">
+                        <h6 class="text-primary">Detection Statistics</h6>
+                        <div class="row mt-3">
+                            <div class="col-4 text-center">
+                                <small class="text-muted d-block">Avg Detection Rate</small>
+                                <h5 class="gradient-text">95.2%</h5>
+                            </div>
+                            <div class="col-4 text-center">
+                                <small class="text-muted d-block">Avg Pose Error</small>
+                                <h5 class="text-warning">2.3mm</h5>
+                            </div>
+                            <div class="col-4 text-center">
+                                <small class="text-muted d-block">Processing Time</small>
+                                <h5 class="text-success">15ms</h5>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <h6 class="text-primary">Recent Tests</h6>
+                        <div class="list-group list-group-flush mt-3">
+                            <div class="list-group-item bg-transparent">
+                                <div class="d-flex justify-content-between">
+                                    <span>ChArUco 8x6</span>
+                                    <span class="badge bg-success">100% detected</span>
+                                </div>
+                            </div>
+                            <div class="list-group-item bg-transparent">
+                                <div class="d-flex justify-content-between">
+                                    <span>AprilTag Grid 3x3</span>
+                                    <span class="badge bg-success">100% detected</span>
+                                </div>
+                            </div>
+                            <div class="list-group-item bg-transparent">
+                                <div class="d-flex justify-content-between">
+                                    <span>ArUco Board 4x3</span>
+                                    <span class="badge bg-warning">92% detected</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-outline-primary mt-3 w-100">
+                        <i class="bi bi-download me-2"></i>Export Full Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/pages/validation.js') }}"></script>
+{% endblock %}

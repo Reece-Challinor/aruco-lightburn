@@ -53,6 +53,7 @@ db.init_app(app)
 
 # Import and register routes
 from aruco_generator.web import *
+from aruco_generator.validation_web import *
 
 # Initialize database tables
 def init_db():
