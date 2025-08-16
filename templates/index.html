@@ -40,10 +40,7 @@
                     <i class="bi bi-qr-code me-2 text-primary"></i>
                     ArUCO Generator
                 </h1>
-                <p class="text-muted">Computer Vision Markers for Laser Cutting</p>
-                <a href="/calibration" class="btn btn-outline-primary btn-sm">
-                    <i class="bi bi-camera me-2"></i>Calibration Patterns
-                </a>
+                <p class="text-muted">Professional Computer Vision Marker Creation Suite</p>
             </div>
         </div>
 
@@ -52,8 +49,13 @@
             <div class="col-12">
                 <ul class="nav nav-pills nav-fill" id="mainTabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="simple-tab" data-bs-toggle="pill" data-bs-target="#simple" type="button" role="tab">
-                            <i class="bi bi-lightning me-2"></i>Simple
+                        <button class="nav-link active" id="configuration-tab" data-bs-toggle="pill" data-bs-target="#configuration" type="button" role="tab">
+                            <i class="bi bi-camera-video me-2"></i>Configuration
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="aruco-tab" data-bs-toggle="pill" data-bs-target="#aruco" type="button" role="tab">
+                            <i class="bi bi-qr-code me-2"></i>ArUco
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
@@ -67,55 +69,207 @@
 
         <!-- Tab Content -->
         <div class="tab-content" id="mainTabContent">
-            <!-- Simple Tab -->
-            <div class="tab-pane fade show active" id="simple" role="tabpanel">
+            <!-- Configuration Tab - NEW -->
+            <div class="tab-pane fade show active" id="configuration" role="tabpanel">
+                <div class="row">
+                    <!-- Configuration Options -->
+                    <div class="col-lg-4 mb-4">
+                        <div class="card golden-path-card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-camera-video me-2"></i>
+                                    Calibration Patterns
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <!-- ChArUco Board -->
+                                <div class="quick-action-item mb-4">
+                                    <h6 class="text-primary">ChArUco Board</h6>
+                                    <p class="text-muted small mb-3">Combined checkerboard + ArUco for precise camera calibration</p>
+                                    <a href="/calibration" class="btn btn-primary w-100">
+                                        <i class="bi bi-grid-3x3-gap me-2"></i>Generate ChArUco
+                                    </a>
+                                </div>
+
+                                <hr class="my-4">
+
+                                <!-- AprilTag -->
+                                <div class="quick-action-item mb-4">
+                                    <h6 class="text-primary">AprilTag Markers</h6>
+                                    <p class="text-muted small mb-3">Robust fiducial markers for robotics applications</p>
+                                    <a href="/calibration#apriltag" class="btn btn-success w-100">
+                                        <i class="bi bi-cpu me-2"></i>Generate AprilTags
+                                    </a>
+                                </div>
+
+                                <hr class="my-4">
+
+                                <!-- Detection Testing -->
+                                <div class="quick-action-item">
+                                    <h6 class="text-warning">Detection Validation</h6>
+                                    <p class="text-muted small mb-3">Test marker detection quality and metrics</p>
+                                    <a href="/validation" class="btn btn-warning w-100">
+                                        <i class="bi bi-check-circle me-2"></i>Validate Markers
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Info Panel -->
+                    <div class="col-lg-8">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-info-circle me-2"></i>Computer Vision Configuration
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-4">
+                                        <h6 class="text-primary"><i class="bi bi-camera me-2"></i>Camera Calibration</h6>
+                                        <p class="text-muted">Use ChArUco boards for accurate camera intrinsic and extrinsic parameter calibration. Essential for 3D reconstruction and pose estimation.</p>
+                                        <ul class="small text-muted">
+                                            <li>Intrinsic parameters (focal length, distortion)</li>
+                                            <li>Extrinsic parameters (rotation, translation)</li>
+                                            <li>Multi-camera system calibration</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6 mb-4">
+                                        <h6 class="text-primary"><i class="bi bi-cpu me-2"></i>Fiducial Markers</h6>
+                                        <p class="text-muted">Generate AprilTag and ArUco markers for robotics, AR/VR, and tracking applications.</p>
+                                        <ul class="small text-muted">
+                                            <li>Pose estimation and tracking</li>
+                                            <li>Robot navigation and localization</li>
+                                            <li>Augmented reality anchoring</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6 class="text-warning"><i class="bi bi-lightning me-2"></i>Quick Start Guide</h6>
+                                        <ol class="small text-muted">
+                                            <li>Choose your marker type (ArUco, AprilTag, ChArUco)</li>
+                                            <li>Select appropriate dictionary for your use case</li>
+                                            <li>Generate and export in your preferred format</li>
+                                            <li>Print or display markers for detection</li>
+                                        </ol>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6 class="text-success"><i class="bi bi-download me-2"></i>Export Formats</h6>
+                                        <div class="small text-muted">
+                                            <p><strong>LightBurn (.lbrn2):</strong> Laser cutting files</p>
+                                            <p><strong>OpenCV YAML:</strong> Camera calibration data</p>
+                                            <p><strong>ROS JSON:</strong> Robot Operating System</p>
+                                            <p><strong>PDF/SVG:</strong> Print and digital display</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ArUco Tab (formerly Simple) -->
+            <div class="tab-pane fade" id="aruco" role="tabpanel">
                 <div class="row">
                     <!-- Quick Actions -->
                     <div class="col-lg-4 mb-4">
                         <div class="card golden-path-card">
                             <div class="card-header">
                                 <h5 class="card-title mb-0">
-                                    <i class="bi bi-zap me-2"></i>
-                                    Quick Generate
+                                    <i class="bi bi-qr-code me-2"></i>
+                                    ArUco Generation
                                 </h5>
                             </div>
                             <div class="card-body">
+                                <!-- Dictionary Selection -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold">Dictionary Type</label>
+                                    <select class="form-select" id="quickDictionary">
+                                        <optgroup label="Standard ArUco">
+                                            <option value="4X4_50">4×4 (50 markers) - Fast detection</option>
+                                            <option value="4X4_100">4×4 (100 markers)</option>
+                                            <option value="4X4_250">4×4 (250 markers)</option>
+                                            <option value="4X4_1000">4×4 (1000 markers)</option>
+                                            <option value="5X5_50">5×5 (50 markers)</option>
+                                            <option value="5X5_100">5×5 (100 markers)</option>
+                                            <option value="5X5_250">5×5 (250 markers)</option>
+                                            <option value="5X5_1000">5×5 (1000 markers)</option>
+                                            <option value="6X6_50">6×6 (50 markers)</option>
+                                            <option value="6X6_100">6×6 (100 markers)</option>
+                                            <option value="6X6_250" selected>6×6 (250 markers) - Recommended</option>
+                                            <option value="6X6_1000">6×6 (1000 markers)</option>
+                                            <option value="7X7_50">7×7 (50 markers)</option>
+                                            <option value="7X7_100">7×7 (100 markers)</option>
+                                            <option value="7X7_250">7×7 (250 markers)</option>
+                                            <option value="7X7_1000">7×7 (1000 markers) - Maximum robustness</option>
+                                        </optgroup>
+                                    </select>
+                                </div>
+
                                 <!-- Single Marker -->
                                 <div class="quick-action-item mb-4">
-                                    <h6 class="text-primary">Single ArUCO Marker</h6>
-                                    <p class="text-muted small mb-3">Generate one marker for testing</p>
-                                    <div class="mb-3">
-                                        <label class="form-label">Marker ID</label>
-                                        <input type="number" class="form-control" id="singleMarkerId" value="0" min="0" max="1000">
+                                    <h6 class="text-primary">Single Marker</h6>
+                                    <p class="text-muted small mb-3">Generate one ArUco marker</p>
+                                    <div class="row mb-3">
+                                        <div class="col-6">
+                                            <label class="form-label">Marker ID</label>
+                                            <input type="number" class="form-control" id="singleMarkerId" value="0" min="0" max="1000">
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label">Size (mm)</label>
+                                            <input type="number" class="form-control" id="singleMarkerSize" value="50" min="10" max="200">
+                                        </div>
                                     </div>
                                     <button class="btn btn-primary w-100" id="generateSingle">
-                                        <i class="bi bi-1-circle me-2"></i>Generate Single
+                                        <i class="bi bi-square me-2"></i>Generate Single
                                     </button>
                                 </div>
 
                                 <hr class="my-4">
 
-                                <!-- 2x2 Grid -->
+                                <!-- Grid Generation -->
                                 <div class="quick-action-item mb-4">
-                                    <h6 class="text-primary">2x2 Grid (Golden Path)</h6>
-                                    <p class="text-muted small mb-3">1 column, 2 rows - perfect for shelf localization</p>
+                                    <h6 class="text-primary">Marker Grid</h6>
+                                    <p class="text-muted small mb-3">Generate multiple markers in a grid layout</p>
+                                    <div class="row mb-3">
+                                        <div class="col-6">
+                                            <label class="form-label">Rows</label>
+                                            <input type="number" class="form-control" id="gridRows" value="2" min="1" max="5">
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label">Columns</label>
+                                            <input type="number" class="form-control" id="gridCols" value="2" min="1" max="5">
+                                        </div>
+                                    </div>
                                     <div class="mb-3">
                                         <label class="form-label">Starting ID</label>
                                         <input type="number" class="form-control" id="gridStartId" value="0" min="0" max="1000">
                                     </div>
                                     <button class="btn btn-success w-100" id="generateGrid">
-                                        <i class="bi bi-grid me-2"></i>Generate 2x2 Grid
+                                        <i class="bi bi-grid-3x3 me-2"></i>Generate Grid
                                     </button>
                                 </div>
 
                                 <hr class="my-4">
 
-                                <!-- Quick Test -->
+                                <!-- Export Format -->
                                 <div class="quick-action-item">
-                                    <h6 class="text-warning">Laser Test</h6>
-                                    <p class="text-muted small mb-3">Two 2"×2" markers for cutting validation</p>
-                                    <button class="btn btn-warning w-100" id="generateQuickTest">
-                                        <i class="bi bi-tools me-2"></i>Generate Test Cut
+                                    <h6 class="text-warning">Export Format</h6>
+                                    <div class="mb-3">
+                                        <select class="form-select" id="exportFormat">
+                                            <option value="lightburn">LightBurn (.lbrn2) - Laser Cutting</option>
+                                            <option value="pdf">PDF - Print</option>
+                                            <option value="svg">SVG - Vector Graphics</option>
+                                            <option value="yaml">OpenCV YAML - Calibration</option>
+                                            <option value="json">ROS JSON - Robotics</option>
+                                        </select>
+                                    </div>
+                                    <button class="btn btn-warning w-100" id="downloadQuick" disabled>
+                                        <i class="bi bi-download me-2"></i>Download
                                     </button>
                                 </div>
                             </div>
@@ -129,9 +283,18 @@
                                 <h5 class="card-title mb-0">
                                     <i class="bi bi-eye me-2"></i>Preview
                                 </h5>
-                                <button class="btn btn-success btn-sm" id="downloadBtn" disabled>
-                                    <i class="bi bi-download me-2"></i>Download LightBurn
-                                </button>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-success btn-sm dropdown-toggle" id="downloadBtn" data-bs-toggle="dropdown" disabled>
+                                        <i class="bi bi-download me-2"></i>Export
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item export-option" href="#" data-format="lightburn"><i class="bi bi-lightning me-2"></i>LightBurn (.lbrn2)</a></li>
+                                        <li><a class="dropdown-item export-option" href="#" data-format="pdf"><i class="bi bi-file-pdf me-2"></i>PDF</a></li>
+                                        <li><a class="dropdown-item export-option" href="#" data-format="svg"><i class="bi bi-image me-2"></i>SVG</a></li>
+                                        <li><a class="dropdown-item export-option" href="#" data-format="yaml"><i class="bi bi-code me-2"></i>OpenCV YAML</a></li>
+                                        <li><a class="dropdown-item export-option" href="#" data-format="json"><i class="bi bi-braces me-2"></i>ROS JSON</a></li>
+                                    </ul>
+                                </div>
                             </div>
                             <div class="card-body">
                                 <!-- Loading State -->
@@ -164,24 +327,34 @@
                                         <small class="text-muted" id="dimensionsInfo"></small>
                                     </div>
                                     
-                                    <!-- Material Info -->
+                                    <!-- Usage Info -->
                                     <div class="material-info mt-3">
-                                        <h6 class="text-warning">
-                                            <i class="bi bi-tools me-2"></i>Laser Settings
+                                        <h6 class="text-primary">
+                                            <i class="bi bi-info-circle me-2"></i>Usage Guidelines
                                         </h6>
                                         <div class="row text-start">
                                             <div class="col-md-6">
-                                                <p><strong>Material:</strong> 1/16" Cast Acrylic</p>
-                                                <p><strong>Cut:</strong> 150mm/min @ 75% power</p>
+                                                <p class="small"><strong>Dictionary Selection:</strong></p>
+                                                <ul class="small text-muted">
+                                                    <li><strong>4×4:</strong> Fast detection, limited IDs</li>
+                                                    <li><strong>5×5:</strong> Balanced performance</li>
+                                                    <li><strong>6×6:</strong> Recommended for most uses</li>
+                                                    <li><strong>7×7:</strong> Maximum robustness</li>
+                                                </ul>
                                             </div>
                                             <div class="col-md-6">
-                                                <p><strong>Engrave:</strong> 800mm/min @ 45% power</p>
-                                                <p><strong>Mark:</strong> 1000mm/min @ 20% power</p>
+                                                <p class="small"><strong>Size Recommendations:</strong></p>
+                                                <ul class="small text-muted">
+                                                    <li><strong>20-50mm:</strong> Close-range detection</li>
+                                                    <li><strong>50-100mm:</strong> Standard applications</li>
+                                                    <li><strong>100-200mm:</strong> Long-range detection</li>
+                                                    <li><strong>>200mm:</strong> Outdoor/industrial use</li>
+                                                </ul>
                                             </div>
                                         </div>
                                         <div class="alert alert-info mt-2 mb-0">
                                             <i class="bi bi-lightbulb me-2"></i>
-                                            <strong>Tip:</strong> Engrave black side up for white markers
+                                            <strong>Tip:</strong> Marker size should be ~1/5 of detection distance for optimal results
                                         </div>
                                     </div>
                                 </div>
