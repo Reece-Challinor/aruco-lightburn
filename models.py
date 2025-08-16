@@ -69,33 +69,10 @@ class DetectionMetric(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     pattern_id = db.Column(db.Integer, db.ForeignKey('calibration_patterns.id'), nullable=False)
-    
-    # Detection performance
     detection_rate = db.Column(db.Float)  # Percentage of markers detected (0-100)
-    false_positive_rate = db.Column(db.Float)  # False detection rate
     pose_error_mm = db.Column(db.Float)  # Average pose estimation error in mm
-    reprojection_error = db.Column(db.Float)  # Reprojection error in pixels
-    
-    # Test conditions
-    distance_m = db.Column(db.Float)  # Distance from camera in meters
-    viewing_angle_deg = db.Column(db.Float)  # Viewing angle in degrees
     lighting_conditions = db.Column(db.String(100))  # 'bright', 'normal', 'low', 'mixed'
-    camera_resolution = db.Column(db.String(20))  # e.g., '1920x1080'
-    camera_fps = db.Column(db.Integer)
-    
-    # Environmental factors
-    ambient_light_lux = db.Column(db.Float)  # Ambient light in lux
-    motion_blur_level = db.Column(db.String(20))  # 'none', 'low', 'medium', 'high'
-    occlusion_percentage = db.Column(db.Float)  # Percentage of pattern occluded
-    
-    # Processing metrics
-    detection_time_ms = db.Column(db.Float)  # Time to detect markers in milliseconds
-    pose_estimation_time_ms = db.Column(db.Float)  # Time for pose estimation
-    
-    # Metadata
     tested_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    test_environment = db.Column(db.String(50))  # 'indoor', 'outdoor', 'mixed'
-    notes = db.Column(db.Text)
     
     def __repr__(self):
         return f'<DetectionMetric {self.id}: Pattern {self.pattern_id} - {self.detection_rate}% detection>'
@@ -107,7 +84,6 @@ class DetectionMetric(db.Model):
             'pattern_id': self.pattern_id,
             'detection_rate': self.detection_rate,
             'pose_error_mm': self.pose_error_mm,
-            'distance_m': self.distance_m,
             'lighting_conditions': self.lighting_conditions,
             'tested_at': self.tested_at.isoformat() if self.tested_at else None
         }
