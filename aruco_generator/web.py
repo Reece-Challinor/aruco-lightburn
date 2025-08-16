@@ -29,6 +29,7 @@ from .drawing import DrawingContext
 from .lightburn import LightBurnExporter
 from .batch import BatchGenerator
 from . import calibration_web  # Import calibration routes
+from . import advanced_web  # Import advanced coordinate and validation routes
 
 # Get Flask app from main app.py
 from app import app
