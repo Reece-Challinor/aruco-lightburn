@@ -33,11 +33,13 @@ POST /api/preview              # Test marker generation
 - **LightBurn Export**: Tested with material settings
 - **Database**: Optional PostgreSQL, falls back to SQLite
 
-### Performance Fixes (v1.1.0)
+### Performance Fixes (v2.0.0)
 - **JSON Parsing Errors**: Fixed "unexpected end of data" through optimized ArUCO rendering
 - **Preview Optimization**: Uses 10px base resolution with 2px sampling for fast preview
 - **Export Quality**: Full 200px resolution for laser cutting precision
 - **API Timeouts**: Eliminated through efficient SVG generation pipeline
+- **Coordinate Systems**: 3D world coordinates with millimeter precision
+- **Database Performance**: Indexed tables for fast pattern retrieval
 
 ### System Diagnostics
 ```bash
@@ -52,15 +54,25 @@ POST /api/preview              # Test marker generation
 # Test dictionary loading
 curl http://localhost:5000/api/dictionaries
 
-# Test preview generation
-curl -X POST http://localhost:5000/api/preview \
+# Test coordinate generation
+curl -X POST http://localhost:5000/api/advanced/generate_with_coordinates \
   -H "Content-Type: application/json" \
-  -d '{"dictionary": "6X6_250", "rows": 1, "cols": 1, "start_id": 0, "size_mm": 50, "spacing_mm": 10}'
+  -d '{"dictionary": "4X4_50", "marker_ids": [0, 1], "size_mm": 50}'
 
-# Test download
-curl -X POST http://localhost:5000/api/download \
+# Test ChArUco generation
+curl -X POST http://localhost:5000/api/calibration/charuco \
   -H "Content-Type: application/json" \
-  -d '{"dictionary": "6X6_250", "rows": 1, "cols": 1, "start_id": 0, "size_mm": 50, "spacing_mm": 10}'
+  -d '{"squares_x": 8, "squares_y": 6, "square_size_mm": 30}'
+
+# Test Hamming distance
+curl -X POST http://localhost:5000/api/validation/hamming_distance \
+  -H "Content-Type: application/json" \
+  -d '{"id1": 0, "id2": 1, "dictionary": "4X4_50"}'
+
+# Test ROS export
+curl -X POST http://localhost:5000/api/export/ros \
+  -H "Content-Type: application/json" \
+  -d '{"calibration_data": {"pattern_type": "aruco"}}'
 
 # Check application status
 curl http://localhost:5000/api/debug/status
@@ -74,9 +86,13 @@ curl http://localhost:5000/api/debug/status
 - `aruco_generator/web.py` - All routes and API endpoints
 
 ### Core Functionality
-- `aruco_generator/aruco.py` - ArUCO marker generation with OpenCV (optimized for preview/export)
-- `aruco_generator/drawing.py` - Efficient SVG rendering system with pixel sampling
+- `aruco_generator/aruco.py` - ArUCO marker generation with coordinate systems
+- `aruco_generator/calibration.py` - ChArUco boards and AprilTag generation
+- `aruco_generator/exporters.py` - Professional exports (ROS, OpenCV, DXF, STL)
+- `aruco_generator/validation.py` - Detection quality and testing tools
+- `aruco_generator/drawing.py` - Efficient SVG rendering system
 - `aruco_generator/lightburn.py` - LightBurn export with material settings
+- `aruco_generator/batch.py` - Batch processing for multiple patterns
 
 ### Frontend
 - `static/app.js` - Enhanced with comprehensive error handling
