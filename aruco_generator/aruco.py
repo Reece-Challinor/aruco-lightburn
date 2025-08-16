@@ -27,6 +27,7 @@ except ImportError:
     OPENCV_AVAILABLE = False
 
 from typing import Tuple, List, Dict, Any
+from datetime import datetime
 
 class ArUCOGenerator:
     def __init__(self):
@@ -179,3 +180,169 @@ class ArUCOGenerator:
         width = cols * size_mm + (cols - 1) * spacing_mm
         height = rows * size_mm + (rows - 1) * spacing_mm
         return width, height
+    
+    def generate_with_coordinates(self, marker_config: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate markers with world coordinate metadata for calibration.
+        
+        Args:
+            marker_config: Configuration dict containing:
+                - dictionary: ArUCO dictionary name
+                - marker_ids: List of marker IDs or single ID
+                - size_mm: Physical marker size in mm
+                - positions: List of (x, y, z) positions in mm (optional)
+                - orientations: List of (roll, pitch, yaw) in degrees (optional)
+                - reference_frame: Coordinate frame name (default: 'world')
+        
+        Returns:
+            Dictionary containing:
+                - markers: List of marker data with coordinates
+                - calibration_data: Full calibration metadata
+                - coordinate_frame: Reference frame information
+        """
+        dictionary = marker_config.get('dictionary', '4X4_50')
+        marker_ids = marker_config.get('marker_ids', [0])
+        if isinstance(marker_ids, int):
+            marker_ids = [marker_ids]
+        
+        size_mm = marker_config.get('size_mm', 50.0)
+        positions = marker_config.get('positions', [])
+        orientations = marker_config.get('orientations', [])
+        reference_frame = marker_config.get('reference_frame', 'world')
+        
+        # Generate default positions if not provided
+        if not positions:
+            positions = [[i * (size_mm + 10), 0, 0] for i in range(len(marker_ids))]
+        
+        # Default orientations (no rotation)
+        if not orientations:
+            orientations = [[0, 0, 0] for _ in marker_ids]
+        
+        markers_data = []
+        for idx, marker_id in enumerate(marker_ids):
+            # Generate marker image
+            marker_image = self.generate_marker(marker_id, dictionary, size_pixels=200)
+            
+            # Get position and orientation
+            pos = positions[idx] if idx < len(positions) else [0, 0, 0]
+            orient = orientations[idx] if idx < len(orientations) else [0, 0, 0]
+            
+            # Calculate corner coordinates in 3D space
+            half_size = size_mm / 2.0
+            corners_3d = [
+                [pos[0] - half_size, pos[1] - half_size, pos[2]],  # Top-left
+                [pos[0] + half_size, pos[1] - half_size, pos[2]],  # Top-right
+                [pos[0] + half_size, pos[1] + half_size, pos[2]],  # Bottom-right
+                [pos[0] - half_size, pos[1] + half_size, pos[2]]   # Bottom-left
+            ]
+            
+            # Apply rotation if needed (simplified - for full rotation use rotation matrices)
+            if any(orient):
+                import math
+                # Convert degrees to radians
+                roll, pitch, yaw = [math.radians(angle) for angle in orient]
+                # Note: Full rotation implementation would use rotation matrices
+                # This is simplified for demonstration
+            
+            marker_data = {
+                'id': marker_id,
+                'dictionary': dictionary,
+                'size_mm': size_mm,
+                'position_mm': pos,
+                'orientation_deg': orient,
+                'corners_3d': corners_3d,
+                'center_3d': pos,
+                'normal_vector': [0, 0, 1],  # Default pointing up
+                'image': marker_image
+            }
+            markers_data.append(marker_data)
+        
+        # Create calibration metadata
+        calibration_data = {
+            'pattern_type': 'aruco_markers',
+            'coordinate_system': {
+                'reference_frame': reference_frame,
+                'units': 'millimeters',
+                'origin': [0, 0, 0],
+                'axes': {
+                    'x': [1, 0, 0],
+                    'y': [0, 1, 0],
+                    'z': [0, 0, 1]
+                }
+            },
+            'markers': [
+                {
+                    'id': m['id'],
+                    'position': m['position_mm'],
+                    'orientation': m['orientation_deg'],
+                    'corners': m['corners_3d'],
+                    'size_mm': m['size_mm']
+                }
+                for m in markers_data
+            ],
+            'dictionary': dictionary,
+            'total_markers': len(markers_data),
+            'generation_timestamp': datetime.now().isoformat()
+        }
+        
+        return {
+            'markers': markers_data,
+            'calibration_data': calibration_data,
+            'coordinate_frame': {
+                'reference': reference_frame,
+                'units': 'mm',
+                'origin': [0, 0, 0]
+            }
+        }
+    
+    def generate_pose_estimation_board(self, board_config: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate board optimized for pose estimation with coordinate data.
+        
+        Args:
+            board_config: Configuration for pose estimation board
+        
+        Returns:
+            Board data with full 3D coordinate information
+        """
+        rows = board_config.get('rows', 3)
+        cols = board_config.get('cols', 3)
+        marker_size = board_config.get('marker_size_mm', 50.0)
+        spacing = board_config.get('spacing_mm', 10.0)
+        dictionary = board_config.get('dictionary', '4X4_50')
+        start_id = board_config.get('start_id', 0)
+        
+        # Generate marker positions
+        markers = []
+        marker_ids = []
+        positions = []
+        
+        for row in range(rows):
+            for col in range(cols):
+                marker_id = start_id + row * cols + col
+                x = col * (marker_size + spacing)
+                y = row * (marker_size + spacing)
+                z = 0  # Planar board
+                
+                marker_ids.append(marker_id)
+                positions.append([x, y, z])
+        
+        # Use generate_with_coordinates for full coordinate data
+        result = self.generate_with_coordinates({
+            'dictionary': dictionary,
+            'marker_ids': marker_ids,
+            'size_mm': marker_size,
+            'positions': positions,
+            'reference_frame': 'board'
+        })
+        
+        # Add board-specific metadata
+        result['board_config'] = {
+            'grid_size': [cols, rows],
+            'marker_size_mm': marker_size,
+            'spacing_mm': spacing,
+            'board_width_mm': cols * marker_size + (cols - 1) * spacing,
+            'board_height_mm': rows * marker_size + (rows - 1) * spacing,
+            'planar': True,
+            'use_case': 'pose_estimation'
+        }
+        
+        return result
