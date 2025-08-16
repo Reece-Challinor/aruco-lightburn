@@ -101,7 +101,7 @@ class ArUCOGenerator {
             this.includeOuterBorderCheck = document.getElementById('include_outer_border');
             this.borderWidthInput = document.getElementById('border_width');
             this.borderWidthContainer = document.getElementById('borderWidthContainer');
-            this.generateAdvancedBtn = document.getElementById('generateAdvanced');
+            this.generateAdvancedBtn = document.getElementById('generateAdvancedBtn');
             this.downloadAdvancedBtn = document.getElementById('downloadAdvanced');
 
             // ArUco tab preview elements
@@ -128,16 +128,22 @@ class ArUCOGenerator {
     }
 
     validateCriticalElements() {
-        const criticalElements = [
-            { name: 'generateAdvancedBtn', element: this.generateAdvancedBtn },
-            { name: 'advancedForm', element: this.advancedForm },
-            { name: 'dictionarySelect', element: this.dictionarySelect },
-            { name: 'advancedPreview', element: this.advancedPreview }
-        ];
+        // Only validate elements that should exist on the current page
+        const currentPath = window.location.pathname;
         
-        for (const { name, element } of criticalElements) {
-            if (!element) {
-                this.logError('Missing Element', `Critical element ${name} not found`);
+        // Only check for generate page elements if we're on the generate page
+        if (currentPath === '/generate') {
+            const criticalElements = [
+                { name: 'generateAdvancedBtn', element: this.generateAdvancedBtn },
+                { name: 'advancedForm', element: this.advancedForm },
+                { name: 'dictionarySelect', element: this.dictionarySelect },
+                { name: 'advancedPreview', element: this.advancedPreview }
+            ];
+            
+            for (const { name, element } of criticalElements) {
+                if (!element) {
+                    this.logError('Missing Element', `Critical element ${name} not found on generate page`);
+                }
             }
         }
     }

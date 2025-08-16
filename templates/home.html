@@ -36,28 +36,8 @@
         text-decoration: none;
         color: inherit;
     }
-    .quick-start-section {
-        background: var(--card-bg);
-        border-radius: 1rem;
-        padding: 2rem;
-        margin-top: 3rem;
-    }
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 2rem;
-        margin-top: 2rem;
-    }
-    .stat-card {
-        text-align: center;
-        padding: 1.5rem;
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
-        border-radius: 0.5rem;
-    }
-    .stat-number {
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--primary-gradient-start);
+    footer {
+        margin-top: auto;
     }
 </style>
 {% endblock %}
@@ -133,131 +113,23 @@
         </a>
     </div>
 
-    <!-- Quick Start Section -->
-    <div class="quick-start-section">
-        <h3 class="mb-4">
-            <i class="bi bi-lightning-charge me-2 text-warning"></i>Quick Start Guide
-        </h3>
-        <div class="row">
-            <div class="col-md-3 mb-3">
-                <div class="d-flex align-items-start">
-                    <span class="badge bg-primary me-3" style="min-width: 30px;">1</span>
-                    <div>
-                        <h6>Choose Your Use Case</h6>
-                        <p class="text-muted small">Select markers, calibration, or validation based on your needs</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 mb-3">
-                <div class="d-flex align-items-start">
-                    <span class="badge bg-primary me-3" style="min-width: 30px;">2</span>
-                    <div>
-                        <h6>Configure Parameters</h6>
-                        <p class="text-muted small">Set dictionary, size, and layout options</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 mb-3">
-                <div class="d-flex align-items-start">
-                    <span class="badge bg-primary me-3" style="min-width: 30px;">3</span>
-                    <div>
-                        <h6>Generate & Preview</h6>
-                        <p class="text-muted small">Create markers with real-time SVG preview</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 mb-3">
-                <div class="d-flex align-items-start">
-                    <span class="badge bg-primary me-3" style="min-width: 30px;">4</span>
-                    <div>
-                        <h6>Export & Use</h6>
-                        <p class="text-muted small">Download in your preferred format</p>
-                    </div>
-                </div>
-            </div>
+    <!-- Footer -->
+    <footer class="mt-5 py-4 border-top">
+        <div class="text-center">
+            <p class="text-muted mb-2">ArUCO Generator v4.0 - Professional Computer Vision Tools</p>
+            <small class="text-muted">
+                Press <kbd>?</kbd> for keyboard shortcuts | <a href="/documentation" class="text-decoration-none">Documentation</a>
+            </small>
         </div>
-    </div>
-
-    <!-- Statistics -->
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-number">16</div>
-            <div class="text-muted">Dictionary Types</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number">5</div>
-            <div class="text-muted">Export Formats</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number">3</div>
-            <div class="text-muted">Calibration Types</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number">∞</div>
-            <div class="text-muted">Possible Markers</div>
-        </div>
-    </div>
-
-    <!-- Common Use Cases -->
-    <div class="card mt-5">
-        <div class="card-header">
-            <h4 class="mb-0">
-                <i class="bi bi-lightbulb me-2"></i>Common Use Cases
-            </h4>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <h6 class="text-primary">Robotics & Automation</h6>
-                    <ul class="small text-muted">
-                        <li>Robot navigation and localization</li>
-                        <li>Object tracking and manipulation</li>
-                        <li>Multi-robot coordination</li>
-                    </ul>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <h6 class="text-primary">AR/VR Applications</h6>
-                    <ul class="small text-muted">
-                        <li>World anchoring and tracking</li>
-                        <li>Inside-out tracking systems</li>
-                        <li>Mixed reality calibration</li>
-                    </ul>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <h6 class="text-primary">Computer Vision</h6>
-                    <ul class="small text-muted">
-                        <li>Camera calibration</li>
-                        <li>3D reconstruction</li>
-                        <li>Pose estimation</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Keyboard Shortcuts Hint -->
-    <div class="text-center mt-5 mb-3">
-        <small class="text-muted">
-            Press <kbd>?</kbd> at any time to see keyboard shortcuts
-        </small>
-    </div>
+    </footer>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-// Animate stats on page load
+// Homepage-specific initialization
 document.addEventListener('DOMContentLoaded', () => {
-    const statNumbers = document.querySelectorAll('.stat-number');
-    statNumbers.forEach(stat => {
-        stat.style.opacity = '0';
-        stat.style.transform = 'translateY(20px)';
-        setTimeout(() => {
-            stat.style.transition = 'all 0.5s ease';
-            stat.style.opacity = '1';
-            stat.style.transform = 'translateY(0)';
-        }, 100);
-    });
+    console.log('ArUCO Generator v4.0 - Homepage loaded');
 });
 </script>
 {% endblock %}

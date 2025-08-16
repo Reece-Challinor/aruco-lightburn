@@ -306,3 +306,35 @@ LightBurn Exporter initialized: True
 ArUCO Generator initialized: True
 LightBurn Exporter initialized: True
 --------------------------------------------------------------------------------
+2025-08-16T20:24:16.039998 - 404 ERROR
+Path: /favicon.ico
+Method: GET
+--------------------------------------------------------------------------------
+2025-08-16T20:24:33.795922 - FRONTEND ERROR
+Context: Missing Element
+Message: Critical element generateAdvancedBtn not found
+Stack: No stack trace
+URL: https://6f5fcc61-eb21-490b-b175-2e6520846728-00-20do9th6sa7ga.picard.replit.dev/generate
+--------------------------------------------------------------------------------
+2025-08-16T20:24:44.571039 - FRONTEND ERROR
+Context: Missing Element
+Message: Critical element generateAdvancedBtn not found
+Stack: No stack trace
+URL: https://6f5fcc61-eb21-490b-b175-2e6520846728-00-20do9th6sa7ga.picard.replit.dev/generate
+--------------------------------------------------------------------------------
+2025-08-16T20:25:39.225420 - FRONTEND ERROR
+Context: Missing Element
+Message: Critical element generateAdvancedBtn not found
+Stack: No stack trace
+URL: https://6f5fcc61-eb21-490b-b175-2e6520846728-00-20do9th6sa7ga.picard.replit.dev/generate
+--------------------------------------------------------------------------------
+2025-08-16T20:26:50.186877 - FRONTEND ERROR
+Context: Missing Element
+Message: Critical element generateAdvancedBtn not found
+Stack: No stack trace
+URL: https://6f5fcc61-eb21-490b-b175-2e6520846728-00-20do9th6sa7ga.picard.replit.dev/generate?tab=advanced
+--------------------------------------------------------------------------------
+2025-08-16T20:27:20.995055 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
