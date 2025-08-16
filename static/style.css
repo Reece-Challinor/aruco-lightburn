@@ -29,6 +29,8 @@
     border: 2px solid transparent;
     background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
     border-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%) 1;
+    border-radius: 0.5rem;
+    overflow: visible;
 }
 
 .golden-path-card .card-header {
@@ -52,12 +54,14 @@
     background-color: rgba(255, 255, 255, 0.08);
 }
 
-/* Tab Navigation */
+/* Tab Navigation - Pills Style */
 .nav-pills .nav-link {
     background: transparent;
     border: 1px solid var(--bs-border-color);
     color: var(--bs-body-color);
-    margin: 0 2px;
+    margin: 0 0.25rem;
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
     transition: all 0.3s ease;
 }
 
@@ -70,15 +74,17 @@
 .nav-pills .nav-link:hover:not(.active) {
     background: rgba(102, 126, 234, 0.1);
     border-color: #667eea;
+    transform: translateY(-1px);
 }
 
 .preview-wrapper {
     max-height: 500px;
     overflow: auto;
     border: 1px solid var(--bs-border-color);
-    border-radius: 0.375rem;
+    border-radius: 0.5rem;
     padding: 1rem;
     background-color: var(--bs-body-bg);
+    margin: 0;
 }
 
 #svgPreview svg {
@@ -117,11 +123,18 @@
 /* Card improvements */
 .card {
     border: 1px solid var(--bs-border-color);
+    border-radius: 0.5rem;
+    overflow: visible;
 }
 
 .card-header {
     background-color: var(--bs-body-bg);
     border-bottom: 1px solid var(--bs-border-color);
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.card-body {
+    padding: 1.25rem;
 }
 
 /* Info text styling */
