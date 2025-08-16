@@ -1,10 +1,15 @@
-# ArUCO Generator - Computer Vision Calibration Suite
+# ArUCO Generator - Professional Computer Vision Marker Creation Suite
 
 ## Overview
 
-A professional ArUCO marker generator designed for computer vision applications, camera calibration, and laser cutting. The application provides a streamlined interface for generating precise ArUCO markers, ChArUco boards, and AprilTags with real-time preview and export to multiple professional formats including LightBurn, OpenCV YAML, ROS JSON, DXF, and STL.
+A comprehensive ArUCO marker generator designed for computer vision engineers, researchers, and robotics professionals. The application provides a three-tab interface for generating precise ArUCO markers, calibration patterns, and AprilTags with real-time preview and export to multiple industry-standard formats.
 
-The system follows a golden path UX design with simple one-click generation for common use cases and advanced parameter control for professional applications. Built with Flask backend and vanilla JavaScript frontend, optimized for performance with comprehensive error handling and validation.
+**Version 3.0** - Released August 16, 2025
+- Three-tab architecture: Configuration, ArUco, and Advanced
+- Support for all standard ArUco dictionaries (4x4, 5x5, 6x6, 7x7)
+- Multiple export formats: LightBurn (.lbrn2), PDF, SVG, OpenCV YAML, ROS JSON
+- Computer vision focused with industry-standard parameters
+- Clean, streamlined interface with preserved purple gradient theme
 
 ## User Preferences
 
@@ -14,10 +19,14 @@ Preferred communication style: Simple, everyday language.
 
 ### Frontend Architecture
 - **Technology Stack**: Vanilla JavaScript ES6+ with Bootstrap 5 dark theme
-- **UI Design Pattern**: Golden path UX with Simple/Advanced tab navigation
-- **Error Handling**: Comprehensive client-side error logging with automatic backend reporting via `/api/log-error` endpoint
-- **Preview System**: Real-time SVG rendering with optimized pixel sampling (10px base resolution for preview, 200px for export)
-- **Responsive Design**: Mobile-first approach with Bootstrap grid system and custom purple gradient theme
+- **UI Design Pattern**: Three-tab architecture (Configuration, ArUco, Advanced)
+- **Tab Structure**:
+  - **Configuration Tab**: ChArUco boards, AprilTag generation, detection validation
+  - **ArUco Tab**: Quick ArUco marker generation with standard dictionaries
+  - **Advanced Tab**: Full parameter control and customization
+- **Error Handling**: Comprehensive client-side error logging with automatic backend reporting
+- **Preview System**: Real-time SVG rendering with multi-format export support
+- **Responsive Design**: Mobile-first with Bootstrap grid and purple gradient theme
 
 ### Backend Architecture
 - **Framework**: Flask 3.0 with modular route organization across multiple files
@@ -46,10 +55,15 @@ Preferred communication style: Simple, everyday language.
 - **XSS Protection**: HTML escaping utilities and safe innerHTML operations
 
 ### Export and Integration Systems
-- **LightBurn Integration**: Native .lbrn2 XML export with laser cutting parameters for 1/16" cast acrylic
-- **Professional Formats**: OpenCV YAML, ROS JSON, DXF (CNC), STL (3D printing), PDF export capabilities
-- **Coordinate Systems**: 3D world coordinates with millimeter precision for robotics applications
-- **Batch Processing**: ZIP file generation for multiple markers with sequential ID ranges
+- **Multi-Format Export**: 
+  - LightBurn (.lbrn2) - Laser cutting with material presets
+  - PDF - Print-ready documents
+  - SVG - Vector graphics for digital display
+  - OpenCV YAML - Camera calibration data format
+  - ROS JSON - Robot Operating System integration
+- **Dictionary Support**: All standard ArUco dictionaries (4x4 through 7x7 with 50, 100, 250, 1000 marker variants)
+- **Coordinate Systems**: 3D world coordinates with millimeter precision
+- **Batch Processing**: Grid generation with customizable rows, columns, and spacing
 
 ## External Dependencies
 
