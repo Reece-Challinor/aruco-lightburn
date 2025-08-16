@@ -28,6 +28,7 @@ from .aruco import ArUCOGenerator
 from .drawing import DrawingContext
 from .lightburn import LightBurnExporter
 from .batch import BatchGenerator
+from . import calibration_web  # Import calibration routes
 
 # Get Flask app from main app.py
 from app import app

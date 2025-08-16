@@ -1,8 +1,8 @@
-modules = ["python-3.11"]
+modules = ["python-3.11", "postgresql-16"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["gcc", "glibc", "libGL", "libGLU", "libgcc", "libstdcxx5", "openssl", "postgresql", "zlib"]
+packages = ["gcc", "glibc", "libGL", "libGLU", "libgcc", "libstdcxx5", "libyaml", "openssl", "postgresql", "zlib"]
 
 [deployment]
 deploymentTarget = "autoscale"
@@ -32,3 +32,6 @@ waitForPort = 5000
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[agent]
+integrations = ["python_database==1.0.0"]
