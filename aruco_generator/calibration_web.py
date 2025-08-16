@@ -316,11 +316,7 @@ def save_detection_metrics():
             pattern_id=data['pattern_id'],
             detection_rate=data.get('detection_rate'),
             pose_error_mm=data.get('pose_error_mm'),
-            distance_m=data.get('distance_m'),
-            lighting_conditions=data.get('lighting_conditions'),
-            camera_resolution=data.get('camera_resolution'),
-            detection_time_ms=data.get('detection_time_ms'),
-            notes=data.get('notes')
+            lighting_conditions=data.get('lighting_conditions')
         )
         
         db.session.add(metric)

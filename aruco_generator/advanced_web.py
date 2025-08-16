@@ -289,10 +289,7 @@ def generate_report():
                 pattern_id=data['pattern_id'],
                 detection_rate=avg_detection,
                 pose_error_mm=avg_pose_error,
-                lighting_conditions=data.get('lighting_conditions', 'unknown'),
-                distance_m=data.get('distance_m'),
-                detection_time_ms=report['test_summary']['average_processing_time'],
-                notes=json.dumps(report['recommendations'])
+                lighting_conditions=data.get('lighting_conditions', 'unknown')
             )
             db.session.add(metric)
             db.session.commit()
