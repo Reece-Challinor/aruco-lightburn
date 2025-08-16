@@ -270,3 +270,23 @@ LightBurn Exporter initialized: True
 ArUCO Generator initialized: True
 LightBurn Exporter initialized: True
 --------------------------------------------------------------------------------
+2025-08-16T16:36:06.859128 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
+2025-08-16T16:38:49.188254 - 404 ERROR
+Path: /validation
+Method: GET
+--------------------------------------------------------------------------------
+2025-08-16T16:38:50.878419 - 404 ERROR
+Path: /validation
+Method: GET
+--------------------------------------------------------------------------------
+2025-08-16T16:38:57.932471 - 404 ERROR
+Path: /validation
+Method: GET
+--------------------------------------------------------------------------------
+2025-08-16T19:49:56.475617 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
