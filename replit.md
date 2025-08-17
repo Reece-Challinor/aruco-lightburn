@@ -40,14 +40,29 @@ Preferred communication style: Simple, everyday language.
 - **Preview System**: Real-time SVG rendering with multi-format export support
 - **Responsive Design**: Mobile-first with touch-optimized controls and collapsible navigation
 
-### Backend Architecture
-- **Framework**: Flask 3.0 with modular route organization across multiple files
-- **Route Modules**:
+### Backend Architecture (Updated: August 17, 2025)
+- **Framework**: Flask 3.0 with modular Flask Blueprint architecture
+- **API Structure**: Versioned RESTful API at `/api/v1/` with dedicated endpoints:
+  - `/api/v1/auth/` - Authentication and user management
+  - `/api/v1/markers/` - ArUCO marker generation and management
+  - `/api/v1/detection/` - Real-time marker detection and analysis
+  - `/api/v1/calibration/` - Camera calibration tools and patterns
+  - `/api/v1/export/` - Multi-format export (SVG, PDF, LightBurn, DXF)
+  - `/api/v1/admin/` - Admin dashboard and user management
+  - `/api/v1/health/` - Health checks, metrics, and system status
+- **Service Layer Pattern**: Business logic separated into services:
+  - `MarkerService`: Marker generation and batch processing
+  - `DetectionService`: Real-time detection and quality analysis
+  - `CalibrationService`: Camera calibration and pattern generation
+  - `ExportService`: Multi-format export handling
+- **Repository Pattern**: Database abstraction layer for data persistence
+  - `MarkerRepository`: Marker CRUD operations and statistics
+- **Legacy Route Modules** (Maintained for compatibility):
   - `web.py`: Main routes and home page
   - `calibration_web.py`: Calibration pattern routes
   - `advanced_web.py`: Advanced features and validation
   - `validation_web.py`: Validation, documentation, and generate pages
-- **Core Modules**: 
+- **Core Generation Modules**: 
   - `aruco.py`: OpenCV-based marker generation with fallback support
   - `drawing.py`: SVG drawing context and rendering system
   - `lightburn.py`: LightBurn .lbrn2 XML export with material presets

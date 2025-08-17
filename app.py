@@ -55,6 +55,16 @@ db.init_app(app)
 from aruco_generator.web import *
 from aruco_generator.validation_web import *
 
+# Register new API v1 blueprint
+try:
+    from backend.api.v1 import api_v1
+    app.register_blueprint(api_v1)
+    print("API v1 registered successfully at /api/v1")
+except ImportError as e:
+    print(f"Warning: Could not import API v1: {e}")
+except Exception as e:
+    print(f"Warning: Could not register API v1: {e}")
+
 # Initialize database tables
 def init_db():
     try:
