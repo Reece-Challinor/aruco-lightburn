@@ -1,0 +1,391 @@
+{% extends "base.html" %}
+
+{% block title %}Generate Markers - ArUCO Generator{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item active">Generate</li>
+{% endblock %}
+
+{% block extra_css %}
+<link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-6 gradient-text">
+                <i class="bi bi-magic me-2"></i>Marker Generation
+            </h1>
+            <p class="text-muted">Create ArUCO markers with customizable parameters and export options</p>
+        </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <ul class="nav nav-tabs" id="mainTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="simple-tab" data-bs-toggle="tab" data-bs-target="#simple" type="button" role="tab">
+                        <i class="bi bi-lightning me-2"></i>Quick Generate
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="advanced-tab" data-bs-toggle="tab" data-bs-target="#advanced" type="button" role="tab">
+                        <i class="bi bi-sliders me-2"></i>Advanced Options
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="batch-tab" data-bs-toggle="tab" data-bs-target="#batch" type="button" role="tab">
+                        <i class="bi bi-stack me-2"></i>Batch Generation
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="mainTabContent">
+        <!-- Simple Tab -->
+        <div class="tab-pane fade show active" id="simple" role="tabpanel">
+            <div class="row">
+                <!-- Quick Actions -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card card-primary">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-qr-code me-2"></i>Quick Generation
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Dictionary Selection -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Dictionary Type</label>
+                                <select class="form-select" id="quickDictionary">
+                                    <optgroup label="Standard ArUco">
+                                        <option value="4X4_50">4×4 (50 markers) - Fast detection</option>
+                                        <option value="4X4_100">4×4 (100 markers)</option>
+                                        <option value="4X4_250" selected>4×4 (250 markers) - Recommended</option>
+                                        <option value="4X4_1000">4×4 (1000 markers)</option>
+                                        <option value="5X5_50">5×5 (50 markers)</option>
+                                        <option value="5X5_100">5×5 (100 markers)</option>
+                                        <option value="5X5_250">5×5 (250 markers)</option>
+                                        <option value="5X5_1000">5×5 (1000 markers)</option>
+                                        <option value="6X6_50">6×6 (50 markers)</option>
+                                        <option value="6X6_100">6×6 (100 markers)</option>
+                                        <option value="6X6_250">6×6 (250 markers)</option>
+                                        <option value="6X6_1000">6×6 (1000 markers)</option>
+                                        <option value="7X7_50">7×7 (50 markers)</option>
+                                        <option value="7X7_100">7×7 (100 markers)</option>
+                                        <option value="7X7_250">7×7 (250 markers)</option>
+                                        <option value="7X7_1000">7×7 (1000 markers) - Maximum robustness</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+
+                            <!-- Single Marker -->
+                            <div class="quick-action-item mb-4">
+                                <h6 class="text-primary">Single Marker</h6>
+                                <p class="text-muted small mb-3">Generate one ArUco marker</p>
+                                <div class="row mb-3">
+                                    <div class="col-6">
+                                        <label class="form-label">Marker ID</label>
+                                        <input type="number" class="form-control" id="singleMarkerId" value="0" min="0" max="1000">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">Size (mm)</label>
+                                        <input type="number" class="form-control" id="singleMarkerSize" value="50" min="10" max="200">
+                                    </div>
+                                </div>
+                                <button class="btn btn-primary w-100" id="generateSingle">
+                                    <i class="bi bi-square me-2"></i>Generate Single
+                                </button>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <!-- Grid Generation -->
+                            <div class="quick-action-item mb-4">
+                                <h6 class="text-primary">Marker Grid</h6>
+                                <p class="text-muted small mb-3">Generate multiple markers in a grid layout</p>
+                                <div class="row mb-3">
+                                    <div class="col-6">
+                                        <label class="form-label">Rows</label>
+                                        <input type="number" class="form-control" id="gridRows" value="2" min="1" max="5">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">Columns</label>
+                                        <input type="number" class="form-control" id="gridCols" value="2" min="1" max="5">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Starting ID</label>
+                                    <input type="number" class="form-control" id="gridStartId" value="0" min="0" max="1000">
+                                </div>
+                                <button class="btn btn-success w-100" id="generateGrid">
+                                    <i class="bi bi-grid-3x3 me-2"></i>Generate Grid
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview -->
+                <div class="col-lg-8">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-eye me-2"></i>Preview
+                            </h5>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-success btn-sm dropdown-toggle" id="downloadBtn" data-bs-toggle="dropdown" disabled>
+                                    <i class="bi bi-download me-2"></i>Export
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item export-option" href="#" data-format="lightburn"><i class="bi bi-lightning me-2"></i>LightBurn (.lbrn2)</a></li>
+                                    <li><a class="dropdown-item export-option" href="#" data-format="pdf"><i class="bi bi-file-pdf me-2"></i>PDF</a></li>
+                                    <li><a class="dropdown-item export-option" href="#" data-format="svg"><i class="bi bi-image me-2"></i>SVG</a></li>
+                                    <li><a class="dropdown-item export-option" href="#" data-format="yaml"><i class="bi bi-code me-2"></i>OpenCV YAML</a></li>
+                                    <li><a class="dropdown-item export-option" href="#" data-format="json"><i class="bi bi-braces me-2"></i>ROS JSON</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <!-- Loading State -->
+                            <div id="loadingState" class="text-center py-5" style="display: none;">
+                                <div class="spinner-border text-primary mb-3" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <div>Generating preview...</div>
+                            </div>
+
+                            <!-- Empty State -->
+                            <div id="emptyState" class="text-center py-5 text-muted">
+                                <i class="bi bi-arrow-left display-2 mb-3 text-primary"></i>
+                                <h5>Ready to Generate</h5>
+                                <p>Click any generate button to create your ArUCO markers</p>
+                            </div>
+
+                            <!-- Error State -->
+                            <div id="errorState" class="alert alert-danger" style="display: none;">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                <span id="errorMessage"></span>
+                            </div>
+
+                            <!-- Preview Container -->
+                            <div id="previewContainer" class="text-center" style="display: none;">
+                                <div class="preview-wrapper">
+                                    <div id="svgPreview"></div>
+                                </div>
+                                <div class="mt-3">
+                                    <small class="text-muted" id="dimensionsInfo"></small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Tab -->
+        <div class="tab-pane fade" id="advanced" role="tabpanel">
+            <div class="row">
+                <!-- Advanced Parameters -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-sliders me-2"></i>Advanced Parameters
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="advancedForm">
+                                <!-- Dictionary Selection -->
+                                <div class="mb-4">
+                                    <label for="dictionary" class="form-label fw-bold">
+                                        <i class="bi bi-grid-3x3-gap me-1"></i>ArUCO Dictionary
+                                    </label>
+                                    <select class="form-select" id="dictionary" name="dictionary" required>
+                                        <optgroup label="Standard Dictionaries">
+                                            {% for dict_name, dict_info in dictionaries.items() %}
+                                            <option value="{{ dict_name }}" 
+                                                {% if dict_name == '4X4_250' %}selected{% endif %}
+                                                data-max="{{ dict_info.max_markers }}">
+                                                {{ dict_name }} - {{ dict_info.description }}
+                                            </option>
+                                            {% endfor %}
+                                        </optgroup>
+                                    </select>
+                                </div>
+
+                                <!-- Marker Configuration -->
+                                <h6 class="mb-3">
+                                    <i class="bi bi-gear me-1"></i>Marker Configuration
+                                </h6>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-6">
+                                        <label class="form-label">Marker ID</label>
+                                        <input type="number" class="form-control" id="markerId" name="marker_id" value="0" min="0" required>
+                                        <div class="form-text">Max: <span id="maxMarkerInfo">250</span></div>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">Grid Layout</label>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" id="rows" name="rows" value="1" min="1" max="10" required>
+                                            <span class="input-group-text">×</span>
+                                            <input type="number" class="form-control" id="cols" name="cols" value="1" min="1" max="10" required>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Physical Dimensions -->
+                                <h6 class="mb-3">
+                                    <i class="bi bi-rulers me-1"></i>Physical Dimensions
+                                </h6>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-6">
+                                        <label class="form-label">Marker Size</label>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" id="markerSize" name="size_mm" value="50" min="5" max="500" required>
+                                            <span class="input-group-text">mm</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">Spacing</label>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" id="spacing" name="spacing_mm" value="10" min="0" max="100" required>
+                                            <span class="input-group-text">mm</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Display Options -->
+                                <h6 class="mb-3">
+                                    <i class="bi bi-palette me-1"></i>Display Options
+                                </h6>
+                                
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="includeBorders" name="include_borders" checked>
+                                    <label class="form-check-label" for="includeBorders">
+                                        Include white borders
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="includeLabels" name="include_labels" checked>
+                                    <label class="form-check-label" for="includeLabels">
+                                        Include ID labels
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="includeOuterBorder" name="include_outer_border">
+                                    <label class="form-check-label" for="includeOuterBorder">
+                                        Include outer border
+                                    </label>
+                                </div>
+                                
+                                <div class="mb-3" id="borderWidthGroup" style="display: none;">
+                                    <label class="form-label">Border Width</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="borderWidth" name="border_width" value="2" min="1" max="10">
+                                        <span class="input-group-text">mm</span>
+                                    </div>
+                                </div>
+
+                                <button type="button" class="btn btn-primary w-100" id="generateAdvancedBtn">
+                                    <i class="bi bi-magic me-2"></i>Generate Advanced
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advanced Preview -->
+                <div class="col-lg-8">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-eye me-2"></i>Advanced Preview
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="advancedPreview" class="text-center py-5 text-muted">
+                                <i class="bi bi-gear display-2 mb-3"></i>
+                                <h5>Advanced Mode</h5>
+                                <p>Configure detailed parameters and generate custom layouts</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Batch Tab -->
+        <div class="tab-pane fade" id="batch" role="tabpanel">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-stack me-2"></i>Batch Generation
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted">Generate multiple marker sets with different configurations</p>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Preset Configurations</h6>
+                                    <div class="list-group">
+                                        <button class="list-group-item list-group-item-action" onclick="loadPreset('business_cards')">
+                                            <strong>Business Cards</strong> - Small markers for cards
+                                        </button>
+                                        <button class="list-group-item list-group-item-action" onclick="loadPreset('inventory_tags')">
+                                            <strong>Inventory Tags</strong> - Medium markers for tracking
+                                        </button>
+                                        <button class="list-group-item list-group-item-action" onclick="loadPreset('large_markers')">
+                                            <strong>Large Display</strong> - Wall-mounted markers
+                                        </button>
+                                        <button class="list-group-item list-group-item-action" onclick="loadPreset('production_run')">
+                                            <strong>Production Run</strong> - Large batch generation
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Batch Configuration</h6>
+                                    <div class="mb-3">
+                                        <label class="form-label">Number of Sets</label>
+                                        <input type="number" class="form-control" id="batchSets" value="5" min="1" max="20">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Markers per Set</label>
+                                        <input type="number" class="form-control" id="batchMarkersPerSet" value="10" min="1" max="100">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Starting ID</label>
+                                        <input type="number" class="form-control" id="batchStartId" value="0" min="0">
+                                    </div>
+                                    <button class="btn btn-success w-100" onclick="generateBatch()">
+                                        <i class="bi bi-stack me-2"></i>Generate Batch
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div id="batchResults" class="mt-4"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+<script src="{{ url_for('static', filename='js/pages/generate.js') }}"></script>
+{% endblock %}

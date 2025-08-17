@@ -28,6 +28,8 @@ from .aruco import ArUCOGenerator
 from .drawing import DrawingContext
 from .lightburn import LightBurnExporter
 from .batch import BatchGenerator
+from . import calibration_web  # Import calibration routes
+from . import advanced_web  # Import advanced coordinate and validation routes
 
 # Get Flask app from main app.py
 from app import app
@@ -38,9 +40,8 @@ lightburn_exporter = LightBurnExporter()
 
 @app.route('/')
 def index():
-    """Main application page"""
-    dictionaries = aruco_gen.get_dictionary_info()
-    return render_template('index.html', dictionaries=dictionaries)
+    """Landing page"""
+    return render_template('home.html')
 
 @app.route('/api/dictionaries')
 def get_dictionaries():

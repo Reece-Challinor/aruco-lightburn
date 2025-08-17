@@ -75,12 +75,17 @@ class ArUCOGenerator {
         this.log('Initializing UI elements');
         
         try {
-            // Simple tab elements
+            // ArUco tab elements
+            this.quickDictionary = document.getElementById('quickDictionary');
             this.singleMarkerIdInput = document.getElementById('singleMarkerId');
+            this.singleMarkerSizeInput = document.getElementById('singleMarkerSize');
+            this.gridRowsInput = document.getElementById('gridRows');
+            this.gridColsInput = document.getElementById('gridCols');
             this.gridStartIdInput = document.getElementById('gridStartId');
             this.generateSingleBtn = document.getElementById('generateSingle');
             this.generateGridBtn = document.getElementById('generateGrid');
-            this.generateQuickTestBtn = document.getElementById('generateQuickTest');
+            this.exportFormatSelect = document.getElementById('exportFormat');
+            this.downloadQuickBtn = document.getElementById('downloadQuick');
             this.downloadBtn = document.getElementById('downloadBtn');
 
             // Advanced tab elements
@@ -96,10 +101,10 @@ class ArUCOGenerator {
             this.includeOuterBorderCheck = document.getElementById('include_outer_border');
             this.borderWidthInput = document.getElementById('border_width');
             this.borderWidthContainer = document.getElementById('borderWidthContainer');
-            this.generateAdvancedBtn = document.getElementById('generateAdvanced');
+            this.generateAdvancedBtn = document.getElementById('generateAdvancedBtn');
             this.downloadAdvancedBtn = document.getElementById('downloadAdvanced');
 
-            // Simple tab preview elements
+            // ArUco tab preview elements
             this.loadingState = document.getElementById('loadingState');
             this.emptyState = document.getElementById('emptyState');
             this.errorState = document.getElementById('errorState');
@@ -123,16 +128,22 @@ class ArUCOGenerator {
     }
 
     validateCriticalElements() {
-        const criticalElements = [
-            { name: 'generateAdvancedBtn', element: this.generateAdvancedBtn },
-            { name: 'advancedForm', element: this.advancedForm },
-            { name: 'dictionarySelect', element: this.dictionarySelect },
-            { name: 'advancedPreview', element: this.advancedPreview }
-        ];
+        // Only validate elements that should exist on the current page
+        const currentPath = window.location.pathname;
         
-        for (const { name, element } of criticalElements) {
-            if (!element) {
-                this.logError('Missing Element', `Critical element ${name} not found`);
+        // Only check for generate page elements if we're on the generate page
+        if (currentPath === '/generate') {
+            const criticalElements = [
+                { name: 'generateAdvancedBtn', element: this.generateAdvancedBtn },
+                { name: 'advancedForm', element: this.advancedForm },
+                { name: 'dictionarySelect', element: this.dictionarySelect },
+                { name: 'advancedPreview', element: this.advancedPreview }
+            ];
+            
+            for (const { name, element } of criticalElements) {
+                if (!element) {
+                    this.logError('Missing Element', `Critical element ${name} not found on generate page`);
+                }
             }
         }
     }
@@ -141,7 +152,7 @@ class ArUCOGenerator {
         this.log('Attaching event listeners');
         
         try {
-            // Simple tab event listeners
+            // ArUco tab event listeners
             if (this.generateSingleBtn) {
                 this.generateSingleBtn.addEventListener('click', () => {
                     this.log('Single marker button clicked');
@@ -156,19 +167,22 @@ class ArUCOGenerator {
                 });
             }
             
-            if (this.generateQuickTestBtn) {
-                this.generateQuickTestBtn.addEventListener('click', () => {
-                    this.log('Quick test button clicked');
-                    this.generateQuickTest();
-                });
-            }
-            
-            if (this.downloadBtn) {
-                this.downloadBtn.addEventListener('click', () => {
-                    this.log('Download button clicked');
+            if (this.downloadQuickBtn) {
+                this.downloadQuickBtn.addEventListener('click', () => {
+                    this.log('Quick download button clicked');
                     this.downloadCurrent();
                 });
             }
+            
+            // Export dropdown options
+            const exportOptions = document.querySelectorAll('.export-option');
+            exportOptions.forEach(option => {
+                option.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const format = e.currentTarget.dataset.format;
+                    this.downloadWithFormat(format);
+                });
+            });
 
             // Advanced tab event listeners
             if (this.generateAdvancedBtn) {
@@ -448,20 +462,23 @@ class ArUCOGenerator {
         }
     }
 
-    // Simple tab methods
+    // ArUco tab methods
     async generateSingle() {
         try {
             const markerId = parseInt(this.singleMarkerIdInput?.value) || 0;
+            const markerSize = parseFloat(this.singleMarkerSizeInput?.value) || 50;
+            const dictionary = this.quickDictionary?.value || '6X6_250';
+            
             const data = {
-                dictionary: '6X6_250',
+                dictionary: dictionary,
                 rows: 1,
                 cols: 1,
                 start_id: markerId,
-                size_mm: 50.8, // 2 inches
+                size_mm: markerSize,
                 spacing_mm: 5,
                 include_borders: true,
                 include_labels: true,
-                include_outer_border: true,
+                include_outer_border: false,
                 border_width: 2.0
             };
             
@@ -476,12 +493,16 @@ class ArUCOGenerator {
     async generateGrid() {
         try {
             const startId = parseInt(this.gridStartIdInput?.value) || 0;
+            const rows = parseInt(this.gridRowsInput?.value) || 2;
+            const cols = parseInt(this.gridColsInput?.value) || 2;
+            const dictionary = this.quickDictionary?.value || '6X6_250';
+            
             const data = {
-                dictionary: '6X6_250',
-                rows: 2,
-                cols: 1,
+                dictionary: dictionary,
+                rows: rows,
+                cols: cols,
                 start_id: startId,
-                size_mm: 50.8, // 2 inches each
+                size_mm: 50, // Standard 50mm size for grids
                 spacing_mm: 10,
                 include_borders: true,
                 include_labels: true,
@@ -497,26 +518,116 @@ class ArUCOGenerator {
         }
     }
 
-    async generateQuickTest() {
+    async downloadWithFormat(format) {
         try {
-            this.log('Starting quick test generation');
-            this.showLoading();
+            if (!this.currentGenerationData) {
+                this.showError('Please generate markers first');
+                return;
+            }
             
-            const response = await fetch('/api/quick-test', { method: 'POST' });
+            this.log('Downloading with format:', format);
             
-            if (response.ok) {
-                const result = await response.json();
-                this.log('Quick test generated successfully', result);
-                this.showPreview(result, { type: 'quick-test' });
-                this.currentGenerationData = { type: 'quick-test' };
+            // For non-LightBurn formats, we need to handle differently
+            if (format === 'pdf' || format === 'svg') {
+                // Download SVG or convert to PDF
+                this.downloadSVG(format);
+            } else if (format === 'yaml' || format === 'json') {
+                // Download calibration data
+                this.downloadCalibrationData(format);
             } else {
-                const error = await response.json();
-                throw new Error(error.error || 'Quick test generation failed');
+                // Default to LightBurn
+                this.downloadCurrent();
             }
         } catch (error) {
-            this.logError('Quick Test Generation', error);
-            this.showError(error.message || 'Failed to generate quick test');
+            this.logError('Download with format', error);
+            this.showError('Failed to download in selected format');
         }
+    }
+    
+    async downloadSVG(format) {
+        const svgElement = this.svgPreview?.querySelector('svg');
+        if (!svgElement) {
+            this.showError('No preview available to download');
+            return;
+        }
+        
+        const svgData = new XMLSerializer().serializeToString(svgElement);
+        const blob = new Blob([svgData], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `aruco_markers.${format === 'pdf' ? 'svg' : 'svg'}`; // PDF conversion would need server-side
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+    
+    async downloadCalibrationData(format) {
+        try {
+            const data = this.currentGenerationData;
+            let content;
+            let mimeType;
+            let extension;
+            
+            if (format === 'yaml') {
+                // Create OpenCV YAML format
+                content = this.generateOpenCVYAML(data);
+                mimeType = 'text/yaml';
+                extension = 'yaml';
+            } else {
+                // Create ROS JSON format
+                content = JSON.stringify(this.generateROSJSON(data), null, 2);
+                mimeType = 'application/json';
+                extension = 'json';
+            }
+            
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `aruco_calibration.${extension}`;
+            a.click();
+            URL.revokeObjectURL(url);
+        } catch (error) {
+            this.logError('Download calibration data', error);
+            this.showError('Failed to generate calibration data');
+        }
+    }
+    
+    generateOpenCVYAML(data) {
+        // Generate OpenCV-compatible YAML
+        const yaml = `%YAML:1.0
+---
+markerSize: ${data.size_mm}
+dictionary: ${data.dictionary}
+markers:
+`;
+        let markersYaml = '';
+        const totalMarkers = (data.rows || 1) * (data.cols || 1);
+        for (let i = 0; i < totalMarkers; i++) {
+            markersYaml += `  - id: ${(data.start_id || 0) + i}\n`;
+        }
+        return yaml + markersYaml;
+    }
+    
+    generateROSJSON(data) {
+        // Generate ROS-compatible JSON
+        const markers = [];
+        const totalMarkers = (data.rows || 1) * (data.cols || 1);
+        for (let i = 0; i < totalMarkers; i++) {
+            markers.push({
+                id: (data.start_id || 0) + i,
+                size: data.size_mm / 1000, // Convert to meters for ROS
+                dictionary: data.dictionary
+            });
+        }
+        return {
+            markers: markers,
+            grid: {
+                rows: data.rows || 1,
+                cols: data.cols || 1,
+                spacing: (data.spacing_mm || 0) / 1000
+            }
+        };
     }
 
     // Advanced tab methods
@@ -824,9 +935,12 @@ class ArUCOGenerator {
                     `Dimensions: ${result.dimensions.width}mm × ${result.dimensions.height}mm`;
             }
 
-            // Enable download button
+            // Enable download buttons
             if (this.downloadBtn) {
                 this.downloadBtn.disabled = false;
+            }
+            if (this.downloadQuickBtn) {
+                this.downloadQuickBtn.disabled = false;
             }
         }
     }

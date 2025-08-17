@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}ArUCO Generator - Professional Computer Vision Markers{% endblock %}
+
+{% block breadcrumb %}
+<!-- No breadcrumb on home page -->
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        padding: 4rem 0;
+        margin-bottom: 3rem;
+        border-radius: 1rem;
+    }
+    .hero-title {
+        font-size: 3rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-top: 3rem;
+    }
+    .feature-card {
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.3s ease;
+    }
+    .feature-card:hover {
+        text-decoration: none;
+        color: inherit;
+    }
+    footer {
+        margin-top: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Hero Section -->
+    <div class="hero-section text-center">
+        <h1 class="hero-title mb-3">ArUCO Generator</h1>
+        <p class="lead text-muted mb-4">Professional Computer Vision Marker Creation Suite</p>
+        <p class="mb-4">Generate, calibrate, and validate fiducial markers for robotics, AR/VR, and computer vision applications</p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="/generate" class="btn btn-primary btn-lg">
+                <i class="bi bi-magic me-2"></i>Start Generating
+            </a>
+            <a href="/documentation" class="btn btn-outline-primary btn-lg">
+                <i class="bi bi-book me-2"></i>View Documentation
+            </a>
+        </div>
+    </div>
+
+    <!-- Features Grid -->
+    <div class="feature-grid">
+        <!-- Generate Markers -->
+        <a href="/generate" class="feature-card">
+            <div class="card h-100 border-gradient">
+                <div class="card-body text-center p-4">
+                    <div class="icon mb-3">
+                        <i class="bi bi-qr-code"></i>
+                    </div>
+                    <h4 class="card-title">Generate Markers</h4>
+                    <p class="card-text text-muted">Create ArUCO markers with customizable dictionaries, sizes, and layouts. Export in multiple formats including LightBurn, SVG, and PDF.</p>
+                    <div class="mt-3">
+                        <span class="badge bg-primary">Quick Start</span>
+                        <span class="badge bg-success">Batch Generation</span>
+                    </div>
+                </div>
+            </div>
+        </a>
+
+        <!-- Calibration Patterns -->
+        <a href="/calibration" class="feature-card">
+            <div class="card h-100 border-gradient">
+                <div class="card-body text-center p-4">
+                    <div class="icon mb-3">
+                        <i class="bi bi-camera-video"></i>
+                    </div>
+                    <h4 class="card-title">Calibration Patterns</h4>
+                    <p class="card-text text-muted">Generate ChArUco boards, AprilTags, and calibration grids for precise camera calibration and pose estimation.</p>
+                    <div class="mt-3">
+                        <span class="badge bg-info">ChArUco</span>
+                        <span class="badge bg-warning">AprilTag</span>
+                    </div>
+                </div>
+            </div>
+        </a>
+
+        <!-- Validation Center -->
+        <a href="/validation" class="feature-card">
+            <div class="card h-100 border-gradient">
+                <div class="card-body text-center p-4">
+                    <div class="icon mb-3">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                    <h4 class="card-title">Validation Center</h4>
+                    <p class="card-text text-muted">Test detection quality, calculate Hamming distances, and validate your markers for optimal performance.</p>
+                    <div class="mt-3">
+                        <span class="badge bg-danger">Quality Testing</span>
+                        <span class="badge bg-secondary">Metrics</span>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-5 py-4 border-top">
+        <div class="text-center">
+            <p class="text-muted mb-2">ArUCO Generator v4.0 - Professional Computer Vision Tools</p>
+            <small class="text-muted">
+                Press <kbd>?</kbd> for keyboard shortcuts | <a href="/documentation" class="text-decoration-none">Documentation</a>
+            </small>
+        </div>
+    </footer>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Homepage-specific initialization
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('ArUCO Generator v4.0 - Homepage loaded');
+});
+</script>
+{% endblock %}

@@ -1,7 +1,7 @@
 [project]
 name = "aruco-generator"
-version = "1.1.0"
-description = "Professional ArUCO marker generator with optimized preview rendering and laser cutting export"
+version = "2.0.0"
+description = "Professional ArUCO marker generator with calibration patterns, 3D coordinates, and multi-format export"
 requires-python = ">=3.11"
 dependencies = [
     "email-validator>=2.2.0",
@@ -11,6 +11,7 @@ dependencies = [
     "numpy==1.26.4",
     "opencv-python-headless>=4.11.0.86",
     "psycopg2-binary>=2.9.10",
+    "pyyaml>=6.0.2",
     "sqlalchemy>=2.0.41",
     "werkzeug>=3.1.3",
 ]
