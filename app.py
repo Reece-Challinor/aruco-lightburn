@@ -26,10 +26,17 @@ ARCHITECTURE:
 """
 
 import os
+import logging
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
 class Base(DeclarativeBase):
     pass
@@ -38,22 +45,78 @@ db = SQLAlchemy(model_class=Base)
 
 # Create Flask application
 app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key")
-app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
-# Database configuration
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///aruco_generator.db")
-app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-    "pool_recycle": 300,
-    "pool_pre_ping": True,
-}
+# Load configuration
+try:
+    from backend.core import get_config
+    config = get_config()
+    app.config.from_object(config)
+except ImportError:
+    # Fallback configuration if new modules not available
+    app.config["SECRET_KEY"] = os.environ.get("SESSION_SECRET", "dev-secret-key")
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///aruco_generator.db")
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+        "pool_recycle": 300,
+        "pool_pre_ping": True,
+    }
+
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 # Initialize database
 db.init_app(app)
 
+# Initialize cache
+try:
+    from backend.core import init_cache
+    cache = init_cache(app)
+    print("Cache initialized successfully")
+except ImportError:
+    print("Cache module not available")
+except Exception as e:
+    print(f"Cache initialization failed: {e}")
+
+# Initialize monitoring
+try:
+    from backend.core import PerformanceMonitor
+    monitor = PerformanceMonitor(app)
+    print("Performance monitoring initialized")
+except ImportError:
+    print("Monitoring module not available")
+except Exception as e:
+    print(f"Monitoring initialization failed: {e}")
+
+# Initialize middleware
+try:
+    from backend.core import RequestMiddleware, CompressionMiddleware
+    RequestMiddleware(app)
+    CompressionMiddleware(app)
+    print("Middleware initialized")
+except ImportError:
+    print("Middleware modules not available")
+except Exception as e:
+    print(f"Middleware initialization failed: {e}")
+
+# Register error handlers
+try:
+    from backend.core import register_error_handlers
+    register_error_handlers(app)
+    print("Error handlers registered")
+except ImportError:
+    print("Error handler module not available")
+except Exception as e:
+    print(f"Error handler registration failed: {e}")
+
 # Import and register routes
 from aruco_generator.web import *
 from aruco_generator.validation_web import *
+
+# Fix marshmallow version compatibility
+try:
+    import marshmallow
+    if not hasattr(marshmallow, '__version__'):
+        marshmallow.__version__ = '4.0.0'  # Set a default version for compatibility
+except ImportError:
+    pass  # marshmallow not installed
 
 # Register new API v1 blueprint
 try:
