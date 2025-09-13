@@ -751,3 +751,359 @@ LightBurn Exporter initialized: True
 2025-09-13 03:49:23,159 - backend.core.middleware - INFO - Request completed: GET /api/dictionaries [200] [0.000s] [3dfd8001-680e-4b86-a718-8cc07838c14e]
 2025-09-13 03:49:23,190 - backend.core.middleware - INFO - Request started: GET /api/presets [1b8e836e-66a8-4fec-a12d-91ce8b2e6cb7]
 2025-09-13 03:49:23,190 - backend.core.middleware - INFO - Request completed: GET /api/presets [200] [0.000s] [1b8e836e-66a8-4fec-a12d-91ce8b2e6cb7]
+2025-09-13T03:51:41.898481 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
+2025-09-13 03:51:45,049 - backend.core.middleware - INFO - Request started: GET / [9693e91e-6886-4057-ab2c-92fcc34641e9]
+2025-09-13 03:51:45,064 - backend.core.middleware - INFO - Request completed: GET / [200] [0.015s] [9693e91e-6886-4057-ab2c-92fcc34641e9]
+2025-09-13 03:51:45,215 - backend.core.middleware - INFO - Request started: GET /static/js/logging/Logger.js [843ee569-be34-4924-801e-3b329086ed9c]
+2025-09-13 03:51:45,219 - backend.core.middleware - INFO - Request completed: GET /static/js/logging/Logger.js [200] [0.004s] [843ee569-be34-4924-801e-3b329086ed9c]
+2025-09-13 03:51:45,220 - backend.core.middleware - INFO - Request started: GET /static/css/navigation.css [3b74210e-caf6-4084-9427-5ffdf4ed4514]
+2025-09-13 03:51:45,221 - backend.core.middleware - INFO - Request completed: GET /static/css/navigation.css [200] [0.000s] [3b74210e-caf6-4084-9427-5ffdf4ed4514]
+2025-09-13 03:51:45,222 - backend.core.middleware - INFO - Request started: GET /static/js/core/navigation.js [5ea8774a-5bd7-4e9b-a744-8f742a8442ff]
+2025-09-13 03:51:45,223 - backend.core.middleware - INFO - Request completed: GET /static/js/core/navigation.js [304] [0.001s] [5ea8774a-5bd7-4e9b-a744-8f742a8442ff]
+2025-09-13 03:51:45,224 - backend.core.middleware - INFO - Request started: GET /static/css/main.css [6f8b351a-1300-48c2-a49e-82c6548a0a52]
+2025-09-13 03:51:45,224 - backend.core.middleware - INFO - Request completed: GET /static/css/main.css [304] [0.000s] [6f8b351a-1300-48c2-a49e-82c6548a0a52]
+2025-09-13 03:51:45,247 - backend.core.middleware - INFO - Request started: GET /static/js/navigation/NavigationManager.js [4b501e28-f05f-4d78-8ca9-a30719219922]
+2025-09-13 03:51:45,247 - backend.core.middleware - INFO - Request completed: GET /static/js/navigation/NavigationManager.js [200] [0.001s] [4b501e28-f05f-4d78-8ca9-a30719219922]
+2025-09-13 03:51:45,271 - backend.core.middleware - INFO - Request started: GET /static/js/core/api.js [57222975-e860-47dd-986c-af424dda9e2a]
+2025-09-13 03:51:45,272 - backend.core.middleware - INFO - Request completed: GET /static/js/core/api.js [304] [0.001s] [57222975-e860-47dd-986c-af424dda9e2a]
+2025-09-13 03:51:45,273 - backend.core.middleware - INFO - Request started: GET /static/js/core/state.js [e1ba436b-4bf4-40ed-b945-08aaeaa9e076]
+2025-09-13 03:51:45,274 - backend.core.middleware - INFO - Request completed: GET /static/js/core/state.js [304] [0.001s] [e1ba436b-4bf4-40ed-b945-08aaeaa9e076]
+2025-09-13 03:51:45,276 - backend.core.middleware - INFO - Request started: GET /static/js/components/notifications.js [15a2b981-4061-4941-a3d8-a6fcd0642c7d]
+2025-09-13 03:51:45,277 - backend.core.middleware - INFO - Request completed: GET /static/js/components/notifications.js [304] [0.001s] [15a2b981-4061-4941-a3d8-a6fcd0642c7d]
+2025-09-13 03:51:45,399 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [8b45612d-9c7a-447f-a3a2-9248a5e58c6d]
+2025-09-13T03:51:45.399986 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 03:51:45,416 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.017s] [8b45612d-9c7a-447f-a3a2-9248a5e58c6d]
+2025-09-13 03:51:48,145 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [b99e1ef1-b112-447e-85cf-e392b60139d4]
+2025-09-13T03:51:48.145782 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 03:51:48,146 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.002s] [b99e1ef1-b112-447e-85cf-e392b60139d4]
+2025-09-13 03:51:48,148 - backend.core.middleware - INFO - Request started: GET /documentation [65c4378d-b328-49eb-ac4c-30179bb18014]
+2025-09-13 03:51:48,154 - backend.core.middleware - INFO - Request completed: GET /documentation [200] [0.006s] [65c4378d-b328-49eb-ac4c-30179bb18014]
+2025-09-13 03:51:48,211 - backend.core.middleware - INFO - Request started: GET /static/css/navigation.css [ecb6770a-f530-4c19-aab3-2b1de1defd6d]
+2025-09-13 03:51:48,211 - backend.core.middleware - INFO - Request completed: GET /static/css/navigation.css [304] [0.001s] [ecb6770a-f530-4c19-aab3-2b1de1defd6d]
+2025-09-13 03:51:48,213 - backend.core.middleware - INFO - Request started: GET /static/css/main.css [8b231357-513e-45ff-8393-58d6cc3be7ae]
+2025-09-13 03:51:48,213 - backend.core.middleware - INFO - Request completed: GET /static/css/main.css [304] [0.000s] [8b231357-513e-45ff-8393-58d6cc3be7ae]
+2025-09-13 03:51:48,242 - backend.core.middleware - INFO - Request started: GET /static/js/logging/Logger.js [137d57b1-a112-4618-a698-b9ef1518c81c]
+2025-09-13 03:51:48,243 - backend.core.middleware - INFO - Request completed: GET /static/js/logging/Logger.js [304] [0.001s] [137d57b1-a112-4618-a698-b9ef1518c81c]
+2025-09-13 03:51:48,255 - backend.core.middleware - INFO - Request started: GET /static/js/navigation/NavigationManager.js [4f3f6caf-7ab4-4471-8b40-8290362d6ce9]
+2025-09-13 03:51:48,256 - backend.core.middleware - INFO - Request completed: GET /static/js/navigation/NavigationManager.js [304] [0.000s] [4f3f6caf-7ab4-4471-8b40-8290362d6ce9]
+2025-09-13 03:51:48,257 - backend.core.middleware - INFO - Request started: GET /static/js/core/navigation.js [4c6dd6b7-80ac-42c1-b664-6ec54d48a1fc]
+2025-09-13 03:51:48,257 - backend.core.middleware - INFO - Request completed: GET /static/js/core/navigation.js [304] [0.000s] [4c6dd6b7-80ac-42c1-b664-6ec54d48a1fc]
+2025-09-13 03:51:48,261 - backend.core.middleware - INFO - Request started: GET /static/js/core/api.js [dd2de095-f69b-4c34-b8b4-33986719e166]
+2025-09-13 03:51:48,262 - backend.core.middleware - INFO - Request completed: GET /static/js/core/api.js [304] [0.000s] [dd2de095-f69b-4c34-b8b4-33986719e166]
+2025-09-13 03:51:48,287 - backend.core.middleware - INFO - Request started: GET /static/js/components/notifications.js [290c405a-6424-489e-8b27-b87c8db2d726]
+2025-09-13 03:51:48,288 - backend.core.middleware - INFO - Request completed: GET /static/js/components/notifications.js [304] [0.001s] [290c405a-6424-489e-8b27-b87c8db2d726]
+2025-09-13 03:51:48,330 - backend.core.middleware - INFO - Request started: GET /static/js/core/state.js [6c61089f-0b48-4121-aa2c-a601c650c64a]
+2025-09-13 03:51:48,330 - backend.core.middleware - INFO - Request completed: GET /static/js/core/state.js [304] [0.001s] [6c61089f-0b48-4121-aa2c-a601c650c64a]
+2025-09-13 03:51:48,500 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [4082fc3d-f502-480c-ae76-6298fd3b9952]
+2025-09-13T03:51:48.500865 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 03:51:48,501 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [4082fc3d-f502-480c-ae76-6298fd3b9952]
+2025-09-13 03:51:51,500 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [4b33ac0d-ea10-4d44-9079-86e396a8a30a]
+2025-09-13T03:51:51.501508 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 03:51:51,502 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.002s] [4b33ac0d-ea10-4d44-9079-86e396a8a30a]
+2025-09-13 03:51:51,503 - backend.core.middleware - INFO - Request started: GET / [9b1811b5-b894-4763-bfa6-3b48ddca15bf]
+2025-09-13 03:51:51,503 - backend.core.middleware - INFO - Request completed: GET / [200] [0.000s] [9b1811b5-b894-4763-bfa6-3b48ddca15bf]
+2025-09-13 03:51:51,560 - backend.core.middleware - INFO - Request started: GET /static/js/logging/Logger.js [1c34490d-7cc1-4d4d-83ea-f4cc49ca859d]
+2025-09-13 03:51:51,560 - backend.core.middleware - INFO - Request completed: GET /static/js/logging/Logger.js [304] [0.001s] [1c34490d-7cc1-4d4d-83ea-f4cc49ca859d]
+2025-09-13 03:51:51,562 - backend.core.middleware - INFO - Request started: GET /static/css/navigation.css [35533d35-c10a-4c55-8bec-fb724bf53eba]
+2025-09-13 03:51:51,563 - backend.core.middleware - INFO - Request completed: GET /static/css/navigation.css [304] [0.001s] [35533d35-c10a-4c55-8bec-fb724bf53eba]
+2025-09-13 03:51:51,564 - backend.core.middleware - INFO - Request started: GET /static/css/main.css [abbc268c-c85e-4f37-b68e-db60ed17ce23]
+2025-09-13 03:51:51,565 - backend.core.middleware - INFO - Request completed: GET /static/css/main.css [304] [0.000s] [abbc268c-c85e-4f37-b68e-db60ed17ce23]
+2025-09-13 03:51:51,604 - backend.core.middleware - INFO - Request started: GET /static/js/core/api.js [b3a36d05-7d29-40c9-ba96-57b4f6d79bc3]
+2025-09-13 03:51:51,605 - backend.core.middleware - INFO - Request completed: GET /static/js/core/api.js [304] [0.001s] [b3a36d05-7d29-40c9-ba96-57b4f6d79bc3]
+2025-09-13 03:51:51,607 - backend.core.middleware - INFO - Request started: GET /static/js/navigation/NavigationManager.js [be5174aa-ea73-4b99-9158-b63563bb5b9a]
+2025-09-13 03:51:51,607 - backend.core.middleware - INFO - Request completed: GET /static/js/navigation/NavigationManager.js [304] [0.000s] [be5174aa-ea73-4b99-9158-b63563bb5b9a]
+2025-09-13 03:51:51,610 - backend.core.middleware - INFO - Request started: GET /static/js/components/notifications.js [98424409-0fcd-4d85-9ccc-1b71a1636655]
+2025-09-13 03:51:51,610 - backend.core.middleware - INFO - Request completed: GET /static/js/components/notifications.js [304] [0.000s] [98424409-0fcd-4d85-9ccc-1b71a1636655]
+2025-09-13 03:51:51,611 - backend.core.middleware - INFO - Request started: GET /static/js/core/state.js [c3227380-0005-4d5c-8e69-77923ded85cf]
+2025-09-13 03:51:51,612 - backend.core.middleware - INFO - Request completed: GET /static/js/core/state.js [304] [0.000s] [c3227380-0005-4d5c-8e69-77923ded85cf]
+2025-09-13 03:51:51,647 - backend.core.middleware - INFO - Request started: GET /static/js/core/navigation.js [53e51229-20bb-4a08-8527-4a28db326d0c]
+2025-09-13 03:51:51,648 - backend.core.middleware - INFO - Request completed: GET /static/js/core/navigation.js [304] [0.000s] [53e51229-20bb-4a08-8527-4a28db326d0c]
+2025-09-13 03:51:51,806 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [d352ecf4-6984-4565-a4ac-ed3b1aaabe6f]
+2025-09-13T03:51:51.806415 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 03:51:51,807 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [d352ecf4-6984-4565-a4ac-ed3b1aaabe6f]
+2025-09-13 03:51:52,926 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [8440a5ce-77c2-4cb7-b35b-78abeef618bb]
+2025-09-13T03:51:52.928673 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 03:51:52,931 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.005s] [8440a5ce-77c2-4cb7-b35b-78abeef618bb]
+2025-09-13 03:51:52,933 - backend.core.middleware - INFO - Request started: GET /generate [aea35048-abd8-47ea-990e-b89e30fc2e93]
+2025-09-13 03:51:52,944 - backend.core.middleware - INFO - Request completed: GET /generate [200] [0.011s] [aea35048-abd8-47ea-990e-b89e30fc2e93]
+2025-09-13 03:51:53,016 - backend.core.middleware - INFO - Request started: GET /static/css/navigation.css [d0927e0b-e9b6-48d0-916d-cf9f1ee2b61c]
+2025-09-13 03:51:53,017 - backend.core.middleware - INFO - Request completed: GET /static/css/navigation.css [304] [0.001s] [d0927e0b-e9b6-48d0-916d-cf9f1ee2b61c]
+2025-09-13 03:51:53,018 - backend.core.middleware - INFO - Request started: GET /static/css/main.css [58650292-58de-46e4-94b8-7ce3e6497c70]
+2025-09-13 03:51:53,018 - backend.core.middleware - INFO - Request completed: GET /static/css/main.css [304] [0.000s] [58650292-58de-46e4-94b8-7ce3e6497c70]
+2025-09-13 03:51:53,041 - backend.core.middleware - INFO - Request started: GET /static/style.css [00a2bba4-ecd1-422a-b42e-8c7379c5357f]
+2025-09-13 03:51:53,042 - backend.core.middleware - INFO - Request completed: GET /static/style.css [304] [0.000s] [00a2bba4-ecd1-422a-b42e-8c7379c5357f]
+2025-09-13 03:51:53,061 - backend.core.middleware - INFO - Request started: GET /static/js/core/api.js [0e569cfc-b3e1-4a65-98ad-170e53125152]
+2025-09-13 03:51:53,062 - backend.core.middleware - INFO - Request completed: GET /static/js/core/api.js [304] [0.001s] [0e569cfc-b3e1-4a65-98ad-170e53125152]
+2025-09-13 03:51:53,063 - backend.core.middleware - INFO - Request started: GET /static/js/navigation/NavigationManager.js [439ae805-114d-4106-ab96-0ea66bbd2f24]
+2025-09-13 03:51:53,064 - backend.core.middleware - INFO - Request completed: GET /static/js/navigation/NavigationManager.js [304] [0.000s] [439ae805-114d-4106-ab96-0ea66bbd2f24]
+2025-09-13 03:51:53,065 - backend.core.middleware - INFO - Request started: GET /static/js/logging/Logger.js [b9e82a32-fbbd-4843-b007-85fbb87add46]
+2025-09-13 03:51:53,065 - backend.core.middleware - INFO - Request completed: GET /static/js/logging/Logger.js [304] [0.000s] [b9e82a32-fbbd-4843-b007-85fbb87add46]
+2025-09-13 03:51:53,091 - backend.core.middleware - INFO - Request started: GET /static/js/core/state.js [edff58f0-43f9-4519-9553-9d3d16ac2ed3]
+2025-09-13 03:51:53,092 - backend.core.middleware - INFO - Request completed: GET /static/js/core/state.js [304] [0.001s] [edff58f0-43f9-4519-9553-9d3d16ac2ed3]
+2025-09-13 03:51:53,111 - backend.core.middleware - INFO - Request started: GET /static/js/core/navigation.js [cd8d5bad-1ec9-4fee-b5a0-5be73ce23b28]
+2025-09-13 03:51:53,111 - backend.core.middleware - INFO - Request completed: GET /static/js/core/navigation.js [304] [0.000s] [cd8d5bad-1ec9-4fee-b5a0-5be73ce23b28]
+2025-09-13 03:51:53,112 - backend.core.middleware - INFO - Request started: GET /static/app.js [ee560ccf-9444-4d02-908a-b3be27ec0311]
+2025-09-13 03:51:53,112 - backend.core.middleware - INFO - Request completed: GET /static/app.js [304] [0.000s] [ee560ccf-9444-4d02-908a-b3be27ec0311]
+2025-09-13 03:51:53,113 - backend.core.middleware - INFO - Request started: GET /static/js/pages/generate.js [7fbb222e-0de1-4ffe-b039-1baa1bb6a008]
+2025-09-13 03:51:53,114 - backend.core.middleware - INFO - Request completed: GET /static/js/pages/generate.js [304] [0.000s] [7fbb222e-0de1-4ffe-b039-1baa1bb6a008]
+2025-09-13 03:51:53,114 - backend.core.middleware - INFO - Request started: GET /static/js/components/notifications.js [b0be5023-537a-41e5-ac76-74d7b2ef2497]
+2025-09-13 03:51:53,115 - backend.core.middleware - INFO - Request completed: GET /static/js/components/notifications.js [304] [0.000s] [b0be5023-537a-41e5-ac76-74d7b2ef2497]
+2025-09-13 03:51:53,290 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [0161159f-93c3-46d9-bde8-f72ba53f4181]
+2025-09-13T03:51:53.290806 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 03:51:53,291 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [0161159f-93c3-46d9-bde8-f72ba53f4181]
+2025-09-13 03:51:53,312 - backend.core.middleware - INFO - Request started: GET /api/dictionaries [36c054aa-fd50-4394-9242-8ffb1d23aa3c]
+2025-09-13 03:51:53,312 - backend.core.middleware - INFO - Request completed: GET /api/dictionaries [200] [0.000s] [36c054aa-fd50-4394-9242-8ffb1d23aa3c]
+2025-09-13 03:51:53,320 - backend.core.middleware - INFO - Request started: GET /api/dictionaries [e735d532-f271-4553-a42b-f452dafe69fc]
+2025-09-13 03:51:53,321 - backend.core.middleware - INFO - Request completed: GET /api/dictionaries [200] [0.001s] [e735d532-f271-4553-a42b-f452dafe69fc]
+2025-09-13 03:51:53,365 - backend.core.middleware - INFO - Request started: GET /api/presets [6b306396-5d69-4200-b9cc-ae52c8809d39]
+2025-09-13 03:51:53,366 - backend.core.middleware - INFO - Request completed: GET /api/presets [200] [0.000s] [6b306396-5d69-4200-b9cc-ae52c8809d39]
+2025-09-13 03:51:58,390 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [9a7c7115-d689-4e79-834e-1ccd103953e6]
+2025-09-13T03:51:58.390911 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 03:51:58,391 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [9a7c7115-d689-4e79-834e-1ccd103953e6]
+2025-09-13 03:52:03,402 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [12e29b6c-2d39-4879-94b0-31cb9430a266]
+2025-09-13T03:52:03.402804 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 03:52:03,403 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [12e29b6c-2d39-4879-94b0-31cb9430a266]
+2025-09-13 03:52:08,385 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [69a34ff6-d449-45c3-94e1-23cc5baa9048]
+2025-09-13T03:52:08.385700 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 03:52:08,386 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [69a34ff6-d449-45c3-94e1-23cc5baa9048]
+2025-09-13 03:52:10,694 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [a3eb7d4e-1a5d-4621-89c5-eabc393feee9]
+2025-09-13T03:52:10.695273 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 03:52:10,695 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [a3eb7d4e-1a5d-4621-89c5-eabc393feee9]
+2025-09-13 03:52:10,697 - backend.core.middleware - INFO - Request started: GET /calibration [5fbec94e-e14c-44d7-9de9-aebe1654dbf4]
+2025-09-13 03:52:10,703 - backend.core.middleware - INFO - Request completed: GET /calibration [200] [0.006s] [5fbec94e-e14c-44d7-9de9-aebe1654dbf4]
+2025-09-13 03:52:10,767 - backend.core.middleware - INFO - Request started: GET /static/css/navigation.css [60913bff-2d4e-4eab-a456-6b550a9c1139]
+2025-09-13 03:52:10,768 - backend.core.middleware - INFO - Request completed: GET /static/css/navigation.css [200] [0.001s] [60913bff-2d4e-4eab-a456-6b550a9c1139]
+2025-09-13 03:52:10,769 - backend.core.middleware - INFO - Request started: GET /static/css/main.css [35c382c9-fd4a-4380-aa38-f594a0b5d8d8]
+2025-09-13 03:52:10,770 - backend.core.middleware - INFO - Request completed: GET /static/css/main.css [200] [0.001s] [35c382c9-fd4a-4380-aa38-f594a0b5d8d8]
+2025-09-13 03:52:10,797 - backend.core.middleware - INFO - Request started: GET /static/style.css [8ef23c99-3e5d-4d0b-9e31-441469d4bb5a]
+2025-09-13 03:52:10,797 - backend.core.middleware - INFO - Request completed: GET /static/style.css [200] [0.001s] [8ef23c99-3e5d-4d0b-9e31-441469d4bb5a]
+2025-09-13 03:52:10,811 - backend.core.middleware - INFO - Request started: GET /static/js/core/navigation.js [37c4ca7f-f7e5-4787-a6dc-35f5ee6eea2e]
+2025-09-13 03:52:10,811 - backend.core.middleware - INFO - Request completed: GET /static/js/core/navigation.js [304] [0.000s] [37c4ca7f-f7e5-4787-a6dc-35f5ee6eea2e]
+2025-09-13 03:52:10,822 - backend.core.middleware - INFO - Request started: GET /static/js/core/api.js [14db060a-4e5e-4af1-b0d4-d4857a8acae0]
+2025-09-13 03:52:10,822 - backend.core.middleware - INFO - Request completed: GET /static/js/core/api.js [304] [0.000s] [14db060a-4e5e-4af1-b0d4-d4857a8acae0]
+2025-09-13 03:52:10,823 - backend.core.middleware - INFO - Request started: GET /static/js/navigation/NavigationManager.js [baa414d6-ee50-40c0-9058-2201d4b137a7]
+2025-09-13 03:52:10,823 - backend.core.middleware - INFO - Request completed: GET /static/js/navigation/NavigationManager.js [200] [0.000s] [baa414d6-ee50-40c0-9058-2201d4b137a7]
+2025-09-13 03:52:10,847 - backend.core.middleware - INFO - Request started: GET /static/js/core/state.js [6fa0e0da-1721-451c-baec-abebde99176e]
+2025-09-13 03:52:10,847 - backend.core.middleware - INFO - Request completed: GET /static/js/core/state.js [304] [0.001s] [6fa0e0da-1721-451c-baec-abebde99176e]
+2025-09-13 03:52:10,857 - backend.core.middleware - INFO - Request started: GET /static/js/logging/Logger.js [61c26824-cbd9-4aa7-b65f-c01e59473f75]
+2025-09-13 03:52:10,858 - backend.core.middleware - INFO - Request completed: GET /static/js/logging/Logger.js [304] [0.001s] [61c26824-cbd9-4aa7-b65f-c01e59473f75]
+2025-09-13 03:52:10,862 - backend.core.middleware - INFO - Request started: GET /static/js/components/notifications.js [034c92e5-1bb8-453d-aa60-6db93822c963]
+2025-09-13 03:52:10,863 - backend.core.middleware - INFO - Request completed: GET /static/js/components/notifications.js [304] [0.001s] [034c92e5-1bb8-453d-aa60-6db93822c963]
+2025-09-13 03:52:16,138 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [5a7a10a3-2314-4dbd-833c-41af91e98956]
+2025-09-13T03:52:16.139370 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 03:52:16,140 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [5a7a10a3-2314-4dbd-833c-41af91e98956]
+2025-09-13 03:52:16,465 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [7508746d-f580-4f74-8e4b-9a4bd342df65]
+2025-09-13T03:52:16.466243 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 03:52:16,467 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [7508746d-f580-4f74-8e4b-9a4bd342df65]
+2025-09-13 03:52:16,468 - backend.core.middleware - INFO - Request started: GET /generate [5a488dca-e1cb-4191-bc4f-bca3ebc73fe2]
+2025-09-13 03:52:16,469 - backend.core.middleware - INFO - Request completed: GET /generate [200] [0.001s] [5a488dca-e1cb-4191-bc4f-bca3ebc73fe2]
+2025-09-13 03:52:16,530 - backend.core.middleware - INFO - Request started: GET /static/css/main.css [ed6ba9b5-c771-4b46-a46a-d9d61d19d71c]
+2025-09-13 03:52:16,531 - backend.core.middleware - INFO - Request completed: GET /static/css/main.css [304] [0.001s] [ed6ba9b5-c771-4b46-a46a-d9d61d19d71c]
+2025-09-13 03:52:16,533 - backend.core.middleware - INFO - Request started: GET /static/css/navigation.css [c13eda29-a5c5-4057-b23f-965a0aab34b2]
+2025-09-13 03:52:16,533 - backend.core.middleware - INFO - Request completed: GET /static/css/navigation.css [304] [0.001s] [c13eda29-a5c5-4057-b23f-965a0aab34b2]
+2025-09-13 03:52:16,566 - backend.core.middleware - INFO - Request started: GET /static/style.css [ac1a5361-4c86-4241-a918-04f1f7ce7b40]
+2025-09-13 03:52:16,568 - backend.core.middleware - INFO - Request completed: GET /static/style.css [304] [0.002s] [ac1a5361-4c86-4241-a918-04f1f7ce7b40]
+2025-09-13 03:52:16,580 - backend.core.middleware - INFO - Request started: GET /static/js/core/api.js [8306d6df-54cd-4c3e-8008-1e664dee9453]
+2025-09-13 03:52:16,581 - backend.core.middleware - INFO - Request completed: GET /static/js/core/api.js [304] [0.001s] [8306d6df-54cd-4c3e-8008-1e664dee9453]
+2025-09-13 03:52:16,582 - backend.core.middleware - INFO - Request started: GET /static/js/core/navigation.js [54ac81d0-101b-4a9b-bcf6-0abf58875d2c]
+2025-09-13 03:52:16,583 - backend.core.middleware - INFO - Request completed: GET /static/js/core/navigation.js [304] [0.001s] [54ac81d0-101b-4a9b-bcf6-0abf58875d2c]
+2025-09-13 03:52:16,585 - backend.core.middleware - INFO - Request started: GET /static/js/navigation/NavigationManager.js [22a0b3da-6138-429c-9f37-00b840c5e815]
+2025-09-13 03:52:16,585 - backend.core.middleware - INFO - Request completed: GET /static/js/navigation/NavigationManager.js [304] [0.001s] [22a0b3da-6138-429c-9f37-00b840c5e815]
+2025-09-13 03:52:16,621 - backend.core.middleware - INFO - Request started: GET /static/js/core/state.js [f336896e-c4c1-4cb6-b88e-63906ef947d1]
+2025-09-13 03:52:16,622 - backend.core.middleware - INFO - Request completed: GET /static/js/core/state.js [304] [0.001s] [f336896e-c4c1-4cb6-b88e-63906ef947d1]
+2025-09-13 03:52:16,626 - backend.core.middleware - INFO - Request started: GET /static/js/logging/Logger.js [e2215982-ed0d-4df5-961b-c0987c9d4a31]
+2025-09-13 03:52:16,627 - backend.core.middleware - INFO - Request completed: GET /static/js/logging/Logger.js [304] [0.001s] [e2215982-ed0d-4df5-961b-c0987c9d4a31]
+2025-09-13 03:52:16,628 - backend.core.middleware - INFO - Request started: GET /static/js/components/notifications.js [1e48265d-f477-44db-ad20-0640501c4e40]
+2025-09-13 03:52:16,628 - backend.core.middleware - INFO - Request completed: GET /static/js/components/notifications.js [304] [0.001s] [1e48265d-f477-44db-ad20-0640501c4e40]
+2025-09-13 03:52:16,630 - backend.core.middleware - INFO - Request started: GET /static/js/pages/generate.js [2502e02d-3a1a-4c99-aaa1-c1329e56565a]
+2025-09-13 03:52:16,630 - backend.core.middleware - INFO - Request completed: GET /static/js/pages/generate.js [304] [0.001s] [2502e02d-3a1a-4c99-aaa1-c1329e56565a]
+2025-09-13 03:52:16,632 - backend.core.middleware - INFO - Request started: GET /static/app.js [f08bf0d0-2675-410a-8be4-f31a9a2b71b1]
+2025-09-13 03:52:16,632 - backend.core.middleware - INFO - Request completed: GET /static/app.js [304] [0.000s] [f08bf0d0-2675-410a-8be4-f31a9a2b71b1]
+2025-09-13 03:52:16,841 - backend.core.middleware - INFO - Request started: GET /api/dictionaries [a9907017-e13e-4fdc-9f10-3dfc81586c55]
+2025-09-13 03:52:16,842 - backend.core.middleware - INFO - Request completed: GET /api/dictionaries [200] [0.001s] [a9907017-e13e-4fdc-9f10-3dfc81586c55]
+2025-09-13 03:52:16,861 - backend.core.middleware - INFO - Request started: GET /api/dictionaries [5b74d6cd-6c0f-4397-a08f-dbb91d4f473e]
+2025-09-13 03:52:16,868 - backend.core.middleware - INFO - Request completed: GET /api/dictionaries [200] [0.008s] [5b74d6cd-6c0f-4397-a08f-dbb91d4f473e]
+2025-09-13 03:52:16,893 - backend.core.middleware - INFO - Request started: GET /api/presets [a46df6d0-6f6d-41ef-b050-c3115b1e9e1b]
+2025-09-13 03:52:16,893 - backend.core.middleware - INFO - Request completed: GET /api/presets [200] [0.001s] [a46df6d0-6f6d-41ef-b050-c3115b1e9e1b]
+2025-09-13 03:52:21,882 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [5445f153-0962-4b18-88f1-47d7914467c8]
+2025-09-13T03:52:21.883025 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 03:52:21,883 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [5445f153-0962-4b18-88f1-47d7914467c8]
+2025-09-13 03:52:26,905 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [446a1363-b463-45fc-b5ef-781fbf77e1e6]
+2025-09-13T03:52:26.906001 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 03:52:26,906 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [446a1363-b463-45fc-b5ef-781fbf77e1e6]
+2025-09-13 03:52:32,136 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [f931745d-69fc-45c0-a79e-18cb0f38f381]
+2025-09-13T03:52:32.136680 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 03:52:32,137 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [f931745d-69fc-45c0-a79e-18cb0f38f381]
+2025-09-13 03:52:37,683 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [9edafe4e-8187-484e-bf64-3b7f3a19a659]
+2025-09-13T03:52:37.685290 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 03:52:37,688 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.005s] [9edafe4e-8187-484e-bf64-3b7f3a19a659]
+2025-09-13 03:52:42,671 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [a714e38c-83cc-4c7f-8543-3f95c71e26c7]
+2025-09-13T03:52:42.671910 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 03:52:42,672 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [a714e38c-83cc-4c7f-8543-3f95c71e26c7]
+2025-09-13 03:52:47,699 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [517a61e0-9bc5-4703-a963-d5b813a87283]
+2025-09-13T03:52:47.699856 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 03:52:47,700 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [517a61e0-9bc5-4703-a963-d5b813a87283]
+2025-09-13 03:52:52,901 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [fe7f0f2a-f73c-479c-b5e7-baa48b01ccb1]
+2025-09-13T03:52:52.901586 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 03:52:52,902 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [fe7f0f2a-f73c-479c-b5e7-baa48b01ccb1]
+2025-09-13 03:52:58,214 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [675428bf-4997-4dd2-abf9-38d15c60e982]
+2025-09-13T03:52:58.214521 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 03:52:58,215 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [675428bf-4997-4dd2-abf9-38d15c60e982]
+2025-09-13 03:53:03,197 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [e1dcdd10-815c-4ee8-9928-a0bd3fcb5f07]
+2025-09-13T03:53:03.197837 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 03:53:03,198 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [e1dcdd10-815c-4ee8-9928-a0bd3fcb5f07]
+2025-09-13 03:53:08,196 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [da6e0e7a-3aca-414c-954f-5d76f8bf5bdc]
+2025-09-13T03:53:08.196865 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 03:53:08,197 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [da6e0e7a-3aca-414c-954f-5d76f8bf5bdc]
+2025-09-13 03:53:13,214 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [e128565c-5ced-46f6-85bd-0dcb909b072f]
+2025-09-13T03:53:13.215380 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 03:53:13,216 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [e128565c-5ced-46f6-85bd-0dcb909b072f]
+2025-09-13 03:53:18,210 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [990734fd-f3bb-4da5-a40d-67111fbce891]
+2025-09-13T03:53:18.211086 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 03:53:18,213 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.002s] [990734fd-f3bb-4da5-a40d-67111fbce891]
+2025-09-13 03:53:23,468 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [bd58a364-311f-41fc-924f-43f386b0b1b8]
+2025-09-13T03:53:23.469325 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 03:53:23,470 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [bd58a364-311f-41fc-924f-43f386b0b1b8]
+2025-09-13 03:53:28,475 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [ee0dc769-c64a-4865-89c7-bc49e032b3c8]
+2025-09-13T03:53:28.475796 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 03:53:28,476 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [ee0dc769-c64a-4865-89c7-bc49e032b3c8]
+2025-09-13 03:53:29,186 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [c2fceb85-0058-4a5c-8a1f-c536562c149c]
+2025-09-13T03:53:29.186638 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 03:53:29,187 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [c2fceb85-0058-4a5c-8a1f-c536562c149c]
+2025-09-13 03:53:29,237 - backend.core.middleware - INFO - Request started: GET /generate [1d1b1683-6e40-4d44-95fd-ffc23a5b037e]
+2025-09-13 03:53:29,246 - backend.core.middleware - INFO - Request completed: GET /generate [200] [0.009s] [1d1b1683-6e40-4d44-95fd-ffc23a5b037e]
+2025-09-13 03:53:29,295 - backend.core.middleware - INFO - Request started: GET /static/css/main.css [d63b13a9-099e-4c03-b524-0c6997ab09be]
+2025-09-13 03:53:29,296 - backend.core.middleware - INFO - Request completed: GET /static/css/main.css [304] [0.001s] [d63b13a9-099e-4c03-b524-0c6997ab09be]
+2025-09-13 03:53:29,297 - backend.core.middleware - INFO - Request started: GET /static/css/navigation.css [51634825-3943-4d86-8029-1638801e7e99]
+2025-09-13 03:53:29,298 - backend.core.middleware - INFO - Request completed: GET /static/css/navigation.css [304] [0.001s] [51634825-3943-4d86-8029-1638801e7e99]
+2025-09-13 03:53:29,331 - backend.core.middleware - INFO - Request started: GET /static/style.css [5cd545e5-21fe-4278-b52b-a1d651cc4565]
+2025-09-13 03:53:29,332 - backend.core.middleware - INFO - Request completed: GET /static/style.css [304] [0.001s] [5cd545e5-21fe-4278-b52b-a1d651cc4565]
+2025-09-13 03:53:29,340 - backend.core.middleware - INFO - Request started: GET /static/js/navigation/NavigationManager.js [5a60902c-ccb4-4bba-a22c-94613e3cfa48]
+2025-09-13 03:53:29,341 - backend.core.middleware - INFO - Request completed: GET /static/js/navigation/NavigationManager.js [304] [0.001s] [5a60902c-ccb4-4bba-a22c-94613e3cfa48]
+2025-09-13 03:53:29,345 - backend.core.middleware - INFO - Request started: GET /static/js/core/api.js [af794512-6e7f-4102-bcef-e6258d3c5ab6]
+2025-09-13 03:53:29,346 - backend.core.middleware - INFO - Request completed: GET /static/js/core/api.js [304] [0.001s] [af794512-6e7f-4102-bcef-e6258d3c5ab6]
+2025-09-13 03:53:29,347 - backend.core.middleware - INFO - Request started: GET /static/js/core/state.js [fff05134-0847-41e3-9f2a-18dc38cecc1d]
+2025-09-13 03:53:29,347 - backend.core.middleware - INFO - Request completed: GET /static/js/core/state.js [304] [0.000s] [fff05134-0847-41e3-9f2a-18dc38cecc1d]
+2025-09-13 03:53:29,386 - backend.core.middleware - INFO - Request started: GET /static/js/logging/Logger.js [56e2f271-33f6-4fb9-abf4-f4318998746e]
+2025-09-13 03:53:29,387 - backend.core.middleware - INFO - Request completed: GET /static/js/logging/Logger.js [304] [0.001s] [56e2f271-33f6-4fb9-abf4-f4318998746e]
+2025-09-13 03:53:29,388 - backend.core.middleware - INFO - Request started: GET /static/js/components/notifications.js [92d58c4e-6522-427f-beb5-c040be5dc2d1]
+2025-09-13 03:53:29,388 - backend.core.middleware - INFO - Request completed: GET /static/js/components/notifications.js [304] [0.000s] [92d58c4e-6522-427f-beb5-c040be5dc2d1]
+2025-09-13 03:53:29,389 - backend.core.middleware - INFO - Request started: GET /static/app.js [0e4ed08b-1064-416c-900a-50166be269b4]
+2025-09-13 03:53:29,389 - backend.core.middleware - INFO - Request completed: GET /static/app.js [304] [0.000s] [0e4ed08b-1064-416c-900a-50166be269b4]
+2025-09-13 03:53:29,391 - backend.core.middleware - INFO - Request started: GET /static/js/pages/generate.js [a63702e2-78e1-4938-9a06-8a872e1adc1c]
+2025-09-13 03:53:29,392 - backend.core.middleware - INFO - Request completed: GET /static/js/pages/generate.js [304] [0.001s] [a63702e2-78e1-4938-9a06-8a872e1adc1c]
+2025-09-13 03:53:29,617 - backend.core.middleware - INFO - Request started: GET /api/dictionaries [a56c3af2-209d-4071-b718-e63b0357144f]
+2025-09-13 03:53:29,618 - backend.core.middleware - INFO - Request completed: GET /api/dictionaries [200] [0.001s] [a56c3af2-209d-4071-b718-e63b0357144f]
+2025-09-13 03:53:29,633 - backend.core.middleware - INFO - Request started: GET /api/dictionaries [fee7a45a-5ec6-494f-b8d4-727b2695c8ee]
+2025-09-13 03:53:29,635 - backend.core.middleware - INFO - Request completed: GET /api/dictionaries [200] [0.002s] [fee7a45a-5ec6-494f-b8d4-727b2695c8ee]
+2025-09-13 03:53:29,678 - backend.core.middleware - INFO - Request started: GET /api/presets [8594b0e0-0be7-4f44-8312-87b1a400c0b9]
+2025-09-13 03:53:29,678 - backend.core.middleware - INFO - Request completed: GET /api/presets [200] [0.000s] [8594b0e0-0be7-4f44-8312-87b1a400c0b9]
+2025-09-13 03:53:34,576 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [2e56db74-dfd9-4c02-947b-3a5d1b56e7d1]
+2025-09-13T03:53:34.576846 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 03:53:34,577 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [2e56db74-dfd9-4c02-947b-3a5d1b56e7d1]
+2025-09-13 03:53:34,579 - backend.core.middleware - INFO - Request started: GET / [d2e0ae76-cb1f-442c-b82f-43acc0766aa3]
+2025-09-13 03:53:34,579 - backend.core.middleware - INFO - Request completed: GET / [200] [0.001s] [d2e0ae76-cb1f-442c-b82f-43acc0766aa3]
+2025-09-13 03:53:34,645 - backend.core.middleware - INFO - Request started: GET /static/css/main.css [a8b561f5-e915-4b63-857c-eadb6431c0fa]
+2025-09-13 03:53:34,646 - backend.core.middleware - INFO - Request completed: GET /static/css/main.css [304] [0.001s] [a8b561f5-e915-4b63-857c-eadb6431c0fa]
+2025-09-13 03:53:34,647 - backend.core.middleware - INFO - Request started: GET /static/css/navigation.css [e42fc488-6057-42fd-9f4f-cf3a19241a3e]
+2025-09-13 03:53:34,647 - backend.core.middleware - INFO - Request completed: GET /static/css/navigation.css [304] [0.000s] [e42fc488-6057-42fd-9f4f-cf3a19241a3e]
+2025-09-13 03:53:34,648 - backend.core.middleware - INFO - Request started: GET /static/js/logging/Logger.js [9c18cfe1-c19e-4f63-82d3-751e8a3f7134]
+2025-09-13 03:53:34,648 - backend.core.middleware - INFO - Request completed: GET /static/js/logging/Logger.js [304] [0.000s] [9c18cfe1-c19e-4f63-82d3-751e8a3f7134]
+2025-09-13 03:53:34,696 - backend.core.middleware - INFO - Request started: GET /static/js/components/notifications.js [a0f9fef0-0442-42b2-a475-2fefa0f6434d]
+2025-09-13 03:53:34,697 - backend.core.middleware - INFO - Request completed: GET /static/js/components/notifications.js [304] [0.001s] [a0f9fef0-0442-42b2-a475-2fefa0f6434d]
+2025-09-13 03:53:34,698 - backend.core.middleware - INFO - Request started: GET /static/js/core/state.js [bb2e7398-124c-434b-9ad5-9f20534f2148]
+2025-09-13 03:53:34,698 - backend.core.middleware - INFO - Request completed: GET /static/js/core/state.js [304] [0.001s] [bb2e7398-124c-434b-9ad5-9f20534f2148]
+2025-09-13 03:53:34,699 - backend.core.middleware - INFO - Request started: GET /static/js/navigation/NavigationManager.js [c4c252a1-f9be-4982-a8bb-66fec43e0aad]
+2025-09-13 03:53:34,700 - backend.core.middleware - INFO - Request completed: GET /static/js/navigation/NavigationManager.js [304] [0.000s] [c4c252a1-f9be-4982-a8bb-66fec43e0aad]
+2025-09-13 03:53:34,700 - backend.core.middleware - INFO - Request started: GET /static/js/core/api.js [1b5d450f-0662-4d9e-acf9-9e89ebec6cf4]
+2025-09-13 03:53:34,701 - backend.core.middleware - INFO - Request completed: GET /static/js/core/api.js [304] [0.000s] [1b5d450f-0662-4d9e-acf9-9e89ebec6cf4]
