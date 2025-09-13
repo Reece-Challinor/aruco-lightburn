@@ -4,7 +4,7 @@ import logging
 from flask import Blueprint, request, jsonify
 from datetime import datetime
 
-from backend.core.logging import get_logger
+from backend.core.simple_logging import get_logger
 
 bp = Blueprint('logs', __name__, url_prefix='/logs')
 logger = get_logger(__name__)

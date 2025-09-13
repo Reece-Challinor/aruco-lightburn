@@ -32,16 +32,8 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-# Configure logging - using our enhanced logging system
-try:
-    from backend.core.logging import setup_logging, get_logger
-    # Will setup logging after app creation
-except ImportError:
-    # Fallback to basic logging if new system not available
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    )
+# Configure simple logging system
+from backend.core.simple_logging import setup_logging, get_logger
 
 class Base(DeclarativeBase):
     pass
@@ -70,26 +62,12 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 # Initialize database
 db.init_app(app)
 
-# Setup enhanced logging system
-try:
-    from backend.core.logging import setup_logging, get_logger
-    setup_logging(app, log_level='DEBUG' if app.debug else 'INFO')
-    logger = get_logger(__name__)
-    logger.info("Enhanced logging system initialized")
-except ImportError:
-    print("Enhanced logging system not available, using basic logging")
-except Exception as e:
-    print(f"Enhanced logging initialization failed: {e}")
+# Setup simple logging system
+setup_logging(app, log_level='DEBUG' if app.debug else 'INFO')
+logger = get_logger(__name__)
+logger.info("Simple logging system initialized")
 
-# Initialize enhanced logging middleware
-try:
-    from backend.core.middleware.logging_middleware import LoggingMiddleware
-    LoggingMiddleware(app)
-    print("Enhanced logging middleware initialized")
-except ImportError:
-    print("Enhanced logging middleware not available")
-except Exception as e:
-    print(f"Enhanced logging middleware initialization failed: {e}")
+# Logging middleware is now handled by the simple logging system
 
 # Initialize cache
 try:
