@@ -2374,3 +2374,391 @@ Path: /api/v1/logs/batch
 Method: POST
 --------------------------------------------------------------------------------
 2025-09-13 04:04:07,538 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [abf65a25-4ed3-4269-b873-910fa9fbe94b]
+2025-09-13 04:04:12,531 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [84af3c71-361c-44db-82e9-72e51d353b9e]
+2025-09-13T04:04:12.532472 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:04:12,533 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.002s] [84af3c71-361c-44db-82e9-72e51d353b9e]
+2025-09-13 04:04:17,530 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [3ec08dfb-0c0d-43d1-ad50-7a26a59e54f2]
+2025-09-13T04:04:17.531083 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:04:17,531 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [3ec08dfb-0c0d-43d1-ad50-7a26a59e54f2]
+2025-09-13 04:04:22,533 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [5851e31e-bd20-4dd1-8a31-638e27096c53]
+2025-09-13T04:04:22.533346 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:04:22,533 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [5851e31e-bd20-4dd1-8a31-638e27096c53]
+2025-09-13 04:04:27,551 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [af88e9c1-045d-4ba3-b94c-91ce50a18b75]
+2025-09-13T04:04:27.551776 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:04:27,552 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [af88e9c1-045d-4ba3-b94c-91ce50a18b75]
+2025-09-13 04:04:32,548 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [6e2b0924-033e-4e99-9f0c-ef82b4796779]
+2025-09-13T04:04:32.548953 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:04:32,550 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.002s] [6e2b0924-033e-4e99-9f0c-ef82b4796779]
+2025-09-13 04:04:37,573 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [c563706f-7b2e-4064-ac23-33b986097c6c]
+2025-09-13T04:04:37.573667 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:04:37,574 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [c563706f-7b2e-4064-ac23-33b986097c6c]
+2025-09-13 04:04:42,563 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [01333c0a-1ed9-4cd9-8462-254ad7fee927]
+2025-09-13T04:04:42.563554 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:04:42,564 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [01333c0a-1ed9-4cd9-8462-254ad7fee927]
+2025-09-13 04:04:47,572 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [a0516784-5deb-433d-980d-728ca48f9ff8]
+2025-09-13T04:04:47.572322 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:04:47,573 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [a0516784-5deb-433d-980d-728ca48f9ff8]
+2025-09-13 04:04:52,653 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [c67b8668-a5a2-4962-966e-e6465bb24c6f]
+2025-09-13T04:04:52.653828 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:04:52,654 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [c67b8668-a5a2-4962-966e-e6465bb24c6f]
+2025-09-13 04:04:57,647 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [c4798d8b-4d73-40e2-9cd7-3845e7e9bc5c]
+2025-09-13T04:04:57.647695 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:04:57,650 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.003s] [c4798d8b-4d73-40e2-9cd7-3845e7e9bc5c]
+2025-09-13 04:05:02,675 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [17a81ff5-ca8a-4593-9fc6-2929bec20b97]
+2025-09-13T04:05:02.676223 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:05:02,677 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.002s] [17a81ff5-ca8a-4593-9fc6-2929bec20b97]
+2025-09-13 04:05:08,126 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [994a82d4-057f-4f4a-9497-2fbb908a37ea]
+2025-09-13T04:05:08.126629 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:05:08,127 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [994a82d4-057f-4f4a-9497-2fbb908a37ea]
+2025-09-13 04:05:13,157 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [20530886-29c7-40f0-b4a4-70da1d9693f7]
+2025-09-13T04:05:13.158067 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:05:13,158 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [20530886-29c7-40f0-b4a4-70da1d9693f7]
+2025-09-13 04:05:18,126 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [efcc74fa-a596-4d26-96b2-0a63a56c4185]
+2025-09-13T04:05:18.126963 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:05:18,127 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [efcc74fa-a596-4d26-96b2-0a63a56c4185]
+2025-09-13 04:05:23,307 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [b2998ac2-21d7-4ecf-9452-59b86d9c515d]
+2025-09-13T04:05:23.308007 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:05:23,308 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [b2998ac2-21d7-4ecf-9452-59b86d9c515d]
+2025-09-13 04:05:28,311 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [aac30bce-cafa-4aa1-bb4a-5f05b65182f8]
+2025-09-13T04:05:28.312000 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:05:28,312 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [aac30bce-cafa-4aa1-bb4a-5f05b65182f8]
+2025-09-13 04:05:33,334 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [abebc136-0948-4606-8902-2775befa722b]
+2025-09-13T04:05:33.334506 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:05:33,335 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [abebc136-0948-4606-8902-2775befa722b]
+2025-09-13 04:05:38,326 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [178c29b4-07c5-4a6c-9b5d-88d030abbbef]
+2025-09-13T04:05:38.326621 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:05:38,327 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [178c29b4-07c5-4a6c-9b5d-88d030abbbef]
+2025-09-13 04:05:43,325 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [d67d543b-1e4f-48e8-94c5-16504f1f2215]
+2025-09-13T04:05:43.326990 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:05:43,329 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.003s] [d67d543b-1e4f-48e8-94c5-16504f1f2215]
+2025-09-13 04:05:48,329 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [ddda6aab-a4ec-461e-aaa5-2b59a9d0088b]
+2025-09-13T04:05:48.332040 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:05:48,333 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.004s] [ddda6aab-a4ec-461e-aaa5-2b59a9d0088b]
+2025-09-13 04:05:53,321 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [9fded0c9-f981-460d-9ffd-0051c50a61b4]
+2025-09-13T04:05:53.333716 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:05:53,335 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.013s] [9fded0c9-f981-460d-9ffd-0051c50a61b4]
+2025-09-13 04:05:58,320 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [ce2567bc-ce6b-40eb-ade3-ab20d9157fc8]
+2025-09-13T04:05:58.321435 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:05:58,322 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [ce2567bc-ce6b-40eb-ade3-ab20d9157fc8]
+2025-09-13 04:06:03,343 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [19146feb-82bd-4a2a-aeb5-d7e24be44eed]
+2025-09-13T04:06:03.345200 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:06:03,345 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.002s] [19146feb-82bd-4a2a-aeb5-d7e24be44eed]
+2025-09-13 04:06:08,326 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [f36b4bd3-fea9-4416-a2c7-ea3d72ba32e6]
+2025-09-13T04:06:08.326841 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:06:08,327 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [f36b4bd3-fea9-4416-a2c7-ea3d72ba32e6]
+2025-09-13 04:06:13,596 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [7bfaca43-6e18-493b-bcb2-45864763af97]
+2025-09-13T04:06:13.597255 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:06:13,598 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.002s] [7bfaca43-6e18-493b-bcb2-45864763af97]
+2025-09-13 04:06:18,564 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [c1e0333a-fb6f-4bfc-88db-977a25251061]
+2025-09-13T04:06:18.564701 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:06:18,565 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.002s] [c1e0333a-fb6f-4bfc-88db-977a25251061]
+2025-09-13 04:06:23,570 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [22919c2a-fe1d-4625-bdec-40b7ea0b48f0]
+2025-09-13T04:06:23.570547 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:06:23,571 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [22919c2a-fe1d-4625-bdec-40b7ea0b48f0]
+2025-09-13 04:06:28,593 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [e8c589f3-f9a6-47f8-8648-3f85d3901b45]
+2025-09-13T04:06:28.593848 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:06:28,594 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [e8c589f3-f9a6-47f8-8648-3f85d3901b45]
+2025-09-13 04:06:33,582 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [a05e4482-5e51-45aa-bd71-576f942f5204]
+2025-09-13T04:06:33.583348 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:06:33,584 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.002s] [a05e4482-5e51-45aa-bd71-576f942f5204]
+2025-09-13 04:06:38,585 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [18957493-76ae-4154-b384-da37a1cc2283]
+2025-09-13T04:06:38.586135 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:06:38,586 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [18957493-76ae-4154-b384-da37a1cc2283]
+2025-09-13 04:06:43,641 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [8a29e207-1c04-4981-bffe-3f2059d09b24]
+2025-09-13T04:06:43.642310 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:06:43,643 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [8a29e207-1c04-4981-bffe-3f2059d09b24]
+2025-09-13 04:06:48,623 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [6b088191-d76f-497f-8610-58c72d010ef8]
+2025-09-13T04:06:48.624275 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:06:48,632 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.009s] [6b088191-d76f-497f-8610-58c72d010ef8]
+2025-09-13 04:06:53,600 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [e223f799-4421-4e52-9056-86ef56f7dd7f]
+2025-09-13T04:06:53.600789 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:06:53,601 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [e223f799-4421-4e52-9056-86ef56f7dd7f]
+2025-09-13T04:06:58.841624 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
+2025-09-13 04:06:59,967 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [bbaaa0ed-4155-49d8-b32c-02360b36930d]
+2025-09-13T04:06:59.969160 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:06:59,986 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.019s] [bbaaa0ed-4155-49d8-b32c-02360b36930d]
+2025-09-13 04:07:03,606 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [39f7aa97-9f90-4191-b415-49de6fe05071]
+2025-09-13T04:07:03.607891 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:07:03,625 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.019s] [39f7aa97-9f90-4191-b415-49de6fe05071]
+2025-09-13 04:07:08,626 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [b8b481b8-d94d-495d-b7a4-a31afe0237ba]
+2025-09-13T04:07:08.626962 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:07:08,627 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [b8b481b8-d94d-495d-b7a4-a31afe0237ba]
+2025-09-13 04:07:13,621 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [bd46bc26-3943-424d-801d-cfda5cfe65b1]
+2025-09-13T04:07:13.622233 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:07:13,622 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [bd46bc26-3943-424d-801d-cfda5cfe65b1]
+2025-09-13 04:07:18,645 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [bdd79bba-7b5f-47b6-a867-c7755f93ca7e]
+2025-09-13T04:07:18.647833 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:07:18,650 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.005s] [bdd79bba-7b5f-47b6-a867-c7755f93ca7e]
+2025-09-13 04:07:23,646 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [456d1d61-cf6b-4bb6-80f7-ce64ce7b409f]
+2025-09-13T04:07:23.648248 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:07:23,649 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.003s] [456d1d61-cf6b-4bb6-80f7-ce64ce7b409f]
+2025-09-13 04:07:28,636 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [f2b25ff3-fce2-4128-8979-1b2a6af5d47a]
+2025-09-13T04:07:28.637328 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:07:28,638 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [f2b25ff3-fce2-4128-8979-1b2a6af5d47a]
+2025-09-13 04:07:33,654 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [af26cba6-e962-4cf4-a660-f395623de07c]
+2025-09-13T04:07:33.654715 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:07:33,655 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [af26cba6-e962-4cf4-a660-f395623de07c]
+2025-09-13 04:07:38,646 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [cb3899ba-4d66-4078-81ac-59c7c43a26be]
+2025-09-13T04:07:38.647173 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:07:38,647 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [cb3899ba-4d66-4078-81ac-59c7c43a26be]
+2025-09-13T04:07:41.999387 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
+2025-09-13 04:07:42,783 - backend.core.middleware - INFO - Request started: GET / [ead2e4b9-985c-43bc-8151-859fc378cb3c]
+2025-09-13 04:07:42,795 - backend.core.middleware - INFO - Request completed: GET / [200] [0.012s] [ead2e4b9-985c-43bc-8151-859fc378cb3c]
+2025-09-13 04:07:42,951 - backend.core.middleware - INFO - Request started: GET /static/js/logging/Logger.js [76c4f9fb-cbf7-4a0a-8263-3262ae8ad079]
+2025-09-13 04:07:42,955 - backend.core.middleware - INFO - Request completed: GET /static/js/logging/Logger.js [304] [0.004s] [76c4f9fb-cbf7-4a0a-8263-3262ae8ad079]
+2025-09-13 04:07:42,988 - backend.core.middleware - INFO - Request started: GET /static/css/navigation.css [40135a20-e437-43fc-9136-e71e2741ac44]
+2025-09-13 04:07:42,991 - backend.core.middleware - INFO - Request completed: GET /static/css/navigation.css [304] [0.003s] [40135a20-e437-43fc-9136-e71e2741ac44]
+2025-09-13 04:07:43,001 - backend.core.middleware - INFO - Request started: GET /static/css/main.css [dd28166d-691d-42b9-8840-86eb9cabcb5f]
+2025-09-13 04:07:43,002 - backend.core.middleware - INFO - Request completed: GET /static/css/main.css [304] [0.001s] [dd28166d-691d-42b9-8840-86eb9cabcb5f]
+2025-09-13 04:07:43,003 - backend.core.middleware - INFO - Request started: GET /static/js/navigation/NavigationManager.js [5a26a90a-6237-48ff-ab1b-7db5ecb4981a]
+2025-09-13 04:07:43,004 - backend.core.middleware - INFO - Request completed: GET /static/js/navigation/NavigationManager.js [304] [0.001s] [5a26a90a-6237-48ff-ab1b-7db5ecb4981a]
+2025-09-13 04:07:43,005 - backend.core.middleware - INFO - Request started: GET /static/js/core/state.js [6ee7f2c3-2dd4-42df-b5c8-d0882f81bee4]
+2025-09-13 04:07:43,006 - backend.core.middleware - INFO - Request completed: GET /static/js/core/state.js [304] [0.000s] [6ee7f2c3-2dd4-42df-b5c8-d0882f81bee4]
+2025-09-13 04:07:43,007 - backend.core.middleware - INFO - Request started: GET /static/js/core/api.js [c04e5e77-8a0e-4825-b718-5c157e0a3aac]
+2025-09-13 04:07:43,007 - backend.core.middleware - INFO - Request completed: GET /static/js/core/api.js [304] [0.000s] [c04e5e77-8a0e-4825-b718-5c157e0a3aac]
+2025-09-13 04:07:43,036 - backend.core.middleware - INFO - Request started: GET /static/js/components/notifications.js [e1ffec86-f1cf-4e09-8d8d-38cf420f661b]
+2025-09-13 04:07:43,037 - backend.core.middleware - INFO - Request completed: GET /static/js/components/notifications.js [304] [0.001s] [e1ffec86-f1cf-4e09-8d8d-38cf420f661b]
+2025-09-13 04:07:48,323 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [d40bf27f-51bf-41a2-818d-3544e40aca51]
+2025-09-13T04:07:48.324183 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:07:48,340 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.017s] [d40bf27f-51bf-41a2-818d-3544e40aca51]
+2025-09-13 04:07:54,201 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [5320799b-20de-4bb6-8191-3114d6d75b63]
+2025-09-13T04:07:54.201420 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:07:54,202 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [5320799b-20de-4bb6-8191-3114d6d75b63]
+2025-09-13 04:07:59,238 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [0c666d73-1602-4d4d-92f0-0ad0ef704c26]
+2025-09-13T04:07:59.238871 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:07:59,239 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [0c666d73-1602-4d4d-92f0-0ad0ef704c26]
+2025-09-13 04:08:04,215 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [900071c5-be76-424d-a286-ed13825d6574]
+2025-09-13T04:08:04.215876 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:08:04,216 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [900071c5-be76-424d-a286-ed13825d6574]
+2025-09-13T04:08:05.351221 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
+2025-09-13 04:08:06,091 - backend.core.middleware - INFO - Request started: GET / [0086328d-5de4-44f4-8993-9ec68fdd4960]
+2025-09-13 04:08:06,109 - backend.core.middleware - INFO - Request completed: GET / [200] [0.018s] [0086328d-5de4-44f4-8993-9ec68fdd4960]
+2025-09-13 04:08:06,171 - backend.core.middleware - INFO - Request started: GET /static/css/navigation.css [7ede0159-c72a-4367-8a6d-ec049bd13ac8]
+2025-09-13 04:08:06,176 - backend.core.middleware - INFO - Request completed: GET /static/css/navigation.css [304] [0.005s] [7ede0159-c72a-4367-8a6d-ec049bd13ac8]
+2025-09-13 04:08:06,178 - backend.core.middleware - INFO - Request started: GET /static/css/main.css [44dd891e-cd79-47aa-9c8a-fc9b3cc4d2d4]
+2025-09-13 04:08:06,178 - backend.core.middleware - INFO - Request completed: GET /static/css/main.css [304] [0.001s] [44dd891e-cd79-47aa-9c8a-fc9b3cc4d2d4]
+2025-09-13 04:08:06,180 - backend.core.middleware - INFO - Request started: GET /static/js/logging/Logger.js [4975cadc-cbf2-41d5-b94b-b5b80c79c106]
+2025-09-13 04:08:06,180 - backend.core.middleware - INFO - Request completed: GET /static/js/logging/Logger.js [304] [0.001s] [4975cadc-cbf2-41d5-b94b-b5b80c79c106]
+2025-09-13 04:08:06,195 - backend.core.middleware - INFO - Request started: GET /static/js/navigation/NavigationManager.js [d66ad6ea-60e5-4cdb-9f58-325ec1adb3c0]
+2025-09-13 04:08:06,196 - backend.core.middleware - INFO - Request completed: GET /static/js/navigation/NavigationManager.js [304] [0.001s] [d66ad6ea-60e5-4cdb-9f58-325ec1adb3c0]
+2025-09-13 04:08:06,221 - backend.core.middleware - INFO - Request started: GET /static/js/core/api.js [2ed20493-c3d4-4e0c-b7a3-49b0fc42936f]
+2025-09-13 04:08:06,223 - backend.core.middleware - INFO - Request completed: GET /static/js/core/api.js [304] [0.001s] [2ed20493-c3d4-4e0c-b7a3-49b0fc42936f]
+2025-09-13 04:08:06,225 - backend.core.middleware - INFO - Request started: GET /static/js/core/state.js [61a838d8-a74a-4fe8-85b6-5424fe82382c]
+2025-09-13 04:08:06,225 - backend.core.middleware - INFO - Request completed: GET /static/js/core/state.js [304] [0.000s] [61a838d8-a74a-4fe8-85b6-5424fe82382c]
+2025-09-13 04:08:06,226 - backend.core.middleware - INFO - Request started: GET /static/js/components/notifications.js [4cf22aaa-73f2-4a46-bc53-cb6fdd402a34]
+2025-09-13 04:08:06,227 - backend.core.middleware - INFO - Request completed: GET /static/js/components/notifications.js [304] [0.000s] [4cf22aaa-73f2-4a46-bc53-cb6fdd402a34]
+2025-09-13 04:08:11,667 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [0a4ed272-70a0-4d8b-9396-caa0f54b0240]
+2025-09-13T04:08:11.668228 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:08:11,679 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.012s] [0a4ed272-70a0-4d8b-9396-caa0f54b0240]
+2025-09-13 04:08:17,482 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [31e99a51-182b-4feb-953a-32e74f7c86f6]
+2025-09-13T04:08:17.482421 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:08:17,485 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.003s] [31e99a51-182b-4feb-953a-32e74f7c86f6]
+2025-09-13 04:08:22,517 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [0f39fcb9-533d-47bc-89bc-7cdadb7cff55]
+2025-09-13T04:08:22.518842 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:08:22,519 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.002s] [0f39fcb9-533d-47bc-89bc-7cdadb7cff55]
+2025-09-13 04:08:27,491 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [2461ebde-ceab-4360-b7a1-867c0a4412b8]
+2025-09-13T04:08:27.491594 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:08:27,492 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [2461ebde-ceab-4360-b7a1-867c0a4412b8]
+2025-09-13 04:08:32,641 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [85851448-3110-4dff-b26a-15be79921bb5]
+2025-09-13T04:08:32.643216 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:08:32,644 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.002s] [85851448-3110-4dff-b26a-15be79921bb5]
+2025-09-13T04:08:37.129564 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
+2025-09-13 04:08:37,944 - backend.core.middleware - INFO - Request started: GET / [9bfe33bf-0b67-471d-be43-1d2a1817056d]
+2025-09-13 04:08:37,961 - backend.core.middleware - INFO - Request completed: GET / [200] [0.017s] [9bfe33bf-0b67-471d-be43-1d2a1817056d]
+2025-09-13 04:08:38,052 - backend.core.middleware - INFO - Request started: GET /static/css/main.css [c5207500-8f96-4583-8a54-6d3517ddf8a2]
+2025-09-13 04:08:38,063 - backend.core.middleware - INFO - Request completed: GET /static/css/main.css [304] [0.011s] [c5207500-8f96-4583-8a54-6d3517ddf8a2]
+2025-09-13 04:08:38,067 - backend.core.middleware - INFO - Request started: GET /static/js/logging/Logger.js [56455ed8-5f40-44ca-ba26-d325e07b1522]
+2025-09-13 04:08:38,071 - backend.core.middleware - INFO - Request completed: GET /static/js/logging/Logger.js [304] [0.004s] [56455ed8-5f40-44ca-ba26-d325e07b1522]
+2025-09-13 04:08:38,073 - backend.core.middleware - INFO - Request started: GET /static/js/navigation/NavigationManager.js [f9ebc543-6492-4254-8dd8-542a0318ced3]
+2025-09-13 04:08:38,073 - backend.core.middleware - INFO - Request completed: GET /static/js/navigation/NavigationManager.js [304] [0.000s] [f9ebc543-6492-4254-8dd8-542a0318ced3]
+2025-09-13 04:08:38,074 - backend.core.middleware - INFO - Request started: GET /static/css/navigation.css [ef6245fc-e72f-4410-aa1f-e8e709e7b81f]
+2025-09-13 04:08:38,075 - backend.core.middleware - INFO - Request completed: GET /static/css/navigation.css [304] [0.000s] [ef6245fc-e72f-4410-aa1f-e8e709e7b81f]
+2025-09-13 04:08:38,094 - backend.core.middleware - INFO - Request started: GET /static/js/core/api.js [cdd55548-0a08-4847-a046-af52f847dc29]
+2025-09-13 04:08:38,095 - backend.core.middleware - INFO - Request completed: GET /static/js/core/api.js [304] [0.000s] [cdd55548-0a08-4847-a046-af52f847dc29]
+2025-09-13 04:08:38,111 - backend.core.middleware - INFO - Request started: GET /static/js/core/state.js [4784cf1b-c577-4c45-a330-aa0ceaf71770]
+2025-09-13 04:08:38,111 - backend.core.middleware - INFO - Request completed: GET /static/js/core/state.js [304] [0.001s] [4784cf1b-c577-4c45-a330-aa0ceaf71770]
+2025-09-13 04:08:38,116 - backend.core.middleware - INFO - Request started: GET /static/js/components/notifications.js [d6e89bd6-34ea-449e-b3ee-8a5279443e04]
+2025-09-13 04:08:38,116 - backend.core.middleware - INFO - Request completed: GET /static/js/components/notifications.js [304] [0.001s] [d6e89bd6-34ea-449e-b3ee-8a5279443e04]
+2025-09-13 04:08:44,146 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [e1aa21ef-f013-4802-b884-3e42b7f15a23]
+2025-09-13 04:08:44,147 - backend.api.v1.endpoints.logs - INFO - [Frontend] ArUCO Generator Frontend Logger Initialized
+2025-09-13 04:08:44,147 - backend.api.v1.endpoints.logs - INFO - [Frontend] NavigationManager initialized
+2025-09-13 04:08:44,148 - backend.api.v1.endpoints.logs - INFO - [Frontend] Page Performance Metrics
+2025-09-13 04:08:44,148 - backend.api.v1.endpoints.logs - INFO - Processed 3 frontend logs from session session_1757736518487_i415z2y00
+2025-09-13 04:08:44,148 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [200] [0.002s] [e1aa21ef-f013-4802-b884-3e42b7f15a23]
+2025-09-13 04:09:00,210 - backend.core.middleware - INFO - Request started: GET / [743a3672-d49c-42b4-a7ba-574597d09691]
+2025-09-13 04:09:00,211 - backend.core.middleware - INFO - Request completed: GET / [200] [0.001s] [743a3672-d49c-42b4-a7ba-574597d09691]
+2025-09-13 04:09:06,597 - backend.core.middleware - INFO - Request started: GET /generate [300ebdb0-92ce-4275-9494-66fde91c8611]
+2025-09-13 04:09:06,605 - backend.core.middleware - INFO - Request completed: GET /generate [200] [0.008s] [300ebdb0-92ce-4275-9494-66fde91c8611]
+2025-09-13 04:09:06,664 - backend.core.middleware - INFO - Request started: GET /calibration [0816fc50-e27d-473e-bd45-764b21ee71c7]
+2025-09-13 04:09:06,670 - backend.core.middleware - INFO - Request completed: GET /calibration [200] [0.006s] [0816fc50-e27d-473e-bd45-764b21ee71c7]
+2025-09-13 04:09:06,723 - backend.core.middleware - INFO - Request started: GET /validation [462f9b8b-9cf5-4b74-9127-e2c3d53802ea]
+2025-09-13 04:09:06,729 - backend.core.middleware - INFO - Request completed: GET /validation [200] [0.006s] [462f9b8b-9cf5-4b74-9127-e2c3d53802ea]
+2025-09-13T04:10:22.097757 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------

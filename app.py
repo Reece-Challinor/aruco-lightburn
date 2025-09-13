@@ -58,7 +58,7 @@ try:
     app.config.from_object(config)
 except ImportError:
     # Fallback configuration if new modules not available
-    app.config["SECRET_KEY"] = os.environ.get("SESSION_SECRET", "dev-secret-key")
+    app.config["SECRET_KEY"] = os.environ.get("SESSION_SECRET")
     app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///aruco_generator.db")
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
         "pool_recycle": 300,
@@ -144,15 +144,35 @@ try:
 except ImportError:
     pass  # marshmallow not installed
 
-# Register new API v1 blueprint
+# Register new API v1 blueprint with simple fallback
 try:
+    # Try to import the main API v1 blueprint
     from backend.api.v1 import api_v1
     app.register_blueprint(api_v1)
     print("API v1 registered successfully at /api/v1")
-except ImportError as e:
-    print(f"Warning: Could not import API v1: {e}")
 except Exception as e:
-    print(f"Warning: Could not register API v1: {e}")
+    print(f"Warning: Could not register full API v1: {e}")
+    # Fallback to register individual endpoints directly
+    try:
+        from flask import Blueprint
+        api_v1_fallback = Blueprint('api_v1', __name__, url_prefix='/api/v1')
+        
+        # Register logs endpoint
+        from backend.api.v1.endpoints.logs import bp as logs_bp
+        api_v1_fallback.register_blueprint(logs_bp)
+        
+        # Register simple markers endpoint
+        from backend.api.v1.endpoints.markers_simple import bp as markers_bp
+        api_v1_fallback.register_blueprint(markers_bp)
+        
+        # Register health endpoint
+        from backend.api.v1.endpoints.health import bp as health_bp
+        api_v1_fallback.register_blueprint(health_bp)
+        
+        app.register_blueprint(api_v1_fallback)
+        print("API v1 fallback registered successfully at /api/v1")
+    except Exception as fallback_error:
+        print(f"Warning: Could not register API v1 fallback: {fallback_error}")
 
 # Initialize database tables
 def init_db():
