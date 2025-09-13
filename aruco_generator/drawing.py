@@ -44,7 +44,7 @@ class DrawingContext:
         self._update_bounds(x, y, width, height)
     
     def add_marker_grid(self, markers: List[Dict[str, Any]], include_borders: bool = True, include_outer_border: bool = False, border_width: float = 2.0):
-        """Add ArUCO markers as filled rectangles with optimizations"""
+        """Add ArUCO markers as filled rectangles with 2D optimization"""
         for marker in markers:
             size = marker['size']
             x, y = marker['x'], marker['y']
@@ -56,27 +56,21 @@ class DrawingContext:
             
             # Check if we have actual image data or just placeholder
             if 'image' in marker:
-                # Optimized ArUCO marker generation using run-length encoding
+                # Use 2D rectangle merging for optimal XML size
                 image = marker['image']
                 pixel_size = size / image.shape[0]
                 
-                # Group consecutive black pixels into larger rectangles
-                for row in range(image.shape[0]):
-                    col = 0
-                    while col < image.shape[1]:
-                        if image[row, col] == 0:  # Found black pixel
-                            # Find run length
-                            start_col = col
-                            while col < image.shape[1] and image[row, col] == 0:
-                                col += 1
-                            # Add single rectangle for the run
-                            px_x = x + start_col * pixel_size
-                            px_y = y + row * pixel_size
-                            width = (col - start_col) * pixel_size
-                            self.add_rectangle(px_x, px_y, width, pixel_size,
-                                             fill=True, layer=0, marker_id=marker_id)
-                        else:
-                            col += 1
+                # Find all black rectangles using 2D merging
+                rectangles = self._find_merged_rectangles(image)
+                
+                # Add merged rectangles
+                for rect in rectangles:
+                    px_x = x + rect['col'] * pixel_size
+                    px_y = y + rect['row'] * pixel_size
+                    width = rect['width'] * pixel_size
+                    height = rect['height'] * pixel_size
+                    self.add_rectangle(px_x, px_y, width, height,
+                                     fill=True, layer=0, marker_id=marker_id)
             else:
                 # For preview, use simplified representation
                 self.elements.append({
@@ -178,6 +172,51 @@ class DrawingContext:
         self.bounds['min_y'] = min(self.bounds['min_y'], y)
         self.bounds['max_x'] = max(self.bounds['max_x'], x + width)
         self.bounds['max_y'] = max(self.bounds['max_y'], y + height)
+    
+    def _find_merged_rectangles(self, image: np.ndarray) -> List[Dict[str, int]]:
+        """Find merged rectangles in binary image using 2D merging"""
+        rectangles = []
+        visited = np.zeros_like(image, dtype=bool)
+        
+        for row in range(image.shape[0]):
+            for col in range(image.shape[1]):
+                if image[row, col] == 0 and not visited[row, col]:  # Black and unvisited
+                    # Find the largest rectangle starting from this point
+                    max_width = image.shape[1] - col
+                    max_height = image.shape[0] - row
+                    
+                    # Find maximum width for this row
+                    width = 0
+                    while width < max_width and image[row, col + width] == 0 and not visited[row, col + width]:
+                        width += 1
+                    
+                    # Find maximum height maintaining this width
+                    height = 1
+                    while height < max_height:
+                        # Check if the entire row at this height is black
+                        row_valid = True
+                        for w in range(width):
+                            if image[row + height, col + w] != 0 or visited[row + height, col + w]:
+                                row_valid = False
+                                break
+                        if not row_valid:
+                            break
+                        height += 1
+                    
+                    # Mark all pixels in this rectangle as visited
+                    for r in range(height):
+                        for c in range(width):
+                            visited[row + r, col + c] = True
+                    
+                    # Add the rectangle
+                    rectangles.append({
+                        'row': row,
+                        'col': col,
+                        'width': width,
+                        'height': height
+                    })
+        
+        return rectangles
     
     def get_svg(self) -> str:
         """Generate SVG preview"""

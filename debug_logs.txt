@@ -3381,3 +3381,7 @@ LightBurn Exporter initialized: True
 2025-09-13 04:59:11,012 - backend.api.v1.endpoints.logs - INFO - [Frontend] Page Performance Metrics
 2025-09-13 04:59:11,012 - backend.api.v1.endpoints.logs - INFO - Processed 3 frontend logs from session session_1757739545835_1olqlvaiy
 2025-09-13 04:59:11,013 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [200] [0.003s] [1e3dbc0f-6cc0-4df9-b964-8688ac6af819]
+2025-09-13T05:15:35.597087 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
