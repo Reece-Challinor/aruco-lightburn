@@ -75,7 +75,7 @@ def export_markers(format):
     try:
         data = request.get_json()
         
-        if format not in ['svg', 'pdf', 'png', 'yaml', 'json']:
+        if format not in ['svg', 'pdf', 'png', 'yaml', 'json', 'lightburn']:
             return jsonify({'error': f'Unsupported format: {format}'}), 400
         
         # Generate export
