@@ -86,7 +86,7 @@ def export_markers(format):
             io.BytesIO(export_data['content']),
             mimetype=export_data['mimetype'],
             as_attachment=True,
-            attachment_filename=export_data['filename']
+            download_name=export_data['filename']
         )
         
     except Exception as e:

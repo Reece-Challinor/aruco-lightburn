@@ -15,6 +15,9 @@ class MarkerService:
         self.aruco_gen = aruco_generator
         self.lightburn_exporter = lightburn_exporter
         self.repository = marker_repository
+        # Cache for generated markers to avoid regeneration
+        self._marker_cache = {}
+        self._cache_key = None
     
     def get_dictionary_info(self) -> Dict:
         """Get information about available ArUCO dictionaries"""
@@ -70,7 +73,7 @@ class MarkerService:
         return errors
     
     def generate_markers(self, data: Dict) -> Dict:
-        """Generate ArUCO markers"""
+        """Generate ArUCO markers with caching"""
         # Extract parameters
         dictionary = data.get('dictionary')
         start_id = int(data.get('start_id', 0))
@@ -79,11 +82,22 @@ class MarkerService:
         size_mm = float(data.get('size_mm', 20))
         spacing_mm = float(data.get('spacing_mm', 5))
         
-        # Generate markers
-        markers = self.aruco_gen.generate_grid(
-            start_id, dictionary, rows, cols, 
-            size_mm, spacing_mm, generate_images=True
-        )
+        # Create cache key from parameters
+        cache_key = f"{dictionary}_{start_id}_{rows}_{cols}_{size_mm}_{spacing_mm}"
+        
+        # Check if we have cached markers
+        if cache_key != self._cache_key or not self._marker_cache:
+            # Generate markers only if not cached
+            markers = self.aruco_gen.generate_grid(
+                start_id, dictionary, rows, cols, 
+                size_mm, spacing_mm, generate_images=True
+            )
+            # Update cache
+            self._marker_cache = markers
+            self._cache_key = cache_key
+        else:
+            # Use cached markers
+            markers = self._marker_cache
         
         # Save to repository if needed
         if data.get('save', False):
@@ -202,20 +216,34 @@ class MarkerService:
         
         return svg_content
     
-    def export_markers(self, data: Dict, format: str) -> Tuple[bytes, str, str]:
-        """Export markers in specified format"""
+    def export_markers(self, data: Dict, format: str) -> Dict[str, Any]:
+        """Export markers in specified format with caching"""
         from aruco_generator.drawing import DrawingContext
         
-        # Generate markers
-        markers = self.aruco_gen.generate_grid(
-            int(data.get('start_id', 0)),
-            data.get('dictionary'),
-            int(data.get('rows', 1)),
-            int(data.get('cols', 1)),
-            float(data.get('size_mm', 20)),
-            float(data.get('spacing_mm', 5)),
-            generate_images=True
-        )
+        # Extract parameters
+        dictionary = data.get('dictionary')
+        start_id = int(data.get('start_id', 0))
+        rows = int(data.get('rows', 1))
+        cols = int(data.get('cols', 1))
+        size_mm = float(data.get('size_mm', 20))
+        spacing_mm = float(data.get('spacing_mm', 5))
+        
+        # Create cache key
+        cache_key = f"{dictionary}_{start_id}_{rows}_{cols}_{size_mm}_{spacing_mm}"
+        
+        # Check if we need to regenerate markers
+        if cache_key != self._cache_key or not self._marker_cache:
+            # Generate markers only if not cached
+            markers = self.aruco_gen.generate_grid(
+                start_id, dictionary, rows, cols,
+                size_mm, spacing_mm, generate_images=True
+            )
+            # Update cache
+            self._marker_cache = markers
+            self._cache_key = cache_key
+        else:
+            # Use cached markers
+            markers = self._marker_cache
         
         # Create filename
         filename_base = f"aruco_{data.get('dictionary')}_{data.get('rows')}x{data.get('cols')}_id{data.get('start_id')}"
@@ -252,16 +280,50 @@ class MarkerService:
             lbrn_file.seek(0)
             file_data = lbrn_file.read()
             
-            return file_data, f"{filename_base}.lbrn2", 'application/xml'
+            return {
+                'content': file_data,
+                'filename': f"{filename_base}.lbrn2",
+                'mimetype': 'application/xml'
+            }
         
         elif format == 'svg':
             svg_content = self.generate_preview(data)
-            return svg_content.encode(), f"{filename_base}.svg", 'image/svg+xml'
+            return {
+                'content': svg_content.encode(),
+                'filename': f"{filename_base}.svg",
+                'mimetype': 'image/svg+xml'
+            }
         
         elif format == 'pdf':
             # PDF export would be implemented here
             # For now, return a placeholder
-            return b'PDF export not yet implemented', f"{filename_base}.pdf", 'application/pdf'
+            return {
+                'content': b'PDF export not yet implemented',
+                'filename': f"{filename_base}.pdf",
+                'mimetype': 'application/pdf'
+            }
+        
+        elif format == 'json':
+            # Export marker data as JSON
+            json_data = {
+                'markers': [self._marker_to_dict(m) for m in markers],
+                'metadata': {
+                    'dictionary': dictionary,
+                    'rows': rows,
+                    'cols': cols,
+                    'size_mm': size_mm,
+                    'spacing_mm': spacing_mm,
+                    'total_markers': len(markers),
+                    'start_id': start_id,
+                    'timestamp': datetime.now().isoformat()
+                }
+            }
+            import json
+            return {
+                'content': json.dumps(json_data, indent=2).encode(),
+                'filename': f"{filename_base}.json",
+                'mimetype': 'application/json'
+            }
         
         else:
             raise ValueError(f'Unsupported export format: {format}')

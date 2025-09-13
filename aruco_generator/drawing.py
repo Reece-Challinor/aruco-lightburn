@@ -44,7 +44,7 @@ class DrawingContext:
         self._update_bounds(x, y, width, height)
     
     def add_marker_grid(self, markers: List[Dict[str, Any]], include_borders: bool = True, include_outer_border: bool = False, border_width: float = 2.0):
-        """Add ArUCO markers as filled rectangles"""
+        """Add ArUCO markers as filled rectangles with optimizations"""
         for marker in markers:
             size = marker['size']
             x, y = marker['x'], marker['y']
@@ -56,17 +56,27 @@ class DrawingContext:
             
             # Check if we have actual image data or just placeholder
             if 'image' in marker:
-                # Full ArUCO marker generation for file export
+                # Optimized ArUCO marker generation using run-length encoding
                 image = marker['image']
                 pixel_size = size / image.shape[0]
                 
+                # Group consecutive black pixels into larger rectangles
                 for row in range(image.shape[0]):
-                    for col in range(image.shape[1]):
-                        if image[row, col] == 0:  # Black pixel in ArUCO
-                            px_x = x + col * pixel_size
+                    col = 0
+                    while col < image.shape[1]:
+                        if image[row, col] == 0:  # Found black pixel
+                            # Find run length
+                            start_col = col
+                            while col < image.shape[1] and image[row, col] == 0:
+                                col += 1
+                            # Add single rectangle for the run
+                            px_x = x + start_col * pixel_size
                             px_y = y + row * pixel_size
-                            self.add_rectangle(px_x, px_y, pixel_size, pixel_size, 
+                            width = (col - start_col) * pixel_size
+                            self.add_rectangle(px_x, px_y, width, pixel_size,
                                              fill=True, layer=0, marker_id=marker_id)
+                        else:
+                            col += 1
             else:
                 # For preview, use simplified representation
                 self.elements.append({

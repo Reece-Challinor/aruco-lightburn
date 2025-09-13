@@ -2975,3 +2975,76 @@ LightBurn Exporter initialized: True
 2025-09-13 04:27:00,357 - backend.core.middleware - INFO - Request started: POST /api/download [4d82322c-660d-4e2d-bbf3-535a10def63a]
 2025-09-13 04:27:22,475 - backend.core.middleware - INFO - Request completed: POST /api/download [200] [22.117s] [4d82322c-660d-4e2d-bbf3-535a10def63a]
 2025-09-13 04:27:27,484 - backend.core.middleware - INFO - Request started: POST /api/download [692c8927-4f27-48ad-9406-c82c59f073e8]
+2025-09-13 04:27:49,047 - backend.core.middleware - INFO - Request completed: POST /api/download [200] [21.563s] [692c8927-4f27-48ad-9406-c82c59f073e8]
+2025-09-13T04:27:58.898498 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
+2025-09-13 04:27:59,647 - backend.core.middleware - INFO - Request started: POST /api/export/opencv_yaml [4cad1aaf-34fb-47cf-998b-0afd9bc52382]
+2025-09-13 04:27:59,650 - backend.core.middleware - INFO - Request completed: POST /api/export/opencv_yaml [200] [0.002s] [4cad1aaf-34fb-47cf-998b-0afd9bc52382]
+2025-09-13 04:27:59,652 - backend.core.middleware - INFO - Request started: POST /api/export/ros [0fb412f0-0f4f-4287-93bc-9cab9d231757]
+2025-09-13 04:27:59,652 - backend.core.middleware - INFO - Request completed: POST /api/export/ros [200] [0.001s] [0fb412f0-0f4f-4287-93bc-9cab9d231757]
+2025-09-13 04:27:59,654 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [b2663ef5-5b16-4a33-ad7d-9a57bc43b141]
+2025-09-13 04:27:59,654 - backend.api.v1.endpoints.logs - ERROR - [Frontend] Unhandled Promise Rejection
+2025-09-13 04:27:59,655 - backend.api.v1.endpoints.logs - INFO - Processed 1 frontend logs from session session_1757737544317_e2jtkk7fq
+2025-09-13 04:27:59,655 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [200] [0.002s] [b2663ef5-5b16-4a33-ad7d-9a57bc43b141]
+2025-09-13 04:27:59,657 - backend.core.middleware - INFO - Request started: POST /api/log-error [5fceaab5-316d-4081-9c48-f1127cf71e37]
+2025-09-13T04:27:59.658233 - FRONTEND ERROR
+Context: Unhandled Promise Rejection
+Message: Content-Length header of network response exceeds response Body.
+Stack: 
+URL: https://6f5fcc61-eb21-490b-b175-2e6520846728-00-20do9th6sa7ga.picard.replit.dev/generate
+--------------------------------------------------------------------------------
+2025-09-13 04:27:59,658 - backend.core.middleware - INFO - Request completed: POST /api/log-error [200] [0.001s] [5fceaab5-316d-4081-9c48-f1127cf71e37]
+2025-09-13 04:27:59,668 - backend.core.middleware - INFO - Request started: POST /api/log-error [c729e772-2186-47a5-923a-50ac882a8071]
+2025-09-13T04:27:59.671655 - FRONTEND ERROR
+Context: LightBurn Download
+Message: Content-Length header of network response exceeds response Body.
+Stack: 
+URL: https://6f5fcc61-eb21-490b-b175-2e6520846728-00-20do9th6sa7ga.picard.replit.dev/generate
+--------------------------------------------------------------------------------
+2025-09-13 04:27:59,675 - backend.core.middleware - INFO - Request completed: POST /api/log-error [200] [0.007s] [c729e772-2186-47a5-923a-50ac882a8071]
+2025-09-13 04:27:59,678 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [626b8174-b304-4d49-94c0-65ed046a98a6]
+2025-09-13 04:27:59,680 - backend.api.v1.endpoints.logs - ERROR - [Frontend] Unhandled Promise Rejection
+2025-09-13 04:27:59,682 - backend.api.v1.endpoints.logs - INFO - Processed 1 frontend logs from session session_1757737544317_e2jtkk7fq
+2025-09-13 04:27:59,683 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [200] [0.004s] [626b8174-b304-4d49-94c0-65ed046a98a6]
+2025-09-13 04:27:59,716 - backend.core.middleware - INFO - Request started: POST /api/log-error [95d5cc08-6505-40a9-b7ab-d058f7307713]
+2025-09-13T04:27:59.717301 - FRONTEND ERROR
+Context: Unhandled Promise Rejection
+Message: Content-Length header of network response exceeds response Body.
+Stack: 
+URL: https://6f5fcc61-eb21-490b-b175-2e6520846728-00-20do9th6sa7ga.picard.replit.dev/generate
+--------------------------------------------------------------------------------
+2025-09-13 04:27:59,718 - backend.core.middleware - INFO - Request completed: POST /api/log-error [200] [0.002s] [95d5cc08-6505-40a9-b7ab-d058f7307713]
+2025-09-13 04:27:59,723 - backend.core.middleware - INFO - Request started: POST /api/log-error [bd711eb9-a32a-45a7-9818-228f09db9d0f]
+2025-09-13T04:27:59.723575 - FRONTEND ERROR
+Context: LightBurn Download
+Message: Content-Length header of network response exceeds response Body.
+Stack: 
+URL: https://6f5fcc61-eb21-490b-b175-2e6520846728-00-20do9th6sa7ga.picard.replit.dev/generate
+--------------------------------------------------------------------------------
+2025-09-13 04:27:59,723 - backend.core.middleware - INFO - Request completed: POST /api/log-error [200] [0.000s] [bd711eb9-a32a-45a7-9818-228f09db9d0f]
+2025-09-13 04:27:59,724 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [01bb964f-6872-44f8-b888-e84762d90c3d]
+2025-09-13 04:27:59,724 - backend.api.v1.endpoints.logs - ERROR - [Frontend] Unhandled Promise Rejection
+2025-09-13 04:27:59,725 - backend.api.v1.endpoints.logs - INFO - Processed 1 frontend logs from session session_1757737544317_e2jtkk7fq
+2025-09-13 04:27:59,725 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [200] [0.001s] [01bb964f-6872-44f8-b888-e84762d90c3d]
+2025-09-13 04:27:59,726 - backend.core.middleware - INFO - Request started: POST /api/log-error [dc022d22-941e-46ae-81c7-434b94018220]
+2025-09-13T04:27:59.727612 - FRONTEND ERROR
+Context: Unhandled Promise Rejection
+Message: Content-Length header of network response exceeds response Body.
+Stack: 
+URL: https://6f5fcc61-eb21-490b-b175-2e6520846728-00-20do9th6sa7ga.picard.replit.dev/generate
+--------------------------------------------------------------------------------
+2025-09-13 04:27:59,727 - backend.core.middleware - INFO - Request completed: POST /api/log-error [200] [0.001s] [dc022d22-941e-46ae-81c7-434b94018220]
+2025-09-13T04:30:14.003247 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
+2025-09-13T04:30:40.064518 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
+2025-09-13T04:30:52.567327 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
