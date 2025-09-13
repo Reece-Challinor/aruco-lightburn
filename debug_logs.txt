@@ -2296,3 +2296,81 @@ Path: /api/v1/logs/batch
 Method: POST
 --------------------------------------------------------------------------------
 2025-09-13 04:03:02,471 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [8d115624-2f19-43c3-857e-e80459e6b255]
+2025-09-13 04:03:07,473 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [8ce93f28-c43d-4b47-993c-efd3a1aedc75]
+2025-09-13T04:03:07.473909 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:03:07,474 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [8ce93f28-c43d-4b47-993c-efd3a1aedc75]
+2025-09-13 04:03:12,466 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [2cacb933-1973-4f1b-8356-793beb4309cd]
+2025-09-13T04:03:12.466698 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:03:12,467 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [2cacb933-1973-4f1b-8356-793beb4309cd]
+2025-09-13 04:03:17,492 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [661b69ac-f3c3-47e3-b8a5-b30f0e345807]
+2025-09-13T04:03:17.493231 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:03:17,493 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [661b69ac-f3c3-47e3-b8a5-b30f0e345807]
+2025-09-13 04:03:22,480 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [8e02500e-e17b-4917-b0f9-cf07649ba22e]
+2025-09-13T04:03:22.481263 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:03:22,483 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.003s] [8e02500e-e17b-4917-b0f9-cf07649ba22e]
+2025-09-13 04:03:27,485 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [707b75fd-4f86-406d-8cd7-9d718cd5e05b]
+2025-09-13T04:03:27.485970 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:03:27,486 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [707b75fd-4f86-406d-8cd7-9d718cd5e05b]
+2025-09-13 04:03:32,501 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [461fb0a5-dc99-4e28-a51b-ac12089774e4]
+2025-09-13T04:03:32.501985 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:03:32,502 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [461fb0a5-dc99-4e28-a51b-ac12089774e4]
+2025-09-13 04:03:37,501 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [d658c873-32d5-43d9-8576-2eeb5d49d9d1]
+2025-09-13T04:03:37.502032 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:03:37,502 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [d658c873-32d5-43d9-8576-2eeb5d49d9d1]
+2025-09-13 04:03:42,527 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [7c627a9c-4700-4337-97d2-c7cd7d1cb289]
+2025-09-13T04:03:42.527852 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:03:42,528 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [7c627a9c-4700-4337-97d2-c7cd7d1cb289]
+2025-09-13 04:03:47,521 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [d9f0e94c-57f5-49f2-90e9-64d0ec6fce7e]
+2025-09-13T04:03:47.521923 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:03:47,522 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [d9f0e94c-57f5-49f2-90e9-64d0ec6fce7e]
+2025-09-13 04:03:52,516 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [01c185ac-dffd-40d0-9dc3-3fb920fc907c]
+2025-09-13T04:03:52.516861 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:03:52,517 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [01c185ac-dffd-40d0-9dc3-3fb920fc907c]
+2025-09-13 04:03:57,523 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [6f41bb76-8911-428b-abf9-d484857270f0]
+2025-09-13T04:03:57.523826 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:03:57,524 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [6f41bb76-8911-428b-abf9-d484857270f0]
+2025-09-13 04:04:02,525 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [668a7d3f-e830-4228-a1f2-ac92fed600e6]
+2025-09-13T04:04:02.526348 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:04:02,527 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [668a7d3f-e830-4228-a1f2-ac92fed600e6]
+2025-09-13 04:04:07,537 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [abf65a25-4ed3-4269-b873-910fa9fbe94b]
+2025-09-13T04:04:07.537682 - 404 ERROR
+Path: /api/v1/logs/batch
+Method: POST
+--------------------------------------------------------------------------------
+2025-09-13 04:04:07,538 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [404] [0.001s] [abf65a25-4ed3-4269-b873-910fa9fbe94b]
