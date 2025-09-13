@@ -2,7 +2,6 @@
 Application configuration
 """
 import os
-from datetime import timedelta
 
 class Config:
     """Base configuration"""
@@ -30,22 +29,16 @@ class Config:
     OPENAPI_SWAGGER_UI_PATH = '/swagger'
     OPENAPI_SWAGGER_UI_URL = 'https://cdn.jsdelivr.net/npm/swagger-ui-dist/'
     
-    # Rate limiting disabled (no Redis dependency)
-    RATELIMIT_ENABLED = False
-    RATELIMIT_DEFAULT = '100/hour'
     
     # Performance
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file upload
     JSONIFY_PRETTYPRINT_REGULAR = True
     
-    # Monitoring
-    PROMETHEUS_METRICS_PATH = '/metrics'
 
 class DevelopmentConfig(Config):
     """Development configuration"""
     DEBUG = True
     TESTING = False
-    CACHE_TYPE = 'simple'  # Use simple cache for development
 
 class ProductionConfig(Config):
     """Production configuration"""

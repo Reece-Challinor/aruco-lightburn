@@ -17,7 +17,6 @@ class WorkflowManager {
         this.setupWorkflowGuides();
         this.loadWorkflowHistory();
         this.setupEventListeners();
-        console.log('[WorkflowManager] Initialized');
     }
 
     setupValidationRules() {

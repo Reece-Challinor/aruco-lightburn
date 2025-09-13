@@ -27,50 +27,41 @@ class MarkerService:
         """Validate marker generation parameters"""
         errors = []
         
-        # Required fields
-        if not data.get('dictionary'):
+        # Dictionary validation
+        dictionary = data.get('dictionary')
+        if not dictionary:
             errors.append('Dictionary is required')
-        elif data['dictionary'] not in self.aruco_gen.dictionaries:
-            errors.append(f'Invalid dictionary: {data["dictionary"]}')
+        elif dictionary not in self.aruco_gen.dictionaries:
+            errors.append(f'Invalid dictionary: {dictionary}')
+            return errors  # No point continuing if dictionary is invalid
         
-        # Numeric validations
+        # Get parameter values with defaults
         try:
             start_id = int(data.get('start_id', 0))
-            if start_id < 0:
-                errors.append('Start ID must be non-negative')
-        except (ValueError, TypeError):
-            errors.append('Invalid start ID')
-        
-        try:
             rows = int(data.get('rows', 1))
             cols = int(data.get('cols', 1))
-            if rows <= 0 or cols <= 0:
-                errors.append('Rows and columns must be positive')
-        except (ValueError, TypeError):
-            errors.append('Invalid rows or columns')
-        
-        try:
             size_mm = float(data.get('size_mm', 20))
-            if size_mm <= 0:
-                errors.append('Size must be positive')
-        except (ValueError, TypeError):
-            errors.append('Invalid size')
-        
-        try:
             spacing_mm = float(data.get('spacing_mm', 5))
-            if spacing_mm < 0:
-                errors.append('Spacing must be non-negative')
         except (ValueError, TypeError):
-            errors.append('Invalid spacing')
+            errors.append('Invalid numeric parameters')
+            return errors
+        
+        # Basic range validation
+        if start_id < 0:
+            errors.append('Start ID must be non-negative')
+        if rows <= 0 or cols <= 0:
+            errors.append('Rows and columns must be positive')
+        if size_mm <= 0:
+            errors.append('Size must be positive')
+        if spacing_mm < 0:
+            errors.append('Spacing must be non-negative')
         
         # Check marker count limits
-        if data.get('dictionary') in self.aruco_gen.dictionaries:
-            dict_info = self.aruco_gen.get_dictionary_info()[data['dictionary']]
-            # Only check if we have valid rows and cols values
-            if 'rows' in locals() and 'cols' in locals() and 'start_id' in locals():
-                total_markers = rows * cols
-                if start_id + total_markers > dict_info['max_markers']:
-                    errors.append(f'Too many markers for dictionary {data["dictionary"]}')
+        if dictionary and not errors:
+            dict_info = self.aruco_gen.get_dictionary_info()[dictionary]
+            total_markers = rows * cols
+            if start_id + total_markers > dict_info['max_markers']:
+                errors.append(f'Too many markers for dictionary {dictionary}')
         
         return errors
     
@@ -121,7 +112,9 @@ class MarkerService:
         }
     
     def generate_preview(self, data: Dict) -> str:
-        """Generate SVG preview of markers"""
+        """Generate SVG preview of markers using DrawingContext"""
+        from aruco_generator.drawing import DrawingContext
+        
         # Extract parameters
         dictionary = data.get('dictionary')
         start_id = int(data.get('start_id', 0))
@@ -134,89 +127,44 @@ class MarkerService:
         include_outer_border = data.get('include_outer_border', False)
         border_width = float(data.get('border_width', 2.0))
         
-        # Generate SVG elements
-        svg_elements = []
+        # Create drawing context
+        ctx = DrawingContext()
         
+        # Build markers list for drawing context
+        markers = []
         for row in range(rows):
             for col in range(cols):
                 marker_id = start_id + (row * cols + col)
                 x = col * (size_mm + spacing_mm)
                 y = row * (size_mm + spacing_mm)
                 
-                # Generate marker image
+                # Generate marker image for preview
                 marker_image = self.aruco_gen.generate_marker(
                     marker_id, dictionary, size_pixels=10
                 )
                 
-                # Add white background
-                svg_elements.append(
-                    f'<rect x="{x:.1f}" y="{y:.1f}" '
-                    f'width="{size_mm:.1f}" height="{size_mm:.1f}" fill="white"/>'
-                )
-                
-                # Add border if requested
-                if include_borders:
-                    svg_elements.append(
-                        f'<rect x="{x:.1f}" y="{y:.1f}" '
-                        f'width="{size_mm:.1f}" height="{size_mm:.1f}" '
-                        f'fill="none" stroke="red" stroke-width="0.2"/>'
-                    )
-                
-                # Convert ArUCO pattern to SVG
-                pixel_size = size_mm / marker_image.shape[0]
-                for img_row in range(0, marker_image.shape[0], 2):
-                    for img_col in range(0, marker_image.shape[1], 2):
-                        if marker_image[img_row, img_col] == 0:
-                            px_x = x + img_col * pixel_size
-                            px_y = y + img_row * pixel_size
-                            svg_elements.append(
-                                f'<rect x="{px_x:.1f}" y="{px_y:.1f}" '
-                                f'width="{pixel_size*2:.1f}" height="{pixel_size*2:.1f}" '
-                                f'fill="black"/>'
-                            )
-                
-                # Add labels if requested
-                if include_labels:
-                    label_x = x + size_mm / 2
-                    label_y = y + size_mm + 3
-                    svg_elements.append(
-                        f'<text x="{label_x:.1f}" y="{label_y:.1f}" '
-                        f'text-anchor="middle" font-family="Arial" '
-                        f'font-size="3" fill="red">ID: {marker_id}</text>'
-                    )
+                markers.append({
+                    'id': marker_id,
+                    'x': x,
+                    'y': y,
+                    'size': size_mm,
+                    'image': marker_image
+                })
         
-        # Calculate dimensions
-        total_width, total_height = self.aruco_gen.calculate_total_size(
-            rows, cols, size_mm, spacing_mm
+        # Add markers to drawing context with preview optimization
+        ctx.add_marker_grid_preview(
+            markers, 
+            include_borders=include_borders,
+            include_outer_border=include_outer_border,
+            border_width=border_width
         )
         
+        # Add labels if requested
         if include_labels:
-            total_height += 6
+            ctx.add_text_labels(markers)
         
-        if include_outer_border:
-            border_x = -border_width
-            border_y = -border_width
-            border_w = total_width + (2 * border_width)
-            border_h = total_height + (2 * border_width)
-            svg_elements.insert(
-                0,
-                f'<rect x="{border_x:.1f}" y="{border_y:.1f}" '
-                f'width="{border_w:.1f}" height="{border_h:.1f}" '
-                f'fill="none" stroke="red" stroke-width="1"/>'
-            )
-            total_width += 2 * border_width
-            total_height += 2 * border_width
-        
-        # Create SVG
-        svg_content = (
-            f'<svg width="{total_width:.1f}mm" height="{total_height:.1f}mm" '
-            f'viewBox="0 0 {total_width:.1f} {total_height:.1f}" '
-            f'xmlns="http://www.w3.org/2000/svg">'
-            f'{"".join(svg_elements)}'
-            f'</svg>'
-        )
-        
-        return svg_content
+        # Generate and return SVG
+        return ctx.get_svg()
     
     def export_markers(self, data: Dict, format: str) -> Dict[str, Any]:
         """Export markers in specified format with caching"""
