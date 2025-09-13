@@ -2967,3 +2967,11 @@ ArUCO Generator initialized: True
 LightBurn Exporter initialized: True
 --------------------------------------------------------------------------------
 2025-09-13 04:26:28,195 - backend.core.middleware - INFO - Request started: POST /api/download [cfc77076-d024-4711-a91e-5156a13e59a4]
+2025-09-13 04:26:51,848 - backend.core.middleware - INFO - Request completed: POST /api/download [200] [23.653s] [cfc77076-d024-4711-a91e-5156a13e59a4]
+2025-09-13T04:26:59.587594 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
+2025-09-13 04:27:00,357 - backend.core.middleware - INFO - Request started: POST /api/download [4d82322c-660d-4e2d-bbf3-535a10def63a]
+2025-09-13 04:27:22,475 - backend.core.middleware - INFO - Request completed: POST /api/download [200] [22.117s] [4d82322c-660d-4e2d-bbf3-535a10def63a]
+2025-09-13 04:27:27,484 - backend.core.middleware - INFO - Request started: POST /api/download [692c8927-4f27-48ad-9406-c82c59f073e8]
