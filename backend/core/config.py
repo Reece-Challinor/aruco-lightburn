@@ -17,20 +17,10 @@ class Config:
         'pool_pre_ping': True,
     }
     
-    # Cache
-    CACHE_TYPE = os.environ.get('CACHE_TYPE', 'redis')
-    CACHE_REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+    # Simple in-memory cache (no Redis dependency)
+    CACHE_TYPE = 'simple'
     CACHE_DEFAULT_TIMEOUT = 300
     CACHE_KEY_PREFIX = 'aruco_'
-    
-    # Celery
-    CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/1')
-    CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'redis://localhost:6379/2')
-    CELERY_TASK_SERIALIZER = 'json'
-    CELERY_RESULT_SERIALIZER = 'json'
-    CELERY_ACCEPT_CONTENT = ['json']
-    CELERY_TIMEZONE = 'UTC'
-    CELERY_ENABLE_UTC = True
     
     # API
     API_TITLE = 'ArUCO Generator API'
@@ -40,8 +30,8 @@ class Config:
     OPENAPI_SWAGGER_UI_PATH = '/swagger'
     OPENAPI_SWAGGER_UI_URL = 'https://cdn.jsdelivr.net/npm/swagger-ui-dist/'
     
-    # Rate limiting
-    RATELIMIT_STORAGE_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/3')
+    # Rate limiting disabled (no Redis dependency)
+    RATELIMIT_ENABLED = False
     RATELIMIT_DEFAULT = '100/hour'
     
     # Performance

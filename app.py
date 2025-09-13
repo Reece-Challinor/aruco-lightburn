@@ -139,17 +139,21 @@ from aruco_generator.validation_web import *
 # Fix marshmallow version compatibility
 try:
     import marshmallow
-    if not hasattr(marshmallow, '__version__'):
+    # Check if version is already set before trying to set it
+    try:
+        _ = marshmallow.__version__
+    except AttributeError:
         marshmallow.__version__ = '4.0.0'  # Set a default version for compatibility
 except ImportError:
     pass  # marshmallow not installed
 
-# Register new API v1 blueprint with simple fallback
+# Register new API v1 blueprint
 try:
     # Try to import the main API v1 blueprint
     from backend.api.v1 import api_v1
-    app.register_blueprint(api_v1)
-    print("API v1 registered successfully at /api/v1")
+    if hasattr(app, 'register_blueprint'):
+        app.register_blueprint(api_v1)
+        print("API v1 registered successfully at /api/v1")
 except Exception as e:
     print(f"Warning: Could not register full API v1: {e}")
     # Fallback to register individual endpoints directly
@@ -169,17 +173,21 @@ except Exception as e:
         from backend.api.v1.endpoints.health import bp as health_bp
         api_v1_fallback.register_blueprint(health_bp)
         
-        app.register_blueprint(api_v1_fallback)
-        print("API v1 fallback registered successfully at /api/v1")
+        if hasattr(app, 'register_blueprint'):
+            app.register_blueprint(api_v1_fallback)
+            print("API v1 fallback registered successfully at /api/v1")
     except Exception as fallback_error:
         print(f"Warning: Could not register API v1 fallback: {fallback_error}")
 
 # Initialize database tables
 def init_db():
     try:
-        with app.app_context():
-            db.create_all()
-            print("Database tables initialized successfully")
+        if hasattr(app, 'app_context'):
+            with app.app_context():
+                db.create_all()
+                print("Database tables initialized successfully")
+        else:
+            print("App context not available")
     except Exception as e:
         print(f"Database initialization warning: {e}")
 

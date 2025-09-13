@@ -5,7 +5,7 @@ from .config import get_config
 from .exceptions import register_error_handlers
 from .cache import init_cache
 from .monitoring import PerformanceMonitor
-from .middleware import RequestMiddleware, RateLimitMiddleware, CompressionMiddleware
+from .middleware import RequestMiddleware, CompressionMiddleware
 
 __all__ = [
     'get_config',
@@ -13,6 +13,5 @@ __all__ = [
     'init_cache',
     'PerformanceMonitor',
     'RequestMiddleware',
-    'RateLimitMiddleware',
     'CompressionMiddleware'
 ]

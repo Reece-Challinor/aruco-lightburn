@@ -57,35 +57,17 @@ def cached_result(timeout=300, key_prefix=''):
     return decorator
 
 def invalidate_cache(pattern=None):
-    """Invalidate cache entries matching pattern"""
-    if pattern:
-        # Clear specific pattern
-        cache.delete_many(*cache.cache._cache.keys(pattern))
-    else:
-        # Clear all cache
-        cache.clear()
+    """Invalidate cache entries"""
+    # Simple cache doesn't support patterns, just clear all
+    cache.clear()
 
 class CacheManager:
     """Cache management utilities"""
     
     @staticmethod
     def get_cache_stats():
-        """Get cache statistics"""
-        try:
-            # For Redis cache
-            if hasattr(cache, 'cache') and hasattr(cache.cache, '_client'):
-                info = cache.cache._client.info()
-                return {
-                    'type': 'redis',
-                    'used_memory': info.get('used_memory_human'),
-                    'connected_clients': info.get('connected_clients'),
-                    'total_keys': cache.cache._client.dbsize(),
-                    'hit_rate': info.get('keyspace_hit_ratio', 0)
-                }
-        except:
-            pass
-        
-        # For simple cache
+        """Get cache statistics for simple cache"""
+        # Always use simple cache
         return {
             'type': 'simple',
             'total_keys': len(cache.cache._cache) if hasattr(cache.cache, '_cache') else 0

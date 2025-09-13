@@ -3583,3 +3583,79 @@ LightBurn Exporter initialized: True
 2025-09-13 05:21:58,384 - backend.core.middleware - INFO - Request completed: GET /static/css/main.css [304] [0.001s] [1cfd5c2d-7fdb-4858-b244-87d79dcfdfe8]
 2025-09-13 05:21:58,396 - backend.core.middleware - INFO - Request started: GET /static/css/navigation.css [192e31a5-a445-4e45-81a2-9233a277bccf]
 2025-09-13 05:21:58,397 - backend.core.middleware - INFO - Request completed: GET /static/css/navigation.css [304] [0.001s] [192e31a5-a445-4e45-81a2-9233a277bccf]
+2025-09-13 05:22:03,631 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [8bb71b93-0453-4467-8e41-d0b337f19713]
+2025-09-13 05:22:03,631 - backend.api.v1.endpoints.logs - INFO - [Frontend] ArUCO Generator Frontend Logger Initialized
+2025-09-13 05:22:03,632 - backend.api.v1.endpoints.logs - INFO - [Frontend] NavigationManager initialized
+2025-09-13 05:22:03,632 - backend.api.v1.endpoints.logs - INFO - [Frontend] Page Performance Metrics
+2025-09-13 05:22:03,633 - backend.api.v1.endpoints.logs - INFO - Processed 3 frontend logs from session session_1757740918463_qeevqttba
+2025-09-13 05:22:03,633 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [200] [0.002s] [8bb71b93-0453-4467-8e41-d0b337f19713]
+2025-09-13T05:38:18.872593 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
+2025-09-13T05:38:25.465065 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
+2025-09-13T05:38:30.611320 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
+2025-09-13 05:38:31,333 - backend.core.middleware - INFO - Request started: GET / [68872224-3995-41d4-b33d-23a2cfd7e350]
+2025-09-13 05:38:31,352 - backend.core.middleware - INFO - Request completed: GET / [200] [0.019s] [68872224-3995-41d4-b33d-23a2cfd7e350]
+2025-09-13 05:38:31,354 - backend.core.middleware - INFO - Request started: GET / [fab4dd03-5dde-4ca9-8a90-cf1bf7d23aea]
+2025-09-13 05:38:31,357 - backend.core.middleware - INFO - Request completed: GET / [200] [0.003s] [fab4dd03-5dde-4ca9-8a90-cf1bf7d23aea]
+2025-09-13 05:38:31,522 - backend.core.middleware - INFO - Request started: GET /static/css/main.css [8be9513b-62be-4a25-a1ae-c85f19be7ba1]
+2025-09-13 05:38:31,528 - backend.core.middleware - INFO - Request completed: GET /static/css/main.css [200] [0.006s] [8be9513b-62be-4a25-a1ae-c85f19be7ba1]
+2025-09-13 05:38:31,535 - backend.core.middleware - INFO - Request started: GET /static/css/navigation.css [b4cc58d7-52c3-4132-b36c-60ff70bbe5d4]
+2025-09-13 05:38:31,536 - backend.core.middleware - INFO - Request completed: GET /static/css/navigation.css [200] [0.002s] [b4cc58d7-52c3-4132-b36c-60ff70bbe5d4]
+2025-09-13 05:38:31,542 - backend.core.middleware - INFO - Request started: GET /static/js/navigation/NavigationManager.js [16525b7a-2336-4a62-992d-326c409f48d0]
+2025-09-13 05:38:31,544 - backend.core.middleware - INFO - Request completed: GET /static/js/navigation/NavigationManager.js [304] [0.002s] [16525b7a-2336-4a62-992d-326c409f48d0]
+2025-09-13 05:38:31,546 - backend.core.middleware - INFO - Request started: GET /static/js/logging/Logger.js [6faaf282-5608-474b-a748-8d12b94e0631]
+2025-09-13 05:38:31,548 - backend.core.middleware - INFO - Request completed: GET /static/js/logging/Logger.js [304] [0.002s] [6faaf282-5608-474b-a748-8d12b94e0631]
+2025-09-13 05:38:31,571 - backend.core.middleware - INFO - Request started: GET /static/js/core/api.js [f8160882-b810-4838-9a6f-6bb881a1aded]
+2025-09-13 05:38:31,575 - backend.core.middleware - INFO - Request completed: GET /static/js/core/api.js [304] [0.005s] [f8160882-b810-4838-9a6f-6bb881a1aded]
+2025-09-13 05:38:31,625 - backend.core.middleware - INFO - Request started: GET /static/js/core/state.js [6ec485b3-972d-4937-889d-e1b10665ac05]
+2025-09-13 05:38:31,625 - backend.core.middleware - INFO - Request completed: GET /static/js/core/state.js [304] [0.001s] [6ec485b3-972d-4937-889d-e1b10665ac05]
+2025-09-13 05:38:31,627 - backend.core.middleware - INFO - Request started: GET /static/js/components/notifications.js [c04aa0d4-ed12-4007-b0a8-f59f58b676ad]
+2025-09-13 05:38:31,628 - backend.core.middleware - INFO - Request completed: GET /static/js/components/notifications.js [304] [0.001s] [c04aa0d4-ed12-4007-b0a8-f59f58b676ad]
+2025-09-13 05:38:35,455 - backend.core.middleware - INFO - Request started: GET /static/css/main.css [c39b507a-ba8c-4bc3-8742-3ab733c2773c]
+2025-09-13 05:38:35,456 - backend.core.middleware - INFO - Request completed: GET /static/css/main.css [200] [0.001s] [c39b507a-ba8c-4bc3-8742-3ab733c2773c]
+2025-09-13 05:38:35,459 - backend.core.middleware - INFO - Request started: GET /static/css/navigation.css [5fa121c6-ded9-4487-931c-4d852de48469]
+2025-09-13 05:38:35,460 - backend.core.middleware - INFO - Request completed: GET /static/css/navigation.css [200] [0.001s] [5fa121c6-ded9-4487-931c-4d852de48469]
+2025-09-13 05:38:35,463 - backend.core.middleware - INFO - Request started: GET /static/js/logging/Logger.js [528af8bb-c381-498d-ae92-80b137f071fb]
+2025-09-13 05:38:35,463 - backend.core.middleware - INFO - Request completed: GET /static/js/logging/Logger.js [200] [0.000s] [528af8bb-c381-498d-ae92-80b137f071fb]
+2025-09-13 05:38:35,468 - backend.core.middleware - INFO - Request started: GET /static/js/navigation/NavigationManager.js [c766c487-1db6-4af1-96ed-7c113a6bee6e]
+2025-09-13 05:38:35,468 - backend.core.middleware - INFO - Request completed: GET /static/js/navigation/NavigationManager.js [200] [0.001s] [c766c487-1db6-4af1-96ed-7c113a6bee6e]
+2025-09-13 05:38:35,469 - backend.core.middleware - INFO - Request started: GET /static/js/core/api.js [48a5801d-55e4-4045-b613-f1460d6fdede]
+2025-09-13 05:38:35,470 - backend.core.middleware - INFO - Request completed: GET /static/js/core/api.js [200] [0.000s] [48a5801d-55e4-4045-b613-f1460d6fdede]
+2025-09-13 05:38:35,471 - backend.core.middleware - INFO - Request started: GET /static/js/core/state.js [e42ad130-5e6b-4c47-a6ba-af9ca100665d]
+2025-09-13 05:38:35,471 - backend.core.middleware - INFO - Request completed: GET /static/js/core/state.js [200] [0.000s] [e42ad130-5e6b-4c47-a6ba-af9ca100665d]
+2025-09-13 05:38:35,472 - backend.core.middleware - INFO - Request started: GET /static/js/components/notifications.js [666177c2-f993-476f-b3f8-77ed8dc33a46]
+2025-09-13 05:38:35,472 - backend.core.middleware - INFO - Request completed: GET /static/js/components/notifications.js [200] [0.000s] [666177c2-f993-476f-b3f8-77ed8dc33a46]
+2025-09-13 05:38:35,745 - backend.core.middleware - INFO - Request started: GET /favicon.ico [c0b3ceee-070d-412c-9d51-f0037c7cb9d6]
+2025-09-13T05:38:35.747334 - 404 ERROR
+Path: /favicon.ico
+Method: GET
+--------------------------------------------------------------------------------
+2025-09-13 05:38:35,777 - backend.core.middleware - INFO - Request completed: GET /favicon.ico [404] [0.032s] [c0b3ceee-070d-412c-9d51-f0037c7cb9d6]
+2025-09-13 05:38:36,866 - backend.core.middleware - INFO - Request started: POST /api/v1/logs/batch [421e2022-5f9e-415d-af49-f13a9dedf600]
+2025-09-13 05:38:36,868 - backend.api.v1.endpoints.logs - INFO - [Frontend] ArUCO Generator Frontend Logger Initialized
+2025-09-13 05:38:36,872 - backend.api.v1.endpoints.logs - INFO - [Frontend] NavigationManager initialized
+2025-09-13 05:38:36,876 - backend.api.v1.endpoints.logs - INFO - [Frontend] Page Performance Metrics
+2025-09-13 05:38:36,881 - backend.api.v1.endpoints.logs - INFO - Processed 3 frontend logs from session session_1757741911679_v5gnh1m1m
+2025-09-13 05:38:36,882 - backend.core.middleware - INFO - Request completed: POST /api/v1/logs/batch [200] [0.017s] [421e2022-5f9e-415d-af49-f13a9dedf600]
+2025-09-13T05:39:01.271980 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
+2025-09-13T05:39:51.973164 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
+2025-09-13T05:40:35.037799 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
+2025-09-13 05:40:35,822 - backend.core.middleware - INFO - Request started: GET /api/dictionaries [467858b2-bde4-4841-a07a-03dfdffea9a2]
+2025-09-13 05:40:35,823 - backend.core.middleware - INFO - Request completed: GET /api/dictionaries [200] [0.001s] [467858b2-bde4-4841-a07a-03dfdffea9a2]

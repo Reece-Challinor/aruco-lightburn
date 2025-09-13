@@ -66,9 +66,11 @@ class MarkerService:
         # Check marker count limits
         if data.get('dictionary') in self.aruco_gen.dictionaries:
             dict_info = self.aruco_gen.get_dictionary_info()[data['dictionary']]
-            total_markers = rows * cols if 'rows' in data and 'cols' in data else 1
-            if start_id + total_markers > dict_info['max_markers']:
-                errors.append(f'Too many markers for dictionary {data["dictionary"]}')
+            # Only check if we have valid rows and cols values
+            if 'rows' in locals() and 'cols' in locals() and 'start_id' in locals():
+                total_markers = rows * cols
+                if start_id + total_markers > dict_info['max_markers']:
+                    errors.append(f'Too many markers for dictionary {data["dictionary"]}')
         
         return errors
     
