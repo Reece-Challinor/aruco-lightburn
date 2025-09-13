@@ -695,3 +695,59 @@ Method: HEAD
 Path: /api
 Method: HEAD
 --------------------------------------------------------------------------------
+2025-09-13T03:46:52.005708 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
+2025-09-13T03:46:57.142225 - 404 ERROR
+Path: /favicon.ico
+Method: GET
+--------------------------------------------------------------------------------
+2025-09-13T03:47:42.867008 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
+2025-09-13T03:47:51.369457 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
+2025-09-13T03:49:05.590631 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
+2025-09-13 03:49:06,387 - backend.core.middleware - INFO - Request started: GET / [8986f7de-5a0f-44bc-b9f9-6a3da7e34d0f]
+2025-09-13 03:49:06,397 - backend.core.middleware - INFO - Request completed: GET / [200] [0.010s] [8986f7de-5a0f-44bc-b9f9-6a3da7e34d0f]
+2025-09-13 03:49:06,464 - backend.core.middleware - INFO - Request started: GET /static/js/core/navigation.js [6824fc42-ff65-4e6a-b2c4-8e13a6ba98d2]
+2025-09-13 03:49:06,477 - backend.core.middleware - INFO - Request completed: GET /static/js/core/navigation.js [304] [0.013s] [6824fc42-ff65-4e6a-b2c4-8e13a6ba98d2]
+2025-09-13 03:49:06,480 - backend.core.middleware - INFO - Request started: GET /static/js/core/api.js [d3f951d6-52dc-4abe-b85a-b9d1b7138f0d]
+2025-09-13 03:49:06,482 - backend.core.middleware - INFO - Request completed: GET /static/js/core/api.js [304] [0.002s] [d3f951d6-52dc-4abe-b85a-b9d1b7138f0d]
+2025-09-13 03:49:06,486 - backend.core.middleware - INFO - Request started: GET /static/js/core/state.js [03c898e5-4482-4fbd-8f69-afeedbdd4e3e]
+2025-09-13 03:49:06,487 - backend.core.middleware - INFO - Request completed: GET /static/js/core/state.js [304] [0.001s] [03c898e5-4482-4fbd-8f69-afeedbdd4e3e]
+2025-09-13 03:49:06,488 - backend.core.middleware - INFO - Request started: GET /static/js/components/notifications.js [c56b0586-da7a-44d0-b47d-4b4f56a3736e]
+2025-09-13 03:49:06,489 - backend.core.middleware - INFO - Request completed: GET /static/js/components/notifications.js [304] [0.001s] [c56b0586-da7a-44d0-b47d-4b4f56a3736e]
+2025-09-13 03:49:06,509 - backend.core.middleware - INFO - Request started: GET /static/css/main.css [158b1181-b0d0-458f-b986-eeae0fa0aee9]
+2025-09-13 03:49:06,512 - backend.core.middleware - INFO - Request completed: GET /static/css/main.css [304] [0.002s] [158b1181-b0d0-458f-b986-eeae0fa0aee9]
+2025-09-13 03:49:22,762 - backend.core.middleware - INFO - Request started: GET /generate [846c1420-1ab5-49a0-8629-fba1068a3387]
+2025-09-13 03:49:22,776 - backend.core.middleware - INFO - Request completed: GET /generate [200] [0.014s] [846c1420-1ab5-49a0-8629-fba1068a3387]
+2025-09-13 03:49:22,846 - backend.core.middleware - INFO - Request started: GET /static/style.css [18243592-7ec2-4ebd-8601-13a97e7e83ae]
+2025-09-13 03:49:22,847 - backend.core.middleware - INFO - Request completed: GET /static/style.css [304] [0.001s] [18243592-7ec2-4ebd-8601-13a97e7e83ae]
+2025-09-13 03:49:22,848 - backend.core.middleware - INFO - Request started: GET /static/css/main.css [493658a4-0137-4b87-ba0b-9e766358352e]
+2025-09-13 03:49:22,849 - backend.core.middleware - INFO - Request completed: GET /static/css/main.css [304] [0.001s] [493658a4-0137-4b87-ba0b-9e766358352e]
+2025-09-13 03:49:22,875 - backend.core.middleware - INFO - Request started: GET /static/js/core/navigation.js [a7c88e55-db51-45a3-b92b-5b6460ccc8e5]
+2025-09-13 03:49:22,876 - backend.core.middleware - INFO - Request completed: GET /static/js/core/navigation.js [304] [0.001s] [a7c88e55-db51-45a3-b92b-5b6460ccc8e5]
+2025-09-13 03:49:22,877 - backend.core.middleware - INFO - Request started: GET /static/js/core/api.js [27e93c7e-cbd2-4c04-a1d2-073d6f18f23d]
+2025-09-13 03:49:22,877 - backend.core.middleware - INFO - Request completed: GET /static/js/core/api.js [304] [0.000s] [27e93c7e-cbd2-4c04-a1d2-073d6f18f23d]
+2025-09-13 03:49:22,891 - backend.core.middleware - INFO - Request started: GET /static/js/core/state.js [aa4b0b16-a377-4814-bc86-2645726d1939]
+2025-09-13 03:49:22,892 - backend.core.middleware - INFO - Request completed: GET /static/js/core/state.js [304] [0.001s] [aa4b0b16-a377-4814-bc86-2645726d1939]
+2025-09-13 03:49:22,895 - backend.core.middleware - INFO - Request started: GET /static/app.js [a83662f0-c9ba-4e1d-b845-18a07d21a609]
+2025-09-13 03:49:22,895 - backend.core.middleware - INFO - Request completed: GET /static/app.js [304] [0.000s] [a83662f0-c9ba-4e1d-b845-18a07d21a609]
+2025-09-13 03:49:22,898 - backend.core.middleware - INFO - Request started: GET /static/js/components/notifications.js [2e510ae1-b6fc-463d-b6b0-781787528dd7]
+2025-09-13 03:49:22,898 - backend.core.middleware - INFO - Request completed: GET /static/js/components/notifications.js [304] [0.001s] [2e510ae1-b6fc-463d-b6b0-781787528dd7]
+2025-09-13 03:49:22,925 - backend.core.middleware - INFO - Request started: GET /static/js/pages/generate.js [65b20a36-1460-455f-97b7-5ac0ab7df3a8]
+2025-09-13 03:49:22,925 - backend.core.middleware - INFO - Request completed: GET /static/js/pages/generate.js [304] [0.000s] [65b20a36-1460-455f-97b7-5ac0ab7df3a8]
+2025-09-13 03:49:23,140 - backend.core.middleware - INFO - Request started: GET /api/dictionaries [9aa38fb9-e131-41ad-8487-dfa48bcac361]
+2025-09-13 03:49:23,140 - backend.core.middleware - INFO - Request completed: GET /api/dictionaries [200] [0.001s] [9aa38fb9-e131-41ad-8487-dfa48bcac361]
+2025-09-13 03:49:23,159 - backend.core.middleware - INFO - Request started: GET /api/dictionaries [3dfd8001-680e-4b86-a718-8cc07838c14e]
+2025-09-13 03:49:23,159 - backend.core.middleware - INFO - Request completed: GET /api/dictionaries [200] [0.000s] [3dfd8001-680e-4b86-a718-8cc07838c14e]
+2025-09-13 03:49:23,190 - backend.core.middleware - INFO - Request started: GET /api/presets [1b8e836e-66a8-4fec-a12d-91ce8b2e6cb7]
+2025-09-13 03:49:23,190 - backend.core.middleware - INFO - Request completed: GET /api/presets [200] [0.000s] [1b8e836e-66a8-4fec-a12d-91ce8b2e6cb7]

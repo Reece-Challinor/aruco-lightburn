@@ -13,7 +13,8 @@ from .endpoints import (
     calibration,
     export,
     admin,
-    health
+    health,
+    logs
 )
 
 # Register sub-blueprints
@@ -24,3 +25,4 @@ api_v1.register_blueprint(calibration.bp)
 api_v1.register_blueprint(export.bp)
 api_v1.register_blueprint(admin.bp)
 api_v1.register_blueprint(health.bp)
+api_v1.register_blueprint(logs.bp)
