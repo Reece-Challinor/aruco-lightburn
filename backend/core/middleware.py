@@ -43,11 +43,24 @@ class RequestMiddleware:
             if duration > 1.0:  # Only log slow requests
                 logger.warning(f"Slow request: {request.path} took {duration:.3f}s")
         
-        # CORS headers for API endpoints
-        if request.path.startswith('/api/'):
+        # CORS headers only for specific public API endpoints
+        # Public endpoints that need CORS access
+        public_endpoints = [
+            '/api/v1/markers',
+            '/api/v1/detection',
+            '/api/v1/calibration',
+            '/api/v1/export',
+            '/api/v1/health'
+        ]
+        
+        # Check if the current path is a public endpoint
+        is_public = any(request.path.startswith(endpoint) for endpoint in public_endpoints)
+        
+        if is_public:
             response.headers['Access-Control-Allow-Origin'] = '*'
-            response.headers['Access-Control-Allow-Methods'] = 'GET, POST'
+            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
             response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        # Sensitive endpoints like auth, admin, and logs should NOT have wildcard CORS
         
         return response
 

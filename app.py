@@ -69,46 +69,53 @@ logger.info("Simple logging system initialized")
 
 # Logging middleware is now handled by the simple logging system
 
-# Initialize cache
-try:
-    from backend.core import init_cache
-    cache = init_cache(app)
-    print("Cache initialized successfully")
-except ImportError:
-    print("Cache module not available")
-except Exception as e:
-    print(f"Cache initialization failed: {e}")
+# Initialize core modules with consolidated error handling
+def init_core_modules(app):
+    """Initialize all optional core modules with consolidated error handling"""
+    modules = []
+    
+    # Initialize cache
+    try:
+        from backend.core import init_cache
+        cache = init_cache(app)
+        modules.append("Cache")
+    except (ImportError, Exception) as e:
+        logger.debug(f"Cache initialization skipped: {e}")
+    
+    # Initialize monitoring
+    try:
+        from backend.core import PerformanceMonitor
+        monitor = PerformanceMonitor(app)
+        modules.append("Performance monitoring")
+    except (ImportError, Exception) as e:
+        logger.debug(f"Monitoring initialization skipped: {e}")
+    
+    # Initialize middleware
+    try:
+        from backend.core import RequestMiddleware, CompressionMiddleware
+        RequestMiddleware(app)
+        CompressionMiddleware(app)
+        modules.append("Middleware")
+    except (ImportError, Exception) as e:
+        logger.debug(f"Middleware initialization skipped: {e}")
+    
+    # Register error handlers
+    try:
+        from backend.core import register_error_handlers
+        register_error_handlers(app)
+        modules.append("Error handlers")
+    except (ImportError, Exception) as e:
+        logger.debug(f"Error handler registration skipped: {e}")
+    
+    if modules:
+        logger.info(f"Core modules initialized: {', '.join(modules)}")
+    else:
+        logger.warning("No core modules were initialized")
+    
+    return modules
 
-# Initialize monitoring
-try:
-    from backend.core import PerformanceMonitor
-    monitor = PerformanceMonitor(app)
-    print("Performance monitoring initialized")
-except ImportError:
-    print("Monitoring module not available")
-except Exception as e:
-    print(f"Monitoring initialization failed: {e}")
-
-# Initialize middleware
-try:
-    from backend.core import RequestMiddleware, CompressionMiddleware
-    RequestMiddleware(app)
-    CompressionMiddleware(app)
-    print("Middleware initialized")
-except ImportError:
-    print("Middleware modules not available")
-except Exception as e:
-    print(f"Middleware initialization failed: {e}")
-
-# Register error handlers
-try:
-    from backend.core import register_error_handlers
-    register_error_handlers(app)
-    print("Error handlers registered")
-except ImportError:
-    print("Error handler module not available")
-except Exception as e:
-    print(f"Error handler registration failed: {e}")
+# Initialize all core modules
+initialized_modules = init_core_modules(app)
 
 # Import and register routes
 from aruco_generator.web import *
@@ -124,54 +131,51 @@ except ImportError:
     pass  # marshmallow not installed
 
 # Register new API v1 blueprint
-try:
-    # Try to import the main API v1 blueprint
-    from backend.api.v1 import api_v1
-    # Use getattr to avoid LSP errors
-    register_func = getattr(app, 'register_blueprint', None)
-    if register_func:
-        register_func(api_v1)
-        print("API v1 registered successfully at /api/v1")
-except Exception as e:
-    print(f"Warning: Could not register full API v1: {e}")
-    # Fallback to register individual endpoints directly
+def register_api_v1(app):
+    """Register API v1 blueprint with proper error handling"""
     try:
-        from flask import Blueprint
-        api_v1_fallback = Blueprint('api_v1', __name__, url_prefix='/api/v1')
-        
-        # Register logs endpoint
-        from backend.api.v1.endpoints.logs import bp as logs_bp
-        api_v1_fallback.register_blueprint(logs_bp)
-        
-        # Register simple markers endpoint
-        from backend.api.v1.endpoints.markers_simple import bp as markers_bp
-        api_v1_fallback.register_blueprint(markers_bp)
-        
-        # Register health endpoint
-        from backend.api.v1.endpoints.health import bp as health_bp
-        api_v1_fallback.register_blueprint(health_bp)
-        
-        # Use getattr to avoid LSP errors
-        register_func = getattr(app, 'register_blueprint', None)
-        if register_func:
-            register_func(api_v1_fallback)
-            print("API v1 fallback registered successfully at /api/v1")
-    except Exception as fallback_error:
-        print(f"Warning: Could not register API v1 fallback: {fallback_error}")
+        # Try to import the main API v1 blueprint
+        from backend.api.v1 import api_v1
+        app.register_blueprint(api_v1)
+        logger.info("API v1 registered successfully at /api/v1")
+        return True
+    except Exception as e:
+        logger.warning(f"Could not register full API v1: {e}")
+        # Fallback to register individual endpoints directly
+        try:
+            from flask import Blueprint
+            api_v1_fallback = Blueprint('api_v1', __name__, url_prefix='/api/v1')
+            
+            # Register individual endpoints
+            from backend.api.v1.endpoints.logs import bp as logs_bp
+            from backend.api.v1.endpoints.markers_simple import bp as markers_bp
+            from backend.api.v1.endpoints.health import bp as health_bp
+            
+            api_v1_fallback.register_blueprint(logs_bp)
+            api_v1_fallback.register_blueprint(markers_bp)
+            api_v1_fallback.register_blueprint(health_bp)
+            
+            app.register_blueprint(api_v1_fallback)
+            logger.info("API v1 fallback registered successfully at /api/v1")
+            return True
+        except Exception as fallback_error:
+            logger.error(f"Could not register API v1 fallback: {fallback_error}")
+            return False
+
+# Register the API
+register_api_v1(app)
 
 # Initialize database tables
 def init_db():
+    """Initialize database tables with proper error handling"""
     try:
-        # Use getattr to avoid LSP errors
-        app_context_func = getattr(app, 'app_context', None)
-        if app_context_func:
-            with app_context_func():
-                db.create_all()
-                print("Database tables initialized successfully")
-        else:
-            print("App context not available")
+        with app.app_context():
+            db.create_all()
+            logger.info("Database tables initialized successfully")
+            return True
     except Exception as e:
-        print(f"Database initialization warning: {e}")
+        logger.warning(f"Database initialization warning: {e}")
+        return False
 
 # Initialize database after app context is available
 if __name__ != "__main__":
