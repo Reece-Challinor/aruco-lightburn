@@ -427,3 +427,27 @@ Method: POST
 ArUCO Generator initialized: True
 LightBurn Exporter initialized: True
 --------------------------------------------------------------------------------
+2025-08-17T13:59:41.152573 - 404 ERROR
+Path: /randomzgg
+Method: GET
+--------------------------------------------------------------------------------
+2025-08-17T13:59:47.949162 - 404 ERROR
+Path: /randomzzzscript
+Method: GET
+--------------------------------------------------------------------------------
+2025-08-17T13:59:54.991212 - 404 ERROR
+Path: /randomzzzscript
+Method: GET
+--------------------------------------------------------------------------------
+2025-08-17T14:00:02.026446 - 404 ERROR
+Path: /randomzggzxcv
+Method: GET
+--------------------------------------------------------------------------------
+2025-08-26T16:42:01.378305 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
+2025-09-13T03:40:00.824646 - APPLICATION STARTUP
+ArUCO Generator initialized: True
+LightBurn Exporter initialized: True
+--------------------------------------------------------------------------------
