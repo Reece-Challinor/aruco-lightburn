@@ -23,15 +23,18 @@ try:
     import numpy as np
     OPENCV_AVAILABLE = True
 except ImportError:
+    cv2 = None  # type: ignore
     import numpy as np
     OPENCV_AVAILABLE = False
 
-from typing import Tuple, List, Dict, Any
+from typing import Tuple, List, Dict, Any, Union
 from datetime import datetime
 
 class ArUCOGenerator:
     def __init__(self):
-        if OPENCV_AVAILABLE:
+        self.dictionaries: Dict[str, Union[int, Dict[str, int]]] = {}
+        
+        if OPENCV_AVAILABLE and cv2 is not None:
             self.dictionaries = {
                 "4X4_50": cv2.aruco.DICT_4X4_50,
                 "4X4_100": cv2.aruco.DICT_4X4_100,
@@ -75,7 +78,7 @@ class ArUCOGenerator:
         """Return dictionary information for UI"""
         info = {}
         for name, dict_data in self.dictionaries.items():
-            if OPENCV_AVAILABLE:
+            if OPENCV_AVAILABLE and cv2 is not None and isinstance(dict_data, int):
                 dictionary = cv2.aruco.getPredefinedDictionary(dict_data)
                 bits, max_markers = name.split('_')
                 info[name] = {
@@ -83,7 +86,7 @@ class ArUCOGenerator:
                     'max_markers': int(max_markers),
                     'description': f"{bits} bits, {max_markers} unique markers"
                 }
-            else:
+            elif isinstance(dict_data, dict):
                 # Fallback mode - use dictionary data directly
                 bits_per_side = dict_data["size"]
                 max_markers = dict_data["max_ids"]
@@ -99,8 +102,9 @@ class ArUCOGenerator:
         if dict_name not in self.dictionaries:
             raise ValueError(f"Unknown dictionary: {dict_name}")
         
-        if OPENCV_AVAILABLE:
-            dictionary = cv2.aruco.getPredefinedDictionary(self.dictionaries[dict_name])
+        dict_data = self.dictionaries[dict_name]
+        if OPENCV_AVAILABLE and cv2 is not None and isinstance(dict_data, int):
+            dictionary = cv2.aruco.getPredefinedDictionary(dict_data)
             marker_image = cv2.aruco.generateImageMarker(dictionary, marker_id, size_pixels)
             return marker_image
         else:
@@ -109,8 +113,12 @@ class ArUCOGenerator:
     
     def _create_fallback_pattern(self, marker_id: int, dict_name: str, size_pixels: int) -> np.ndarray:
         """Create a simplified ArUCO-like pattern for fallback mode"""
-        dict_info = self.dictionaries[dict_name]
-        size = dict_info["size"]
+        dict_data = self.dictionaries[dict_name]
+        if not isinstance(dict_data, dict):
+            # Should not happen, but handle for type safety
+            size = 4  # Default size
+        else:
+            size = dict_data["size"]
         
         # Create border (always black)
         pattern = np.zeros((size + 2, size + 2), dtype=np.uint8)

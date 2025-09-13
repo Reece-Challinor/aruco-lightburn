@@ -23,6 +23,7 @@ try:
     import numpy as np
     OPENCV_AVAILABLE = True
 except ImportError:
+    cv2 = None  # type: ignore
     import numpy as np
     OPENCV_AVAILABLE = False
 
@@ -34,7 +35,7 @@ import hashlib
 
 class CalibrationPatternGenerator:
     def __init__(self):
-        if OPENCV_AVAILABLE:
+        if OPENCV_AVAILABLE and cv2 is not None:
             # Standard ARUCO dictionaries for calibration
             self.aruco_dicts = {
                 "4X4_50": cv2.aruco.DICT_4X4_50,
@@ -80,7 +81,7 @@ class CalibrationPatternGenerator:
         Returns:
             Dictionary containing board image, calibration data, and metadata
         """
-        if not OPENCV_AVAILABLE:
+        if not OPENCV_AVAILABLE or cv2 is None:
             raise RuntimeError("OpenCV required for ChArUco board generation")
         
         # Validate marker size
@@ -113,7 +114,7 @@ class CalibrationPatternGenerator:
                                            border_px, border_px, 
                                            border_px, border_px,
                                            cv2.BORDER_CONSTANT, 
-                                           value=255)
+                                           value=(255,))
         
         # Generate calibration metadata
         calibration_data = {
@@ -159,7 +160,7 @@ class CalibrationPatternGenerator:
         Returns:
             Dictionary containing board image, calibration data, and metadata
         """
-        if not OPENCV_AVAILABLE:
+        if not OPENCV_AVAILABLE or cv2 is None:
             raise RuntimeError("OpenCV required for ARUCO board generation")
         
         # Get dictionary
@@ -193,7 +194,7 @@ class CalibrationPatternGenerator:
                                            border_px, border_px,
                                            border_px, border_px,
                                            cv2.BORDER_CONSTANT,
-                                           value=255)
+                                           value=(255,))
         
         # Generate world coordinates for each marker
         marker_corners = []
@@ -250,7 +251,7 @@ class CalibrationPatternGenerator:
         Returns:
             Dictionary containing tag image and metadata
         """
-        if not OPENCV_AVAILABLE:
+        if not OPENCV_AVAILABLE or cv2 is None:
             raise RuntimeError("OpenCV required for AprilTag generation")
         
         if tag_family not in self.apriltag_families:
@@ -271,7 +272,7 @@ class CalibrationPatternGenerator:
                                            border_px, border_px,
                                            border_px, border_px,
                                            cv2.BORDER_CONSTANT,
-                                           value=255)
+                                           value=(255,))
         
         # Get tag bits from family name
         if "16h5" in tag_family:
@@ -325,7 +326,7 @@ class CalibrationPatternGenerator:
         """
         Generate grid of AprilTags for larger tracking areas.
         """
-        if not OPENCV_AVAILABLE:
+        if not OPENCV_AVAILABLE or cv2 is None:
             raise RuntimeError("OpenCV required for AprilTag generation")
         
         # Calculate grid dimensions
@@ -392,7 +393,7 @@ class CalibrationPatternGenerator:
             "dimensions_mm": (grid_width_mm, grid_height_mm)
         }
     
-    def export_calibration_yaml(self, calibration_data: Dict[str, Any], filename: str = None) -> str:
+    def export_calibration_yaml(self, calibration_data: Dict[str, Any], filename: Optional[str] = None) -> str:
         """Export calibration data as YAML (OpenCV format)."""
         yaml_data = {
             "calibration_time": calibration_data.get("generation_date", datetime.now().isoformat()),
@@ -436,7 +437,7 @@ class CalibrationPatternGenerator:
         
         return yaml.dump(yaml_data, default_flow_style=False)
     
-    def export_calibration_json(self, calibration_data: Dict[str, Any], filename: str = None) -> str:
+    def export_calibration_json(self, calibration_data: Dict[str, Any], filename: Optional[str] = None) -> str:
         """Export calibration data as JSON."""
         if filename:
             with open(filename, 'w') as f:

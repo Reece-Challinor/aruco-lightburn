@@ -16,8 +16,8 @@ class MarkerService:
         self.lightburn_exporter = lightburn_exporter
         self.repository = marker_repository
         # Cache for generated markers to avoid regeneration
-        self._marker_cache = {}
-        self._cache_key = None
+        self._marker_cache: List[Dict[str, Any]] = []
+        self._cache_key: Optional[str] = None
     
     def get_dictionary_info(self) -> Dict:
         """Get information about available ArUCO dictionaries"""
@@ -201,15 +201,17 @@ class MarkerService:
         if format == 'lightburn':
             # Create drawing context
             context = DrawingContext()
+            # Ensure markers is correctly typed
+            markers_list: List[Dict[str, Any]] = markers
             context.add_marker_grid(
-                markers,
+                markers_list,
                 data.get('include_borders', True),
                 data.get('include_outer_border', False),
                 float(data.get('border_width', 2.0))
             )
             
             if data.get('include_labels', True):
-                context.add_text_labels(markers)
+                context.add_text_labels(markers_list)
             
             # Create metadata
             metadata = {
