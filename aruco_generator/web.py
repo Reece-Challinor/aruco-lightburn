@@ -77,26 +77,25 @@ def generate_preview():
         if start_id < 0 or rows <= 0 or cols <= 0 or size_mm <= 0:
             return jsonify({'error': 'Invalid parameters'}), 400
         
-        # Generate markers
+        # Generate markers - fixed parameter order
         markers = aruco_gen.generate_grid(
-            dictionary=dictionary,
             start_id=start_id,
+            dict_name=dictionary,
             rows=rows,
             cols=cols,
-            size=size_mm,
-            spacing=spacing_mm,
-            border_bits=border_bits
+            size_mm=size_mm,
+            spacing_mm=spacing_mm
         )
         
         # Prepare markers for drawing
         marker_data = []
         for marker_info in markers:
             marker_data.append({
-                'x': marker_info['position'][0],
-                'y': marker_info['position'][1],
-                'size': size_mm,
+                'x': marker_info['x'],
+                'y': marker_info['y'],
+                'size': marker_info['size'],
                 'id': marker_info['id'],
-                'image': marker_info['marker']
+                'image': marker_info.get('image')
             })
         
         # Create drawing context and generate SVG
@@ -164,15 +163,14 @@ def download_lightburn():
         spacing_mm = float(data.get('spacing_mm', 5))
         border_bits = int(data.get('border_bits', 1))
         
-        # Generate markers
+        # Generate markers - fixed parameter order
         markers = aruco_gen.generate_grid(
-            dictionary=dictionary,
             start_id=start_id,
+            dict_name=dictionary,
             rows=rows,
             cols=cols,
-            size=size_mm,
-            spacing=spacing_mm,
-            border_bits=border_bits
+            size_mm=size_mm,
+            spacing_mm=spacing_mm
         )
         
         # Generate LightBurn file
@@ -207,8 +205,8 @@ def download_lightburn():
 def quick_test():
     """Quick test endpoint to verify API is working"""
     try:
-        # Generate a simple test marker
-        test_marker = aruco_gen.generate_marker("4X4_50", 0, 20, 1)
+        # Generate a simple test marker - fixed argument order
+        test_marker = aruco_gen.generate_marker(0, "4X4_50", 200)
         return jsonify({
             'status': 'success',
             'message': 'API is working',

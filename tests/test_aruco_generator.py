@@ -1,5 +1,5 @@
 """
-Unit tests for ArUCO marker generation
+Unit tests for ArUCO marker generation - Fixed for updated API
 """
 
 import unittest
@@ -43,10 +43,9 @@ class TestArUCOGenerator(unittest.TestCase):
     def test_generate_single_marker(self):
         """Test single marker generation"""
         marker = self.generator.generate_marker(
-            dictionary='4X4_50',
             marker_id=0,
-            size_mm=20,
-            border_bits=1
+            dict_name='4X4_50',
+            size_pixels=200
         )
         
         # Check marker is a numpy array
@@ -61,22 +60,20 @@ class TestArUCOGenerator(unittest.TestCase):
         """Test that invalid marker ID raises error"""
         with self.assertRaises(ValueError):
             self.generator.generate_marker(
-                dictionary='4X4_50',
                 marker_id=51,  # Max ID for 4X4_50 is 50
-                size_mm=20,
-                border_bits=1
+                dict_name='4X4_50',
+                size_pixels=200
             )
     
     def test_generate_grid(self):
         """Test grid generation with multiple markers"""
         markers = self.generator.generate_grid(
-            dictionary='4X4_50',
             start_id=0,
+            dict_name='4X4_50',
             rows=2,
             cols=3,
-            size=20,
-            spacing=5,
-            border_bits=1
+            size_mm=20,
+            spacing_mm=5
         )
         
         # Check we get correct number of markers
@@ -85,12 +82,10 @@ class TestArUCOGenerator(unittest.TestCase):
         # Check each marker has required fields
         for marker in markers:
             self.assertIn('id', marker)
-            self.assertIn('marker', marker)
-            self.assertIn('position', marker)
+            self.assertIn('x', marker)
+            self.assertIn('y', marker)
             self.assertIn('size', marker)
-            
-            # Check position is (x, y) tuple
-            self.assertEqual(len(marker['position']), 2)
+            self.assertIn('dict', marker)
     
     def test_calculate_total_size(self):
         """Test total size calculation for grid"""
@@ -131,33 +126,29 @@ class TestArUCOGenerator(unittest.TestCase):
         """Test that invalid dictionary raises error"""
         with self.assertRaises(ValueError):
             self.generator.generate_marker(
-                dictionary='INVALID_DICT',
                 marker_id=0,
-                size_mm=20,
-                border_bits=1
+                dict_name='INVALID_DICT',
+                size_pixels=200
             )
     
     def test_negative_size(self):
         """Test that negative size raises error"""
         with self.assertRaises(ValueError):
             self.generator.generate_marker(
-                dictionary='4X4_50',
                 marker_id=0,
-                size_mm=-20,
-                border_bits=1
+                dict_name='4X4_50',
+                size_pixels=-200
             )
     
     def test_zero_border_bits(self):
-        """Test marker generation with no border"""
+        """Test marker generation with default size"""
         marker = self.generator.generate_marker(
-            dictionary='4X4_50',
             marker_id=0,
-            size_mm=20,
-            border_bits=0
+            dict_name='4X4_50'
         )
         
         self.assertIsInstance(marker, np.ndarray)
-        # With no border, size should be smaller
+        # With default size
         self.assertGreater(marker.shape[0], 0)
 
 
@@ -179,10 +170,9 @@ class TestArUCOGeneratorFallback(unittest.TestCase):
         
         # Should be able to generate placeholder
         marker = generator.generate_marker(
-            dictionary='4X4_50',
             marker_id=0,
-            size_mm=20,
-            border_bits=1
+            dict_name='4X4_50',
+            size_pixels=200
         )
         self.assertIsInstance(marker, np.ndarray)
 
