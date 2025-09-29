@@ -42,12 +42,16 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Create database tables
-with app.app_context():
-    # Import models to ensure tables are created
-    import models  # noqa: F401
-    db.create_all()
-    logger.info("Database initialized")
+# Create database tables with error handling
+try:
+    with app.app_context():
+        # Import models to ensure tables are created
+        import models  # noqa: F401
+        db.create_all()
+        logger.info("Database initialized")
+except Exception as e:
+    logger.warning(f"Database initialization skipped: {e}")
+    logger.info("Application will run without database persistence")
 
 # Import and register routes
 from aruco_generator.web import *  # noqa: F401, F403

@@ -1,3 +1,0 @@
-"""
-Repositories module initialization
-"""
