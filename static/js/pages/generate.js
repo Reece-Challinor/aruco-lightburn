@@ -291,9 +291,10 @@ class GenerateManager {
         const select = document.getElementById('dictionary');
         const maxInfo = document.getElementById('maxMarkerInfo');
         
-        if (select && maxInfo) {
+        if (select && maxInfo && select.selectedIndex >= 0) {
             const selectedOption = select.options[select.selectedIndex];
-            const maxMarkers = selectedOption.dataset.max || '1000';
+            if (!selectedOption) return;
+            const maxMarkers = selectedOption.dataset?.max || '1000';
             maxInfo.textContent = maxMarkers;
             
             // Update marker ID input max
@@ -374,5 +375,36 @@ window.generateBatch = async function() {
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
+    // Ensure core modules are loaded
+    if (!window.notificationManager && typeof NotificationManager !== 'undefined') {
+        window.notificationManager = new NotificationManager();
+    }
+    if (!window.stateManager && typeof StateManager !== 'undefined') {
+        window.stateManager = new StateManager();
+    }
+    if (!window.arucoAPI && typeof ArUCOAPI !== 'undefined') {
+        window.arucoAPI = new ArUCOAPI();
+    }
+    
+    // Add minimal fallbacks if modules aren't loaded
+    if (!window.notificationManager) {
+        window.notificationManager = {
+            showSuccess: (msg) => console.log('Success:', msg),
+            showError: (msg) => console.error('Error:', msg),
+            showWarning: (msg) => console.warn('Warning:', msg),
+            showInfo: (msg) => console.info('Info:', msg),
+            showLoading: (msg) => console.log('Loading:', msg),
+            hideLoading: () => {}
+        };
+    }
+    if (!window.stateManager) {
+        window.stateManager = {
+            get: (key, defaultVal) => defaultVal,
+            set: (key, val) => {},
+            remove: (key) => {},
+            clear: () => {}
+        };
+    }
+    
     window.generateManager = new GenerateManager();
 });
