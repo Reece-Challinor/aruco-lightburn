@@ -63,7 +63,7 @@ class DrawingContext:
                 # Find all black rectangles using 2D merging
                 rectangles = self._find_merged_rectangles(image)
                 
-                # Add merged rectangles with small overlap to prevent gaps
+                # Add merged rectangles with overlap to prevent gaps
                 for rect in rectangles:
                     # Calculate positions with proper precision
                     px_x = x + rect['col'] * pixel_size
@@ -71,10 +71,11 @@ class DrawingContext:
                     width = rect['width'] * pixel_size
                     height = rect['height'] * pixel_size
                     
-                    # Add small overlap to prevent hairline gaps between rectangles
-                    overlap = 0.01  # 0.01mm overlap
-                    self.add_rectangle(px_x - overlap/2, px_y - overlap/2, 
-                                     width + overlap, height + overlap,
+                    # Add generous overlap to completely prevent any gaps
+                    # Use 2% of the rectangle size or 0.2mm, whichever is smaller
+                    overlap = min(0.2, max(width * 0.02, height * 0.02))  # Max 0.2mm, or 2% of size
+                    self.add_rectangle(px_x - overlap, px_y - overlap, 
+                                     width + overlap * 2, height + overlap * 2,
                                      fill=True, layer=0, marker_id=marker_id)
             else:
                 # For preview, use simplified representation
@@ -125,18 +126,19 @@ class DrawingContext:
             # Use rectangle merging algorithm for preview as well to prevent artifacts
             rectangles = self._find_merged_rectangles(image)
             
-            # Add merged rectangles with precise positioning to prevent gaps
+            # Add merged rectangles with overlap to prevent gaps
             for rect in rectangles:
-                # Calculate exact positions with proper rounding to avoid gaps
+                # Calculate positions
                 px_x = x + rect['col'] * pixel_size
                 px_y = y + rect['row'] * pixel_size
                 width = rect['width'] * pixel_size
                 height = rect['height'] * pixel_size
                 
-                # Add a small overlap to prevent hairline gaps
-                overlap = 0.01  # 0.01mm overlap to prevent rendering gaps
-                self.add_rectangle(px_x - overlap/2, px_y - overlap/2, 
-                                 width + overlap, height + overlap,
+                # Add generous overlap to completely prevent any gaps
+                # Use 2% of the rectangle size or 0.2mm, whichever is smaller
+                overlap = min(0.2, max(width * 0.02, height * 0.02))  # Max 0.2mm, or 2% of size
+                self.add_rectangle(px_x - overlap, px_y - overlap, 
+                                 width + overlap * 2, height + overlap * 2,
                                  fill=True, layer=0, marker_id=marker_id)
             
             # Update bounds
