@@ -4,6 +4,15 @@
 
 A comprehensive ArUCO marker generator designed for computer vision engineers, researchers, and robotics professionals. The application provides a three-tab interface for generating precise ArUCO markers, calibration patterns, and AprilTags with real-time preview and export to multiple industry-standard formats.
 
+**Version 4.1** - Quality Enhancement Update (September 29, 2025)
+- Fixed line artifacts in generated markers through improved rectangle merging
+- Enhanced preview generation to use same algorithm as export for consistency
+- Added 0.01mm micro-overlaps to prevent gaps between merged regions
+- Implemented comprehensive quality assurance test suite
+- Added pre-commit hooks for automated quality checks
+- Enhanced Makefile with validation targets for generation and export
+- Created detailed technical documentation for quality standards
+
 **Version 4.0** - Released August 16, 2025
 - Enhanced navigation system with global navbar and breadcrumbs
 - Dedicated pages: Home, Generate, Calibration, Validation, Documentation
