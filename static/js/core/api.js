@@ -80,17 +80,31 @@ class APIClient {
         try {
             this.showLoading(true);
             
-            const response = await fetch(`${this.baseURL}${endpoint}`, {
+            // Use correct API path
+            const fullURL = endpoint.startsWith('/api/') ? endpoint : `/api${endpoint}`;
+            const response = await fetch(fullURL, {
                 method: 'POST',
                 headers: this.defaultHeaders,
                 body: JSON.stringify(params)
             });
 
             if (!response.ok) {
+                // Try to get error message from JSON response
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const error = await response.json();
+                    throw new Error(error.error || `HTTP error! status: ${response.status}`);
+                }
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const blob = await response.blob();
+            
+            // Check if blob is empty
+            if (blob.size === 0) {
+                throw new Error('No data received from server');
+            }
+            
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -204,6 +218,14 @@ class ArUCOAPI extends APIClient {
 
     async exportLightBurn(params) {
         return this.downloadFile('/download', params, 'aruco_markers.lbrn2');
+    }
+    
+    async exportPDF(params) {
+        return this.downloadFile('/export/pdf', params, 'aruco_markers.pdf');
+    }
+    
+    async exportSVG(params) {
+        return this.downloadFile('/export/svg', params, 'aruco_markers.svg');
     }
 
     // Presets

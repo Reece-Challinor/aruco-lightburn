@@ -198,6 +198,74 @@ def download_lightburn():
         return jsonify({'error': f'Unexpected error: {str(e)}'}), 500
 
 
+@app.route('/api/export/svg', methods=['POST'])
+def export_svg():
+    """Export markers as SVG file"""
+    try:
+        data = request.get_json()
+        
+        # Extract and validate parameters (same as preview)
+        dictionary = data.get('dictionary')
+        if not dictionary or dictionary not in aruco_gen.dictionaries:
+            return jsonify({'error': 'Invalid dictionary'}), 400
+            
+        start_id = int(data.get('start_id', 0))
+        rows = int(data.get('rows', 1))
+        cols = int(data.get('cols', 1))
+        size_mm = float(data.get('size_mm', 20))
+        spacing_mm = float(data.get('spacing_mm', 5))
+        
+        # Generate markers with actual images
+        markers = aruco_gen.generate_grid(
+            start_id=start_id,
+            dict_name=dictionary,
+            rows=rows,
+            cols=cols,
+            size_mm=size_mm,
+            spacing_mm=spacing_mm
+        )
+        
+        # Create drawing context and generate SVG with merged rectangles
+        ctx = DrawingContext()
+        ctx.add_marker_grid(markers, 
+                          include_borders=data.get('include_borders', True),
+                          include_outer_border=data.get('include_outer_border', False))
+        
+        if data.get('include_labels'):
+            ctx.add_text_labels(markers)
+        
+        svg_content = ctx.get_svg()
+        
+        # Generate filename
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f"aruco_{dictionary}_{rows}x{cols}_{timestamp}.svg"
+        
+        return send_file(
+            io.BytesIO(svg_content.encode('utf-8')),
+            as_attachment=True,
+            download_name=filename,
+            mimetype='image/svg+xml'
+        )
+        
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        logger.error(f"SVG export error: {e}")
+        return jsonify({'error': f'Unexpected error: {str(e)}'}), 500
+
+
+@app.route('/api/export/pdf', methods=['POST'])
+def export_pdf():
+    """Export markers as PDF file (placeholder for now)"""
+    try:
+        # For now, return a JSON response indicating PDF export is not yet implemented
+        return jsonify({'error': 'PDF export is not yet implemented'}), 501
+        
+    except Exception as e:
+        logger.error(f"PDF export error: {e}")
+        return jsonify({'error': f'Unexpected error: {str(e)}'}), 500
+
+
 @app.route('/api/quick-test')
 def quick_test():
     """Quick test endpoint to verify API is working"""

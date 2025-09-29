@@ -245,16 +245,18 @@ class GenerateManager {
         if (!params) return;
         
         try {
+            // Show loading notification
+            window.notificationManager.showInfo(`Exporting as ${format.toUpperCase()}...`);
+            
             switch(format) {
                 case 'lightburn':
                     await window.arucoAPI.exportLightBurn(params);
                     break;
                 case 'pdf':
-                    // Implement PDF export
-                    window.notificationManager.showInfo('PDF export coming soon');
+                    await window.arucoAPI.exportPDF(params);
                     break;
                 case 'svg':
-                    this.downloadSVG();
+                    await window.arucoAPI.exportSVG(params);
                     break;
                 case 'yaml':
                     await window.arucoAPI.exportOpenCV(params);
@@ -264,27 +266,20 @@ class GenerateManager {
                     break;
             }
             
-            window.notificationManager.showSuccess(`Exported as ${format.toUpperCase()}`);
+            window.notificationManager.showSuccess(`Successfully exported as ${format.toUpperCase()}`);
         } catch (error) {
-            window.notificationManager.showError('Export failed: ' + error.message);
+            window.notificationManager.showError(`Export failed: ${error.message}`);
         }
     }
 
     downloadSVG() {
-        if (!this.currentResult) return;
-        
-        const svgContent = this.currentResult.svg;
-        const blob = new Blob([svgContent], { type: 'image/svg+xml' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'aruco_markers.svg';
-        a.click();
-        URL.revokeObjectURL(url);
+        // SVG download is handled through the API now
+        this.downloadWithFormat('svg');
     }
 
     downloadCurrent() {
-        this.downloadSVG();
+        // Default to SVG export
+        this.downloadWithFormat('svg');
     }
 
     updateMaxMarkerInfo() {
