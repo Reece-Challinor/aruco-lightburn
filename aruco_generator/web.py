@@ -30,10 +30,7 @@ def generate_page():
     return render_template('generate.html', dictionaries={})
 
 
-@app.route('/calibration')
-def calibration_page():
-    """Calibration patterns page"""
-    return render_template('calibration.html')
+# Calibration route is defined in calibration_web.py
 
 
 @app.route('/validation')

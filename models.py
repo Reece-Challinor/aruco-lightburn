@@ -56,6 +56,7 @@ class CalibrationPattern(db.Model):
     # Metadata
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     notes = db.Column(db.Text)
+    image_checksum = db.Column(db.String(64))  # SHA256 checksum of generated image
     
     def __repr__(self):
         return f'<CalibrationPattern {self.id}: {self.pattern_type} - {self.pattern_name}>'
@@ -74,4 +75,51 @@ class CalibrationPattern(db.Model):
             'total_markers': self.total_markers,
             'calibration_data': self.calibration_data,
             'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+
+class DetectionMetric(db.Model):
+    """Store detection quality metrics for validation"""
+    __tablename__ = 'detection_metrics'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    pattern_id = db.Column(db.Integer, db.ForeignKey('calibration_patterns.id'))
+    
+    # Detection results
+    detected_markers = db.Column(db.Integer, nullable=False)
+    expected_markers = db.Column(db.Integer, nullable=False)
+    detection_rate = db.Column(db.Float)  # Percentage
+    
+    # Quality metrics
+    avg_corner_error = db.Column(db.Float)  # In pixels
+    avg_pose_error = db.Column(db.Float)  # In mm
+    avg_detection_time = db.Column(db.Float)  # In milliseconds
+    
+    # Test conditions
+    lighting_condition = db.Column(db.String(50))  # 'bright', 'normal', 'dim'
+    distance_mm = db.Column(db.Float)
+    viewing_angle = db.Column(db.Float)  # In degrees
+    
+    # Metadata
+    test_timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    notes = db.Column(db.Text)
+    
+    def __repr__(self):
+        return f'<DetectionMetric {self.id}: {self.detection_rate:.1f}% detection>'
+    
+    def to_dict(self):
+        """Convert to dictionary for JSON serialization."""
+        return {
+            'id': self.id,
+            'pattern_id': self.pattern_id,
+            'detected_markers': self.detected_markers,
+            'expected_markers': self.expected_markers,
+            'detection_rate': self.detection_rate,
+            'avg_corner_error': self.avg_corner_error,
+            'avg_pose_error': self.avg_pose_error,
+            'avg_detection_time': self.avg_detection_time,
+            'lighting_condition': self.lighting_condition,
+            'distance_mm': self.distance_mm,
+            'viewing_angle': self.viewing_angle,
+            'test_timestamp': self.test_timestamp.isoformat() if self.test_timestamp else None
         }

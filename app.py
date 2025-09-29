@@ -54,5 +54,8 @@ except Exception as e:
     logger.info("Application will run without database persistence")
 
 # Import and register routes
-from aruco_generator.web import *  # noqa: F401, F403
-logger.info("Routes registered")
+with app.app_context():
+    from aruco_generator.web import *  # noqa: F401, F403
+    from aruco_generator.calibration_web import *  # noqa: F401, F403
+    from aruco_generator.advanced_web import *  # noqa: F401, F403
+    logger.info("Routes registered")
