@@ -33,6 +33,15 @@ repos:
       - id: flake8
         args: [--max-line-length=88, --extend-ignore=E203,W503]
 
+  # Security checks
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.5
+    hooks:
+      - id: bandit
+        args: [-ll, --skip=B101]  # Skip assert_used test
+        files: ^aruco_generator/.*\.py$
+        exclude: ^tests/
+  
   - repo: local
     hooks:
       - id: validate-imports
@@ -41,3 +50,35 @@ repos:
         language: system
         files: \.py$
         pass_filenames: false
+        
+      - id: check-generation-quality
+        name: Check generation quality (no line artifacts)
+        entry: python -m pytest tests/test_generation_quality.py::TestGenerationQuality::test_no_line_artifacts_in_single_marker -xvs
+        language: system
+        pass_filenames: false
+        always_run: false
+        files: ^aruco_generator/(aruco|drawing)\.py$
+        
+      - id: check-svg-quality
+        name: Check SVG export quality
+        entry: python -m pytest tests/test_export_formats.py::TestSVGExport::test_svg_no_overlapping_elements -xvs
+        language: system
+        pass_filenames: false
+        always_run: false
+        files: ^aruco_generator/drawing\.py$
+        
+      - id: check-export-consistency
+        name: Check export format consistency
+        entry: python -m pytest tests/test_export_formats.py::TestExportConsistency -xvs
+        language: system
+        pass_filenames: false
+        always_run: false
+        files: ^aruco_generator/(drawing|lightburn|web)\.py$
+        
+      - id: validate-marker-scaling
+        name: Validate marker scaling preserves quality
+        entry: python -m pytest tests/test_generation_quality.py::TestGenerationQuality::test_scaling_preserves_quality -xvs
+        language: system
+        pass_filenames: false
+        always_run: false
+        files: ^aruco_generator/aruco\.py$
