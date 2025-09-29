@@ -1,28 +1,6 @@
 """
-ArUCO Generator - Flask Application Configuration
-================================================
-
-AI AGENT DOCUMENTATION:
-- Entry point: main.py imports this module
-- Database: PostgreSQL with SQLAlchemy ORM (optional, falls back to SQLite)
-- Error handling: Comprehensive logging to debug_logs.txt
-- Routes: All defined in aruco_generator/web.py
-- Static files: static/ directory (app.js with full error logging)
-- Templates: templates/ directory (index.html with advanced mode)
-
-DEBUGGING FOR AI AGENTS:
-- Error logs: debug_logs.txt (auto-created)
-- Status endpoint: GET /api/debug/status
-- Frontend errors: POST /api/log-error
-- Monitor script: ./debug_monitor.sh
-- All API endpoints tested and working
-
-ARCHITECTURE:
-- Flask backend with modular ArUCO generation
-- Vanilla JavaScript frontend with real-time validation
-- SVG preview with LightBurn export
-- OpenCV ArUCO standards compliance
-- Production-ready error handling
+ArUCO Generator - Flask Application
+Simple and clean Flask app for generating ArUCO markers
 """
 
 import os
@@ -32,151 +10,45 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-# Configure simple logging system
-from backend.core.simple_logging import setup_logging, get_logger
 
 class Base(DeclarativeBase):
     pass
 
+
+# Initialize extensions
 db = SQLAlchemy(model_class=Base)
 
 # Create Flask application
 app = Flask(__name__)
+app.secret_key = os.environ.get("SESSION_SECRET")
 
-# Load configuration
-try:
-    from backend.core import get_config
-    config = get_config()
-    app.config.from_object(config)
-except ImportError:
-    # Fallback configuration if new modules not available
-    app.config["SECRET_KEY"] = os.environ.get("SESSION_SECRET")
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///aruco_generator.db")
-    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-        "pool_recycle": 300,
-        "pool_pre_ping": True,
-    }
-
+# Proxy fix for HTTPS
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+
+# Database configuration
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///aruco_generator.db")
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_recycle": 300,
+    "pool_pre_ping": True,
+}
 
 # Initialize database
 db.init_app(app)
 
-# Setup simple logging system
-setup_logging(app, log_level='DEBUG' if app.debug else 'INFO')
-logger = get_logger(__name__)
-logger.info("Simple logging system initialized")
+# Simple logging setup
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
-# Logging middleware is now handled by the simple logging system
-
-# Initialize core modules with consolidated error handling
-def init_core_modules(app):
-    """Initialize all optional core modules with consolidated error handling"""
-    modules = []
-    
-    # Initialize cache
-    try:
-        from backend.core import init_cache
-        cache = init_cache(app)
-        modules.append("Cache")
-    except (ImportError, Exception) as e:
-        logger.debug(f"Cache initialization skipped: {e}")
-    
-    # Initialize monitoring
-    try:
-        from backend.core import PerformanceMonitor
-        monitor = PerformanceMonitor(app)
-        modules.append("Performance monitoring")
-    except (ImportError, Exception) as e:
-        logger.debug(f"Monitoring initialization skipped: {e}")
-    
-    # Initialize middleware
-    try:
-        from backend.core import RequestMiddleware, CompressionMiddleware
-        RequestMiddleware(app)
-        CompressionMiddleware(app)
-        modules.append("Middleware")
-    except (ImportError, Exception) as e:
-        logger.debug(f"Middleware initialization skipped: {e}")
-    
-    # Register error handlers
-    try:
-        from backend.core import register_error_handlers
-        register_error_handlers(app)
-        modules.append("Error handlers")
-    except (ImportError, Exception) as e:
-        logger.debug(f"Error handler registration skipped: {e}")
-    
-    if modules:
-        logger.info(f"Core modules initialized: {', '.join(modules)}")
-    else:
-        logger.warning("No core modules were initialized")
-    
-    return modules
-
-# Initialize all core modules
-initialized_modules = init_core_modules(app)
+# Create database tables
+with app.app_context():
+    # Import models to ensure tables are created
+    import models  # noqa: F401
+    db.create_all()
+    logger.info("Database initialized")
 
 # Import and register routes
-from aruco_generator.web import *
-from aruco_generator.validation_web import *
-
-# Fix marshmallow version compatibility
-try:
-    import marshmallow
-    # Check if version is already set before trying to set it
-    if not hasattr(marshmallow, '__version__'):
-        setattr(marshmallow, '__version__', '4.0.0')  # Set a default version for compatibility
-except ImportError:
-    pass  # marshmallow not installed
-
-# Register new API v1 blueprint
-def register_api_v1(app):
-    """Register API v1 blueprint with proper error handling"""
-    try:
-        # Try to import the main API v1 blueprint
-        from backend.api.v1 import api_v1
-        app.register_blueprint(api_v1)
-        logger.info("API v1 registered successfully at /api/v1")
-        return True
-    except Exception as e:
-        logger.warning(f"Could not register full API v1: {e}")
-        # Fallback to register individual endpoints directly
-        try:
-            from flask import Blueprint
-            api_v1_fallback = Blueprint('api_v1', __name__, url_prefix='/api/v1')
-            
-            # Register individual endpoints
-            from backend.api.v1.endpoints.logs import bp as logs_bp
-            from backend.api.v1.endpoints.markers_simple import bp as markers_bp
-            from backend.api.v1.endpoints.health import bp as health_bp
-            
-            api_v1_fallback.register_blueprint(logs_bp)
-            api_v1_fallback.register_blueprint(markers_bp)
-            api_v1_fallback.register_blueprint(health_bp)
-            
-            app.register_blueprint(api_v1_fallback)
-            logger.info("API v1 fallback registered successfully at /api/v1")
-            return True
-        except Exception as fallback_error:
-            logger.error(f"Could not register API v1 fallback: {fallback_error}")
-            return False
-
-# Register the API
-register_api_v1(app)
-
-# Initialize database tables
-def init_db():
-    """Initialize database tables with proper error handling"""
-    try:
-        with app.app_context():
-            db.create_all()
-            logger.info("Database tables initialized successfully")
-            return True
-    except Exception as e:
-        logger.warning(f"Database initialization warning: {e}")
-        return False
-
-# Initialize database after app context is available
-if __name__ != "__main__":
-    init_db()
+from aruco_generator.web import *  # noqa: F401, F403
+logger.info("Routes registered")
