@@ -71,11 +71,11 @@ class GenerateManager {
         this.updateMaxMarkerInfo();
         this.toggleBorderWidth();
         
-        // Form state management
-        const advancedForm = document.getElementById('advancedForm');
-        if (advancedForm) {
-            this.formManager = new FormStateManager('advancedForm');
-        }
+        // Form state management - disabled for now
+        // const advancedForm = document.getElementById('advancedForm');
+        // if (advancedForm) {
+        //     this.formManager = new FormStateManager('advancedForm');
+        // }
     }
 
     restoreTabState() {
