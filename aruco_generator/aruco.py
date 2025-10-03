@@ -1,21 +1,24 @@
 """
-{
-  "file_type": "core_aruco_generator",
-  "purpose": "Core ArUCO marker generation using OpenCV",
-  "dependencies": ["opencv-python", "numpy"],
-  "main_class": "ArUCOGenerator",
-  "key_methods": {
-    "get_dictionary_info": "Returns available ArUCO dictionaries",
-    "generate_marker": "Creates single ArUCO marker as numpy array",
-    "generate_grid": "Creates grid of markers with positions",
-    "calculate_total_size": "Calculates grid dimensions"
-  },
-  "ai_navigation": {
-    "modify_for": "Adding new dictionary types or marker generation logic",
-    "used_by": ["web.py", "drawing.py"],
-    "output_format": "numpy arrays for OpenCV processing"
-  }
-}
+ArUCO Marker Generator Core Module
+==================================
+
+Purpose: Core ArUCO marker generation using OpenCV library
+Pattern: Strategy pattern for different marker generation methods
+
+Responsibilities:
+- ArUCO dictionary management and validation
+- Single marker generation with configurable parameters
+- Grid-based marker layout generation
+- Coordinate system management for calibration
+- Fallback pattern generation when OpenCV unavailable
+
+Key Classes:
+- ArUCOGenerator: Main generator class with OpenCV integration
+
+Dependencies: opencv-python, numpy
+Used By: web.py, drawing.py, calibration.py
+Author: ArUCO Generator Team
+Version: 2.0.0
 """
 
 try:
@@ -351,3 +354,38 @@ class ArUCOGenerator:
         }
         
         return result
+
+    def generate_charuco_board(self, squares_x: int = 5, squares_y: int = 7,
+                              square_length: float = 0.04, marker_length: float = 0.02,
+                              dictionary: str = "4X4_50") -> np.ndarray:
+        """Generate ChArUco board for camera calibration.
+
+        Args:
+            squares_x: Number of chessboard squares in X direction
+            squares_y: Number of chessboard squares in Y direction
+            square_length: Square side length (meters)
+            marker_length: Marker side length (meters)
+            dictionary: ArUCO dictionary name
+
+        Returns:
+            ChArUco board image as numpy array
+        """
+        if not OPENCV_AVAILABLE or cv2 is None:
+            # Fallback implementation
+            size_pixels = 800
+            board = np.ones((size_pixels, size_pixels), dtype=np.uint8) * 255
+            return board
+
+        if dictionary not in self.dictionaries:
+            raise ValueError(f"Unknown dictionary: {dictionary}")
+
+        dict_id = self.dictionaries[dictionary]
+        aruco_dict = cv2.aruco.getPredefinedDictionary(dict_id)
+        board = cv2.aruco.CharucoBoard((squares_x, squares_y),
+                                      square_length, marker_length, aruco_dict)
+
+        # Generate board image
+        img_size = (800, 800)
+        img = board.generateImage(img_size)
+
+        return img

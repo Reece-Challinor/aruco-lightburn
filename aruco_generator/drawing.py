@@ -71,11 +71,11 @@ class DrawingContext:
                     width = rect['width'] * pixel_size
                     height = rect['height'] * pixel_size
                     
-                    # Add generous overlap to completely prevent any gaps
-                    # Use 2% of the rectangle size or 0.2mm, whichever is smaller
-                    overlap = min(0.2, max(width * 0.02, height * 0.02))  # Max 0.2mm, or 2% of size
-                    self.add_rectangle(px_x - overlap, px_y - overlap, 
-                                     width + overlap * 2, height + overlap * 2,
+                    # Add small overlap to prevent gaps but maintain dimensions
+                    # Use 0.5% of the rectangle size or 0.05mm, whichever is smaller
+                    overlap = min(0.05, max(width * 0.005, height * 0.005))  # Max 0.05mm, or 0.5% of size
+                    self.add_rectangle(px_x, px_y,
+                                     width + overlap, height + overlap,
                                      fill=True, layer=0, marker_id=marker_id)
             else:
                 # For preview, use simplified representation
@@ -134,11 +134,11 @@ class DrawingContext:
                 width = rect['width'] * pixel_size
                 height = rect['height'] * pixel_size
                 
-                # Add generous overlap to completely prevent any gaps
-                # Use 2% of the rectangle size or 0.2mm, whichever is smaller
-                overlap = min(0.2, max(width * 0.02, height * 0.02))  # Max 0.2mm, or 2% of size
-                self.add_rectangle(px_x - overlap, px_y - overlap, 
-                                 width + overlap * 2, height + overlap * 2,
+                # Add small overlap to prevent gaps but maintain dimensions
+                # Use 0.5% of the rectangle size or 0.05mm, whichever is smaller
+                overlap = min(0.05, max(width * 0.005, height * 0.005))  # Max 0.05mm, or 0.5% of size
+                self.add_rectangle(px_x, px_y,
+                                 width + overlap, height + overlap,
                                  fill=True, layer=0, marker_id=marker_id)
             
             # Update bounds

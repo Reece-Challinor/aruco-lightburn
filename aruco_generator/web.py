@@ -198,6 +198,172 @@ def download_lightburn():
         return jsonify({'error': f'Unexpected error: {str(e)}'}), 500
 
 
+@app.route('/api/advanced_preview', methods=['POST'])
+def generate_advanced_preview():
+    """Generate advanced preview with additional options"""
+    try:
+        data = request.get_json()
+
+        # Extract parameters (similar to regular preview)
+        dictionary = data.get('dictionary')
+        if not dictionary or dictionary not in aruco_gen.dictionaries:
+            return jsonify({'error': 'Invalid dictionary'}), 400
+
+        start_id = int(data.get('start_id', 0))
+        rows = int(data.get('rows', 1))
+        cols = int(data.get('cols', 1))
+        size_mm = float(data.get('size_mm', 20))
+        spacing_mm = float(data.get('spacing_mm', 5))
+        border_bits = int(data.get('border_bits', 1))
+        include_borders = data.get('include_borders', False)
+        include_labels = data.get('include_labels', False)
+
+        # Generate markers
+        markers = aruco_gen.generate_grid(
+            start_id=start_id,
+            dict_name=dictionary,
+            rows=rows,
+            cols=cols,
+            size_mm=size_mm,
+            spacing_mm=spacing_mm
+        )
+
+        # Create drawing context and generate SVG with advanced options
+        ctx = DrawingContext()
+        ctx.add_marker_grid_preview(
+            markers=markers,
+            size_mm=size_mm,
+            spacing_mm=spacing_mm,
+            include_borders=include_borders
+        )
+
+        if include_labels:
+            for marker in markers:
+                ctx.add_text(
+                    text=f"ID: {marker['id']}",
+                    x=marker['x'] + size_mm / 2,
+                    y=marker['y'] - 2
+                )
+
+        svg_content = ctx.to_svg()
+        total_width, total_height = aruco_gen.calculate_total_size(
+            rows=rows,
+            cols=cols,
+            size_mm=size_mm,
+            spacing_mm=spacing_mm
+        )
+
+        return jsonify({
+            'svg': svg_content,
+            'count': len(markers),
+            'dimensions': {
+                'width': total_width,
+                'height': total_height
+            }
+        })
+
+    except Exception as e:
+        logger.error(f"Advanced preview error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/batch_generate', methods=['POST'])
+def batch_generate():
+    """Generate multiple sets of markers"""
+    try:
+        data = request.get_json()
+
+        sets = int(data.get('sets', 1))
+        markers_per_set = int(data.get('markers_per_set', 5))
+        start_id = int(data.get('start_id', 0))
+        dictionary = data.get('dictionary', '4X4_250')
+        size_mm = float(data.get('size_mm', 30))
+        spacing_mm = float(data.get('spacing_mm', 5))
+
+        if dictionary not in aruco_gen.dictionaries:
+            return jsonify({'error': 'Invalid dictionary'}), 400
+
+        all_markers = []
+        for set_idx in range(sets):
+            set_start_id = start_id + (set_idx * markers_per_set)
+
+            # Calculate grid dimensions for this set
+            cols = min(markers_per_set, 5)
+            rows = (markers_per_set + cols - 1) // cols
+
+            markers = aruco_gen.generate_grid(
+                start_id=set_start_id,
+                dict_name=dictionary,
+                rows=rows,
+                cols=cols,
+                size_mm=size_mm,
+                spacing_mm=spacing_mm,
+                generate_images=False  # Don't generate images for batch
+            )
+
+            all_markers.append({
+                'set_index': set_idx,
+                'markers': markers,
+                'start_id': set_start_id,
+                'end_id': set_start_id + markers_per_set - 1
+            })
+
+        return jsonify({
+            'sets': all_markers,
+            'total_markers': sets * markers_per_set,
+            'dictionary': dictionary
+        })
+
+    except Exception as e:
+        logger.error(f"Batch generation error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/presets')
+def get_presets():
+    """Get predefined marker configuration presets"""
+    presets = {
+        'business_cards': {
+            'name': 'Business Card Size',
+            'dictionary': '4X4_50',
+            'size_mm': 15,
+            'spacing_mm': 5,
+            'rows': 2,
+            'cols': 3,
+            'description': 'Fits on standard business card'
+        },
+        'inventory_tags': {
+            'name': 'Inventory Tags',
+            'dictionary': '6X6_250',
+            'size_mm': 25,
+            'spacing_mm': 10,
+            'rows': 4,
+            'cols': 4,
+            'description': 'For warehouse inventory tracking'
+        },
+        'drone_landing': {
+            'name': 'Drone Landing Pad',
+            'dictionary': '7X7_50',
+            'size_mm': 100,
+            'spacing_mm': 20,
+            'rows': 3,
+            'cols': 3,
+            'description': 'Large markers for drone navigation'
+        },
+        'camera_calibration': {
+            'name': 'Camera Calibration',
+            'dictionary': '4X4_100',
+            'size_mm': 40,
+            'spacing_mm': 10,
+            'rows': 5,
+            'cols': 7,
+            'description': 'Standard camera calibration grid'
+        }
+    }
+
+    return jsonify(presets)
+
+
 @app.route('/api/export/svg', methods=['POST'])
 def export_svg():
     """Export markers as SVG file"""

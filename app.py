@@ -1,6 +1,20 @@
 """
-ArUCO Generator - Flask Application
-Simple and clean Flask app for generating ArUCO markers
+ArUCO Generator - Flask Application Entry Point
+==============================================
+
+Purpose: Main application setup and configuration for the ArUCO marker generator
+Pattern: Factory pattern for Flask app initialization with database support
+
+Responsibilities:
+- Flask application configuration and initialization
+- Database connection setup (PostgreSQL/SQLite)
+- Extension registration (SQLAlchemy)
+- Route registration from modular components
+- Error handling and logging configuration
+
+Usage: This module is imported by main.py for deployment
+Author: ArUCO Generator Team
+Version: 2.0.0
 """
 
 import os
