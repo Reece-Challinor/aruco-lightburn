@@ -61,18 +61,27 @@ def generate_preview():
         # Extract and validate parameters
         dictionary = data.get('dictionary')
         if not dictionary or dictionary not in aruco_gen.dictionaries:
-            return jsonify({'error': 'Invalid dictionary'}), 400
-            
+            available = list(aruco_gen.dictionaries.keys())
+            return jsonify({
+                'error': f'Invalid dictionary "{dictionary}". Available dictionaries: {", ".join(available[:5])}{"..." if len(available) > 5 else ""}'
+            }), 400
+
         start_id = int(data.get('start_id', 0))
         rows = int(data.get('rows', 1))
         cols = int(data.get('cols', 1))
         size_mm = float(data.get('size_mm', 20))
         spacing_mm = float(data.get('spacing_mm', 5))
         border_bits = int(data.get('border_bits', 1))
-        
+
         # Validate ranges
-        if start_id < 0 or rows <= 0 or cols <= 0 or size_mm <= 0:
-            return jsonify({'error': 'Invalid parameters'}), 400
+        if start_id < 0:
+            return jsonify({'error': 'Start ID must be non-negative'}), 400
+        if rows <= 0 or cols <= 0:
+            return jsonify({'error': 'Rows and columns must be positive integers'}), 400
+        if size_mm <= 0:
+            return jsonify({'error': 'Marker size must be positive (in millimeters)'}), 400
+        if spacing_mm < 0:
+            return jsonify({'error': 'Spacing must be non-negative (in millimeters)'}), 400
         
         # Generate markers - fixed parameter order
         markers = aruco_gen.generate_grid(
@@ -136,10 +145,10 @@ def generate_preview():
         })
         
     except ValueError as e:
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'error': f'Invalid input parameter: {str(e)}'}), 400
     except Exception as e:
         logger.error(f"Preview generation error: {e}")
-        return jsonify({'error': f'Unexpected error: {str(e)}'}), 500
+        return jsonify({'error': 'Failed to generate preview. Please check your parameters and try again.'}), 500
 
 
 @app.route('/api/download', methods=['POST'])
@@ -151,7 +160,10 @@ def download_lightburn():
         # Extract and validate parameters
         dictionary = data.get('dictionary')
         if not dictionary or dictionary not in aruco_gen.dictionaries:
-            return jsonify({'error': 'Invalid dictionary'}), 400
+            available = list(aruco_gen.dictionaries.keys())
+            return jsonify({
+                'error': f'Invalid dictionary "{dictionary}". Available dictionaries: {", ".join(available[:5])}{"..." if len(available) > 5 else ""}'
+            }), 400
             
         start_id = int(data.get('start_id', 0))
         rows = int(data.get('rows', 1))
@@ -192,10 +204,10 @@ def download_lightburn():
         )
         
     except ValueError as e:
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'error': f'Invalid input parameter: {str(e)}'}), 400
     except Exception as e:
         logger.error(f"Download error: {e}")
-        return jsonify({'error': f'Unexpected error: {str(e)}'}), 500
+        return jsonify({'error': 'Failed to generate LightBurn file. Please check your parameters and try again.'}), 500
 
 
 @app.route('/api/advanced_preview', methods=['POST'])
@@ -207,7 +219,10 @@ def generate_advanced_preview():
         # Extract parameters (similar to regular preview)
         dictionary = data.get('dictionary')
         if not dictionary or dictionary not in aruco_gen.dictionaries:
-            return jsonify({'error': 'Invalid dictionary'}), 400
+            available = list(aruco_gen.dictionaries.keys())
+            return jsonify({
+                'error': f'Invalid dictionary "{dictionary}". Available dictionaries: {", ".join(available[:5])}{"..." if len(available) > 5 else ""}'
+            }), 400
 
         start_id = int(data.get('start_id', 0))
         rows = int(data.get('rows', 1))
@@ -281,7 +296,10 @@ def batch_generate():
         spacing_mm = float(data.get('spacing_mm', 5))
 
         if dictionary not in aruco_gen.dictionaries:
-            return jsonify({'error': 'Invalid dictionary'}), 400
+            available = list(aruco_gen.dictionaries.keys())
+            return jsonify({
+                'error': f'Invalid dictionary "{dictionary}". Available dictionaries: {", ".join(available[:5])}{"..." if len(available) > 5 else ""}'
+            }), 400
 
         all_markers = []
         for set_idx in range(sets):
@@ -309,6 +327,8 @@ def batch_generate():
             })
 
         return jsonify({
+            'success': True,
+            'results': all_markers,
             'sets': all_markers,
             'total_markers': sets * markers_per_set,
             'dictionary': dictionary
@@ -373,7 +393,10 @@ def export_svg():
         # Extract and validate parameters (same as preview)
         dictionary = data.get('dictionary')
         if not dictionary or dictionary not in aruco_gen.dictionaries:
-            return jsonify({'error': 'Invalid dictionary'}), 400
+            available = list(aruco_gen.dictionaries.keys())
+            return jsonify({
+                'error': f'Invalid dictionary "{dictionary}". Available dictionaries: {", ".join(available[:5])}{"..." if len(available) > 5 else ""}'
+            }), 400
             
         start_id = int(data.get('start_id', 0))
         rows = int(data.get('rows', 1))
@@ -414,10 +437,10 @@ def export_svg():
         )
         
     except ValueError as e:
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'error': f'Invalid input parameter: {str(e)}'}), 400
     except Exception as e:
         logger.error(f"SVG export error: {e}")
-        return jsonify({'error': f'Unexpected error: {str(e)}'}), 500
+        return jsonify({'error': 'Failed to export SVG file. Please check your parameters and try again.'}), 500
 
 
 @app.route('/api/export/pdf', methods=['POST'])
@@ -425,7 +448,7 @@ def export_pdf():
     """Export markers as PDF file (placeholder for now)"""
     try:
         # For now, return a JSON response indicating PDF export is not yet implemented
-        return jsonify({'error': 'PDF export is not yet implemented'}), 501
+        return jsonify({'error': 'PDF export is not yet implemented. Please use SVG or LightBurn format instead.'}), 501
         
     except Exception as e:
         logger.error(f"PDF export error: {e}")
