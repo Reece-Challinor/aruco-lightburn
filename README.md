@@ -37,6 +37,28 @@ make dev
 
 The application will be available at `http://localhost:5000`
 
+## Documentation & Navigation
+
+This repository includes comprehensive documentation for developers and AI agents:
+
+### 📁 Core Navigation Files
+- **[NAVIGATION.md](NAVIGATION.md)** - ASCII tree structure with method navigation and quick file location references
+- **[AI_NAVIGATION.xml](AI_NAVIGATION.xml)** - Structured XML descriptors for AI agent navigation with line references
+- **[ERROR_HANDLING.md](ERROR_HANDLING.md)** - Error patterns, anti-patterns, and self-referential message analysis
+
+### 📚 Development Documentation
+- **[AI_IMPROVEMENT_OBJECTIVES.md](AI_IMPROVEMENT_OBJECTIVES.md)** - AI development guidelines and objectives
+- **[IMPROVEMENT_PLAN.md](IMPROVEMENT_PLAN.md)** - Detailed implementation roadmap and progress tracking
+- **[docs/GENERATION_QUALITY.md](docs/GENERATION_QUALITY.md)** - Quality standards and validation criteria
+- **[replit.md](replit.md)** - Replit-specific setup and configuration
+
+### 🎯 Quick AI Navigation
+For AI agents working with this codebase:
+- **Core Logic**: `aruco_generator/aruco.py:39` (ArUCOGenerator class)
+- **API Endpoints**: `aruco_generator/web.py:55` (generate_preview)
+- **Error Patterns**: Search `return jsonify.*error` across web modules
+- **Frontend API**: `static/js/core/api.js:20` (API communication)
+
 ## Testing
 
 **Current Status**: 65/66 tests passing (98.5% success rate)
