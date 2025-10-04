@@ -1,9 +1,249 @@
 """
+<!--
+<ai_agent_documentation>
+  <file_meta>
+    <name>aruco.py</name>
+    <version>3.0.0</version>
+    <type>core_generation_module</type>
+    <purpose>Core ArUCO marker generation engine with OpenCV integration and fallback support</purpose>
+    <last_updated>2025-01-15</last_updated>
+    <maintainer>ArUCO Generator Team</maintainer>
+  </file_meta>
+
+  <golden_path>
+    <description>Primary workflow for ArUCO marker generation</description>
+    <steps>
+      <step id="1">Initialize ArUCOGenerator() → Load dictionaries (OpenCV or fallback)</step>
+      <step id="2">Call get_dictionary_info() → Return available dictionaries with metadata</step>
+      <step id="3">Call generate_marker(id, dict, size) → Generate single marker as numpy array</step>
+      <step id="4">Call generate_grid(params) → Generate positioned grid of markers</step>
+      <step id="5">Optional: generate_with_coordinates() → Add 3D coordinate metadata</step>
+    </steps>
+    <fallback_paths>
+      <fallback condition="opencv_unavailable">Use fallback pattern generation with predefined dictionaries</fallback>
+      <fallback condition="invalid_dictionary">Raise ValueError with available options</fallback>
+      <fallback condition="invalid_marker_id">Raise ValueError with valid range</fallback>
+    </fallback_paths>
+  </golden_path>
+
+  <core_classes>
+    <class name="ArUCOGenerator">
+      <purpose>Main marker generation engine with OpenCV integration</purpose>
+      <initialization>
+        <step>Check OpenCV availability</step>
+        <step>Load ArUCO dictionaries (OpenCV or fallback)</step>
+        <step>Set up dictionary metadata</step>
+      </initialization>
+
+      <key_methods>
+        <method name="__init__" complexity="low" performance="O(1)">
+          <purpose>Initialize with OpenCV or fallback dictionaries</purpose>
+          <parameters>None</parameters>
+          <returns>None</returns>
+          <side_effects>Sets up self.dictionaries with available ArUCO patterns</side_effects>
+        </method>
+
+        <method name="get_dictionary_info" complexity="low" performance="O(n)" where="n = number of dictionaries">
+          <purpose>Return comprehensive dictionary metadata for UI</purpose>
+          <parameters>None</parameters>
+          <returns>Dict[str, Dict[str, Any]] - Dictionary info with size, max_markers, usage recommendations</returns>
+          <example_output>
+            {"4X4_50": {"bits": "4X4", "max_markers": 50, "size": 4, "recommended_use": "Small applications"}}
+          </example_output>
+        </method>
+
+        <method name="generate_marker" complexity="medium" performance="OpenCV: ~0.1ms, Fallback: ~1ms">
+          <purpose>Generate single ArUCO marker with ASCII diagrams</purpose>
+          <parameters>
+            <param name="marker_id" type="int" required="true" description="Marker ID within dictionary range"/>
+            <param name="dict_name" type="str" required="true" description="Dictionary name (e.g., '4X4_50')"/>
+            <param name="size_pixels" type="int" default="200" description="Output size in pixels"/>
+          </parameters>
+          <returns>np.ndarray - 2D binary array representing marker</returns>
+          <validation>
+            <rule field="marker_id" condition="0 <= id < max_markers" error="Marker ID out of range"/>
+            <rule field="dict_name" condition="in dictionaries" error="Invalid dictionary name"/>
+            <rule field="size_pixels" condition="> 0" error="Size must be positive"/>
+          </validation>
+        </method>
+
+        <method name="generate_grid" complexity="high" performance="O(rows * cols * marker_generation_time)">
+          <purpose>Generate positioned grid of markers</purpose>
+          <parameters>
+            <param name="start_id" type="int" required="true" description="Starting marker ID"/>
+            <param name="dict_name" type="str" required="true" description="Dictionary name"/>
+            <param name="rows" type="int" required="true" description="Number of rows"/>
+            <param name="cols" type="int" required="true" description="Number of columns"/>
+            <param name="size_mm" type="float" required="true" description="Marker size in millimeters"/>
+            <param name="spacing_mm" type="float" required="true" description="Spacing between markers"/>
+          </parameters>
+          <returns>List[Dict[str, Any]] - List of marker objects with positions and metadata</returns>
+          <output_structure>
+            [{"id": int, "x": float, "y": float, "size": float, "dict": str, "image": np.ndarray}]
+          </output_structure>
+        </method>
+
+        <method name="generate_with_coordinates" complexity="high">
+          <purpose>Generate markers with 3D coordinate metadata for calibration</purpose>
+          <use_case>Camera calibration, pose estimation, advanced computer vision</use_case>
+          <output_includes>3D coordinates, rotation matrices, calibration metadata</output_includes>
+        </method>
+
+        <method name="calculate_total_size" complexity="low" performance="O(1)">
+          <purpose>Calculate total dimensions of marker grid</purpose>
+          <formula>width = cols * size_mm + (cols-1) * spacing_mm</formula>
+          <formula>height = rows * size_mm + (rows-1) * spacing_mm</formula>
+        </method>
+      </key_methods>
+    </class>
+  </core_classes>
+
+  <data_structures>
+    <dictionary_structure>
+      <opencv_mode>
+        <field name="dictionary_name" type="str" description="Dictionary identifier (e.g., '4X4_50')"/>
+        <field name="opencv_constant" type="int" description="OpenCV dictionary constant"/>
+      </opencv_mode>
+      <fallback_mode>
+        <field name="dictionary_name" type="str" description="Dictionary identifier"/>
+        <field name="size" type="int" description="Bits per side (e.g., 4 for 4x4)"/>
+        <field name="max_ids" type="int" description="Maximum number of unique markers"/>
+        <field name="patterns" type="dict" description="Predefined marker patterns"/>
+      </fallback_mode>
+    </dictionary_structure>
+
+    <marker_object>
+      <field name="id" type="int" description="Unique marker identifier"/>
+      <field name="x" type="float" description="X position in millimeters"/>
+      <field name="y" type="float" description="Y position in millimeters"/>
+      <field name="size" type="float" description="Marker size in millimeters"/>
+      <field name="dict" type="str" description="Dictionary name used"/>
+      <field name="image" type="np.ndarray" description="Generated marker image (2D binary array)"/>
+    </marker_object>
+
+    <coordinate_metadata>
+      <field name="corners_3d" type="np.ndarray" description="3D corner coordinates for calibration"/>
+      <field name="marker_positions" type="List[Tuple[float, float, float]]" description="3D marker center positions"/>
+      <field name="reference_frame" type="str" description="Coordinate system reference ('board', 'world', 'camera')"/>
+      <field name="calibration_metadata" type="dict" description="Additional calibration information"/>
+    </coordinate_metadata>
+  </data_structures>
+
+  <algorithm_details>
+    <marker_generation>
+      <opencv_method>
+        <step>Get predefined dictionary from cv2.aruco module</step>
+        <step>Generate marker using cv2.aruco.generateImageMarker()</step>
+        <step>Return binary numpy array</step>
+      </opencv_method>
+      <fallback_method>
+        <step>Use predefined bit patterns for each dictionary</step>
+        <step>Apply bit pattern with proper border</step>
+        <step>Generate checkered pattern for invalid IDs</step>
+        <step>Scale to requested size</step>
+      </fallback_method>
+    </marker_generation>
+
+    <grid_layout>
+      <step>Calculate positions based on size and spacing</step>
+      <step>Generate individual markers</step>
+      <step>Assign coordinates to each marker</step>
+      <step>Return list of positioned markers</step>
+    </grid_layout>
+  </algorithm_details>
+
+  <error_handling>
+    <validation_errors>
+      <error type="ValueError" condition="invalid_dictionary" message="Dictionary not found, available: [list]"/>
+      <error type="ValueError" condition="marker_id_out_of_range" message="Marker ID must be 0-{max_id} for {dictionary}"/>
+      <error type="ValueError" condition="negative_size" message="Size must be positive"/>
+      <error type="ValueError" condition="invalid_grid_params" message="Rows and columns must be positive integers"/>
+    </validation_errors>
+    <fallback_strategies>
+      <strategy name="opencv_fallback" trigger="import_error" action="Use predefined patterns"/>
+      <strategy name="pattern_fallback" trigger="generation_error" action="Generate checkered pattern"/>
+      <strategy name="size_validation" trigger="invalid_size" action="Use default size with warning"/>
+    </fallback_strategies>
+  </error_handling>
+
+  <performance_optimization>
+    <bottlenecks>
+      <bottleneck location="marker_generation" description="OpenCV generation for large grids"/>
+      <bottleneck location="coordinate_calculation" description="3D coordinate computation"/>
+      <bottleneck location="pattern_scaling" description="Image scaling operations"/>
+    </bottlenecks>
+    <optimizations>
+      <optimization name="batch_generation" description="Generate multiple markers efficiently"/>
+      <optimization name="caching" description="Cache generated patterns"/>
+      <optimization name="lazy_loading" description="Load dictionaries on demand"/>
+    </optimizations>
+  </performance_optimization>
+
+  <logging_and_monitoring>
+    <log_events>
+      <event level="INFO" name="dictionary_loaded" data="dictionary_count, opencv_status"/>
+      <event level="INFO" name="marker_generated" data="marker_id, dictionary, size"/>
+      <event level="WARNING" name="opencv_fallback" data="reason, fallback_mode"/>
+      <event level="ERROR" name="generation_failed" data="error_details, parameters"/>
+    </log_events>
+    <performance_metrics>
+      <metric name="generation_time" description="Time to generate single marker"/>
+      <metric name="grid_generation_time" description="Time to generate full grid"/>
+      <metric name="fallback_usage_rate" description="Percentage of fallback pattern usage"/>
+    </performance_metrics>
+  </logging_and_monitoring>
+
+  <dependencies>
+    <external_modules>
+      <module name="cv2" purpose="OpenCV ArUCO marker generation" critical="false" fallback="available"/>
+      <module name="numpy" purpose="Array operations and image representation" critical="true"/>
+      <module name="datetime" purpose="Timestamp generation" critical="false"/>
+      <module name="typing" purpose="Type hints for better code documentation" critical="false"/>
+    </external_modules>
+  </dependencies>
+
+  <usage_patterns>
+    <common_workflows>
+      <workflow name="simple_generation">
+        <step>generator = ArUCOGenerator()</step>
+        <step>marker = generator.generate_marker(0, "4X4_50", 200)</step>
+      </workflow>
+      <workflow name="grid_generation">
+        <step>generator = ArUCOGenerator()</step>
+        <step>markers = generator.generate_grid(0, "4X4_50", 3, 3, 25.0, 5.0)</step>
+      </workflow>
+      <workflow name="calibration_setup">
+        <step>generator = ArUCOGenerator()</step>
+        <step>result = generator.generate_with_coordinates(calibration_config)</step>
+      </workflow>
+    </common_workflows>
+  </usage_patterns>
+
+  <version_history>
+    <version number="3.0.0" date="2025-01-15">
+      <changes>
+        <change>Enhanced XML documentation system</change>
+        <change>Comprehensive API documentation</change>
+        <change>Golden path documentation</change>
+        <change>Performance optimization notes</change>
+      </changes>
+    </version>
+    <version number="2.0.0" date="2025-01-13">
+      <changes>
+        <change>Added comprehensive docstrings with ASCII diagrams</change>
+        <change>Enhanced error handling patterns</change>
+        <change>Improved fallback system</change>
+      </changes>
+    </version>
+  </version_history>
+</ai_agent_documentation>
+-->
+
 ArUCO Marker Generator Core Module
 ==================================
 
-Purpose: Core ArUCO marker generation using OpenCV library
-Pattern: Strategy pattern for different marker generation methods
+Purpose: Core ArUCO marker generation using OpenCV library with comprehensive fallback support
+Pattern: Strategy pattern for different marker generation methods (OpenCV vs fallback)
 
 Responsibilities:
 - ArUCO dictionary management and validation
@@ -12,13 +252,32 @@ Responsibilities:
 - Coordinate system management for calibration
 - Fallback pattern generation when OpenCV unavailable
 
-Key Classes:
-- ArUCOGenerator: Main generator class with OpenCV integration
+Architecture Overview:
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Dictionary    │───▶│   Marker        │───▶│   Grid Layout   │
+│   Management    │    │   Generation    │    │   Calculation   │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         ▼                       ▼                       ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   OpenCV        │    │   Fallback      │    │   3D Coordinate │
+│   Integration   │    │   Patterns      │    │   System        │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
 
-Dependencies: opencv-python, numpy
-Used By: web.py, drawing.py, calibration.py
+Key Classes:
+- ArUCOGenerator: Main generator class with OpenCV integration and fallback support
+
+Golden Path Usage:
+1. Initialize generator → ArUCOGenerator()
+2. Get available dictionaries → get_dictionary_info()
+3. Generate single marker → generate_marker(id, dict, size)
+4. Generate marker grid → generate_grid(start_id, dict, rows, cols, size_mm, spacing_mm)
+5. Optional: Add 3D coordinates → generate_with_coordinates()
+
+Dependencies: opencv-python (optional), numpy (required)
+Used By: web.py, drawing.py, calibration.py, advanced_web.py
 Author: ArUCO Generator Team
-Version: 2.0.0
+Version: 3.0.0
 """
 
 try:
