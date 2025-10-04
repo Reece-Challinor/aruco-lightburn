@@ -1,21 +1,24 @@
 """
-{
-  "file_type": "core_aruco_generator",
-  "purpose": "Core ArUCO marker generation using OpenCV",
-  "dependencies": ["opencv-python", "numpy"],
-  "main_class": "ArUCOGenerator",
-  "key_methods": {
-    "get_dictionary_info": "Returns available ArUCO dictionaries",
-    "generate_marker": "Creates single ArUCO marker as numpy array",
-    "generate_grid": "Creates grid of markers with positions",
-    "calculate_total_size": "Calculates grid dimensions"
-  },
-  "ai_navigation": {
-    "modify_for": "Adding new dictionary types or marker generation logic",
-    "used_by": ["web.py", "drawing.py"],
-    "output_format": "numpy arrays for OpenCV processing"
-  }
-}
+ArUCO Marker Generator Core Module
+==================================
+
+Purpose: Core ArUCO marker generation using OpenCV library
+Pattern: Strategy pattern for different marker generation methods
+
+Responsibilities:
+- ArUCO dictionary management and validation
+- Single marker generation with configurable parameters
+- Grid-based marker layout generation
+- Coordinate system management for calibration
+- Fallback pattern generation when OpenCV unavailable
+
+Key Classes:
+- ArUCOGenerator: Main generator class with OpenCV integration
+
+Dependencies: opencv-python, numpy
+Used By: web.py, drawing.py, calibration.py
+Author: ArUCO Generator Team
+Version: 2.0.0
 """
 
 try:
@@ -23,15 +26,18 @@ try:
     import numpy as np
     OPENCV_AVAILABLE = True
 except ImportError:
+    cv2 = None  # type: ignore
     import numpy as np
     OPENCV_AVAILABLE = False
 
-from typing import Tuple, List, Dict, Any
+from typing import Tuple, List, Dict, Any, Union
 from datetime import datetime
 
 class ArUCOGenerator:
     def __init__(self):
-        if OPENCV_AVAILABLE:
+        self.dictionaries: Dict[str, Union[int, Dict[str, int]]] = {}
+        
+        if OPENCV_AVAILABLE and cv2 is not None:
             self.dictionaries = {
                 "4X4_50": cv2.aruco.DICT_4X4_50,
                 "4X4_100": cv2.aruco.DICT_4X4_100,
@@ -75,7 +81,7 @@ class ArUCOGenerator:
         """Return dictionary information for UI"""
         info = {}
         for name, dict_data in self.dictionaries.items():
-            if OPENCV_AVAILABLE:
+            if OPENCV_AVAILABLE and cv2 is not None and isinstance(dict_data, int):
                 dictionary = cv2.aruco.getPredefinedDictionary(dict_data)
                 bits, max_markers = name.split('_')
                 info[name] = {
@@ -83,7 +89,7 @@ class ArUCOGenerator:
                     'max_markers': int(max_markers),
                     'description': f"{bits} bits, {max_markers} unique markers"
                 }
-            else:
+            elif isinstance(dict_data, dict):
                 # Fallback mode - use dictionary data directly
                 bits_per_side = dict_data["size"]
                 max_markers = dict_data["max_ids"]
@@ -99,8 +105,9 @@ class ArUCOGenerator:
         if dict_name not in self.dictionaries:
             raise ValueError(f"Unknown dictionary: {dict_name}")
         
-        if OPENCV_AVAILABLE:
-            dictionary = cv2.aruco.getPredefinedDictionary(self.dictionaries[dict_name])
+        dict_data = self.dictionaries[dict_name]
+        if OPENCV_AVAILABLE and cv2 is not None and isinstance(dict_data, int):
+            dictionary = cv2.aruco.getPredefinedDictionary(dict_data)
             marker_image = cv2.aruco.generateImageMarker(dictionary, marker_id, size_pixels)
             return marker_image
         else:
@@ -108,9 +115,13 @@ class ArUCOGenerator:
             return self._create_fallback_pattern(marker_id, dict_name, size_pixels)
     
     def _create_fallback_pattern(self, marker_id: int, dict_name: str, size_pixels: int) -> np.ndarray:
-        """Create a simplified ArUCO-like pattern for fallback mode"""
-        dict_info = self.dictionaries[dict_name]
-        size = dict_info["size"]
+        """Create a simplified ArUCO-like pattern for fallback mode with proper scaling"""
+        dict_data = self.dictionaries[dict_name]
+        if not isinstance(dict_data, dict):
+            # Should not happen, but handle for type safety
+            size = 4  # Default size
+        else:
+            size = dict_data["size"]
         
         # Create border (always black)
         pattern = np.zeros((size + 2, size + 2), dtype=np.uint8)
@@ -122,29 +133,26 @@ class ArUCOGenerator:
                 bit_value = (marker_id >> (bit_position % 16)) & 1
                 pattern[i + 1, j + 1] = 255 if bit_value else 0
         
-        # Scale to requested size
-        scale_factor = size_pixels // pattern.shape[0]
-        if scale_factor < 1:
-            scale_factor = 1
+        # Use nearest neighbor scaling to preserve sharp edges
+        # Calculate exact scale factor
+        scale_factor = size_pixels / pattern.shape[0]
         
-        scaled_pattern = np.repeat(np.repeat(pattern, scale_factor, axis=0), scale_factor, axis=1)
+        # Create output array
+        final_pattern = np.zeros((size_pixels, size_pixels), dtype=np.uint8)
         
-        # Ensure exact size
-        if scaled_pattern.shape[0] != size_pixels:
-            final_pattern = np.zeros((size_pixels, size_pixels), dtype=np.uint8)
-            y_scale = size_pixels / scaled_pattern.shape[0]
-            x_scale = size_pixels / scaled_pattern.shape[1]
-            
-            for i in range(size_pixels):
-                for j in range(size_pixels):
-                    src_i = int(i / y_scale)
-                    src_j = int(j / x_scale)
-                    if src_i < scaled_pattern.shape[0] and src_j < scaled_pattern.shape[1]:
-                        final_pattern[i, j] = scaled_pattern[src_i, src_j]
-            
-            scaled_pattern = final_pattern
+        # Use nearest neighbor interpolation to prevent artifacts
+        for i in range(size_pixels):
+            for j in range(size_pixels):
+                # Find source pixel using nearest neighbor
+                src_i = min(int(i / scale_factor), pattern.shape[0] - 1)
+                src_j = min(int(j / scale_factor), pattern.shape[1] - 1)
+                
+                # Copy the value (ensure crisp black/white)
+                value = pattern[src_i, src_j]
+                # Force to pure black or white
+                final_pattern[i, j] = 255 if value > 127 else 0
         
-        return scaled_pattern
+        return final_pattern
     
     def generate_grid(self, start_id: int, dict_name: str, rows: int, cols: int, 
                      size_mm: float, spacing_mm: float, generate_images: bool = True) -> List[Dict[str, Any]]:
@@ -346,3 +354,38 @@ class ArUCOGenerator:
         }
         
         return result
+
+    def generate_charuco_board(self, squares_x: int = 5, squares_y: int = 7,
+                              square_length: float = 0.04, marker_length: float = 0.02,
+                              dictionary: str = "4X4_50") -> np.ndarray:
+        """Generate ChArUco board for camera calibration.
+
+        Args:
+            squares_x: Number of chessboard squares in X direction
+            squares_y: Number of chessboard squares in Y direction
+            square_length: Square side length (meters)
+            marker_length: Marker side length (meters)
+            dictionary: ArUCO dictionary name
+
+        Returns:
+            ChArUco board image as numpy array
+        """
+        if not OPENCV_AVAILABLE or cv2 is None:
+            # Fallback implementation
+            size_pixels = 800
+            board = np.ones((size_pixels, size_pixels), dtype=np.uint8) * 255
+            return board
+
+        if dictionary not in self.dictionaries:
+            raise ValueError(f"Unknown dictionary: {dictionary}")
+
+        dict_id = self.dictionaries[dictionary]
+        aruco_dict = cv2.aruco.getPredefinedDictionary(dict_id)
+        board = cv2.aruco.CharucoBoard((squares_x, squares_y),
+                                      square_length, marker_length, aruco_dict)
+
+        # Generate board image
+        img_size = (800, 800)
+        img = board.generateImage(img_size)
+
+        return img

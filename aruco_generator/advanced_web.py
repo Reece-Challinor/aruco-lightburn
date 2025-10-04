@@ -18,6 +18,74 @@ aruco_gen = ArUCOGenerator()
 exporter = ProfessionalExporter()
 validator = DetectionValidator()
 
+@app.route('/api/advanced/preview', methods=['POST'])
+def advanced_preview():
+    """Generate advanced preview with additional features."""
+    try:
+        from .drawing import DrawingContext
+
+        data = request.get_json()
+
+        # Extract parameters
+        dictionary = data.get('dictionary', '4X4_250')
+        rows = int(data.get('rows', 1))
+        cols = int(data.get('cols', 1))
+        size_mm = float(data.get('size_mm', 100))
+        spacing_mm = float(data.get('spacing_mm', 20))
+        start_id = int(data.get('start_id', 0))
+        include_borders = data.get('include_borders', True)
+        include_labels = data.get('include_labels', False)
+        include_outer_border = data.get('include_outer_border', False)
+        border_width = float(data.get('border_width', 2.0))
+
+        # Generate markers
+        markers = aruco_gen.generate_grid(
+            start_id=start_id,
+            dict_name=dictionary,
+            rows=rows,
+            cols=cols,
+            size_mm=size_mm,
+            spacing_mm=spacing_mm
+        )
+
+        # Create drawing context
+        ctx = DrawingContext()
+        ctx.add_marker_grid_preview(
+            markers=markers,
+            include_borders=include_borders,
+            include_outer_border=include_outer_border,
+            border_width=border_width
+        )
+
+        # Add labels if requested
+        if include_labels:
+            for marker in markers:
+                ctx.add_text(
+                    text=f"ID: {marker['id']}",
+                    x=marker['x'] + size_mm / 2,
+                    y=marker['y'] - 2
+                )
+
+        svg_content = ctx.to_svg()
+        total_width, total_height = aruco_gen.calculate_total_size(
+            rows=rows,
+            cols=cols,
+            size_mm=size_mm,
+            spacing_mm=spacing_mm
+        )
+
+        return jsonify({
+            'svg': svg_content,
+            'count': len(markers),
+            'dimensions': {
+                'width': total_width,
+                'height': total_height
+            }
+        })
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/advanced/generate_with_coordinates', methods=['POST'])
 def generate_with_coordinates():
     """Generate markers with full 3D coordinate system data."""

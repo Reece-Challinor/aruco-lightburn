@@ -71,11 +71,11 @@ class GenerateManager {
         this.updateMaxMarkerInfo();
         this.toggleBorderWidth();
         
-        // Form state management
-        const advancedForm = document.getElementById('advancedForm');
-        if (advancedForm) {
-            this.formManager = new FormStateManager('advancedForm');
-        }
+        // Form state management - disabled for now
+        // const advancedForm = document.getElementById('advancedForm');
+        // if (advancedForm) {
+        //     this.formManager = new FormStateManager('advancedForm');
+        // }
     }
 
     restoreTabState() {
@@ -245,16 +245,18 @@ class GenerateManager {
         if (!params) return;
         
         try {
+            // Show loading notification
+            window.notificationManager.showInfo(`Exporting as ${format.toUpperCase()}...`);
+            
             switch(format) {
                 case 'lightburn':
                     await window.arucoAPI.exportLightBurn(params);
                     break;
                 case 'pdf':
-                    // Implement PDF export
-                    window.notificationManager.showInfo('PDF export coming soon');
+                    await window.arucoAPI.exportPDF(params);
                     break;
                 case 'svg':
-                    this.downloadSVG();
+                    await window.arucoAPI.exportSVG(params);
                     break;
                 case 'yaml':
                     await window.arucoAPI.exportOpenCV(params);
@@ -264,36 +266,30 @@ class GenerateManager {
                     break;
             }
             
-            window.notificationManager.showSuccess(`Exported as ${format.toUpperCase()}`);
+            window.notificationManager.showSuccess(`Successfully exported as ${format.toUpperCase()}`);
         } catch (error) {
-            window.notificationManager.showError('Export failed: ' + error.message);
+            window.notificationManager.showError(`Export failed: ${error.message}`);
         }
     }
 
     downloadSVG() {
-        if (!this.currentResult) return;
-        
-        const svgContent = this.currentResult.svg;
-        const blob = new Blob([svgContent], { type: 'image/svg+xml' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'aruco_markers.svg';
-        a.click();
-        URL.revokeObjectURL(url);
+        // SVG download is handled through the API now
+        this.downloadWithFormat('svg');
     }
 
     downloadCurrent() {
-        this.downloadSVG();
+        // Default to SVG export
+        this.downloadWithFormat('svg');
     }
 
     updateMaxMarkerInfo() {
         const select = document.getElementById('dictionary');
         const maxInfo = document.getElementById('maxMarkerInfo');
         
-        if (select && maxInfo) {
+        if (select && maxInfo && select.selectedIndex >= 0) {
             const selectedOption = select.options[select.selectedIndex];
-            const maxMarkers = selectedOption.dataset.max || '1000';
+            if (!selectedOption) return;
+            const maxMarkers = selectedOption.dataset?.max || '1000';
             maxInfo.textContent = maxMarkers;
             
             // Update marker ID input max
@@ -374,5 +370,36 @@ window.generateBatch = async function() {
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
+    // Ensure core modules are loaded
+    if (!window.notificationManager && typeof NotificationManager !== 'undefined') {
+        window.notificationManager = new NotificationManager();
+    }
+    if (!window.stateManager && typeof StateManager !== 'undefined') {
+        window.stateManager = new StateManager();
+    }
+    if (!window.arucoAPI && typeof ArUCOAPI !== 'undefined') {
+        window.arucoAPI = new ArUCOAPI();
+    }
+    
+    // Add minimal fallbacks if modules aren't loaded
+    if (!window.notificationManager) {
+        window.notificationManager = {
+            showSuccess: (msg) => console.log('Success:', msg),
+            showError: (msg) => console.error('Error:', msg),
+            showWarning: (msg) => console.warn('Warning:', msg),
+            showInfo: (msg) => console.info('Info:', msg),
+            showLoading: (msg) => console.log('Loading:', msg),
+            hideLoading: () => {}
+        };
+    }
+    if (!window.stateManager) {
+        window.stateManager = {
+            get: (key, defaultVal) => defaultVal,
+            set: (key, val) => {},
+            remove: (key) => {},
+            clear: () => {}
+        };
+    }
+    
     window.generateManager = new GenerateManager();
 });

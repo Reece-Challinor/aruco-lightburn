@@ -78,19 +78,30 @@
                     
                     <section id="getting-started">
                         <h2>Getting Started</h2>
-                        <p>Welcome to the ArUCO Generator documentation. This tool provides a comprehensive suite for generating, calibrating, and validating computer vision markers.</p>
+                        <p>Welcome to the ArUCO Generator documentation. This professional-grade tool provides everything you need for generating, calibrating, and validating computer vision markers used in robotics, augmented reality, and computer vision applications.</p>
                         
                         <h4>Quick Start Guide</h4>
                         <ol>
-                            <li><strong>Choose Your Use Case:</strong> Navigate to the appropriate section based on your needs</li>
-                            <li><strong>Select Dictionary:</strong> Choose the appropriate ArUCO dictionary for your application</li>
-                            <li><strong>Configure Parameters:</strong> Set size, spacing, and other parameters</li>
-                            <li><strong>Generate & Export:</strong> Create your markers and export in your preferred format</li>
+                            <li><strong>Generate Markers:</strong> Start with the Generate page to create ArUCO markers
+                                <ul>
+                                    <li>Quick Generate: Single markers or small grids</li>
+                                    <li>Advanced: Complex configurations with custom parameters</li>
+                                    <li>Batch: Generate multiple marker sets efficiently</li>
+                                </ul>
+                            </li>
+                            <li><strong>Create Calibration Patterns:</strong> Use the Calibration page for camera calibration
+                                <ul>
+                                    <li>ChArUco boards for precise calibration</li>
+                                    <li>AprilTags for robotics applications</li>
+                                </ul>
+                            </li>
+                            <li><strong>Validate Detection:</strong> Test marker quality and detection reliability</li>
+                            <li><strong>Export Results:</strong> Download in various formats (SVG, PDF, LightBurn, DXF)</li>
                         </ol>
                         
                         <div class="alert alert-info">
                             <i class="bi bi-info-circle me-2"></i>
-                            <strong>Tip:</strong> For most applications, the 6X6_250 dictionary provides the best balance of robustness and detection speed.
+                            <strong>Tip:</strong> For most applications, the 6X6_250 dictionary provides the best balance of robustness and detection speed. Start with 50mm markers for standard indoor use.
                         </div>
                     </section>
 
@@ -199,12 +210,17 @@
                         
                         <h4>Export Formats</h4>
                         <ul>
-                            <li><strong>LightBurn (.lbrn2):</strong> Laser cutting files</li>
-                            <li><strong>OpenCV YAML:</strong> Camera calibration data</li>
-                            <li><strong>ROS JSON:</strong> Robot Operating System messages</li>
-                            <li><strong>DXF:</strong> CAD/CNC machining</li>
-                            <li><strong>STL:</strong> 3D printing</li>
+                            <li><strong>SVG:</strong> Vector graphics for digital use and printing</li>
+                            <li><strong>PDF:</strong> Print-ready documents with precise dimensions</li>
+                            <li><strong>LightBurn (.lbrn2):</strong> Direct laser cutting with material presets</li>
+                            <li><strong>DXF:</strong> CAD/CNC machining compatibility</li>
+                            <li><strong>PNG:</strong> Raster images for web and applications</li>
                         </ul>
+                        
+                        <div class="alert alert-success">
+                            <i class="bi bi-check-circle me-2"></i>
+                            <strong>LightBurn Export:</strong> Includes optimized cutting parameters for common materials (paper, cardboard, acrylic).
+                        </div>
                     </section>
 
                     <section id="best-practices">
@@ -226,13 +242,17 @@
                             <li>Avoid motion blur with adequate shutter speed</li>
                         </ul>
                         
-                        <h4>Common Pitfalls</h4>
+                        <h4>Common Pitfalls to Avoid</h4>
                         <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <strong>Watch out for these issues:</strong>
                             <ul>
-                                <li>Using glossy paper causing reflections</li>
-                                <li>Insufficient white border around markers</li>
-                                <li>Markers too small for camera resolution</li>
-                                <li>Poor lighting causing shadows</li>
+                                <li><strong>Glossy paper:</strong> Creates reflections that confuse detection</li>
+                                <li><strong>Small borders:</strong> Always maintain at least 1 bit width of white border</li>
+                                <li><strong>Resolution mismatch:</strong> Ensure camera has 10+ pixels per marker bit</li>
+                                <li><strong>Poor lighting:</strong> Uneven lighting creates shadows and reduces accuracy</li>
+                                <li><strong>Warped markers:</strong> Keep printed markers perfectly flat</li>
+                                <li><strong>Wrong dictionary:</strong> Always verify you're using the correct dictionary in detection</li>
                             </ul>
                         </div>
                     </section>

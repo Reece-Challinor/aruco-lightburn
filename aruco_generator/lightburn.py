@@ -215,3 +215,56 @@ class LightBurnExporter:
     def get_material_info(self) -> Dict[str, Any]:
         """Return material configuration info for UI"""
         return self.material_settings
+    
+    def create_lightburn_file(self, markers, size_mm, border_bits=1, 
+                            include_labels=False, include_alignment=False, 
+                            include_rulers=False):
+        """Create LightBurn file from markers (backward compatibility wrapper)"""
+        from .drawing import DrawingContext
+        
+        # Create drawing context
+        context = DrawingContext()
+        
+        # Add markers to context
+        for marker in markers:
+            # Add marker rectangles
+            x = marker.get('x', 0)
+            y = marker.get('y', 0)
+            
+            # Add filled rectangle for marker
+            context.add_rectangle(x, y, size_mm, size_mm, fill=True, layer=0)
+            
+            # Add border if requested
+            if border_bits > 0:
+                border_width = size_mm * 0.1  # 10% of size for border
+                context.add_rectangle(x - border_width, y - border_width, 
+                                    size_mm + 2 * border_width, 
+                                    size_mm + 2 * border_width, 
+                                    fill=False, layer=1)
+            
+            # Add labels if requested
+            if include_labels:
+                # Text labels are added as elements directly
+                context.elements.append({
+                    'type': 'text',
+                    'x': x + size_mm/2,
+                    'y': y - 2,
+                    'text': f"ID: {marker.get('id', '?')}",
+                    'layer': 2,
+                    'font_size': 8,
+                    'anchor': 'middle'
+                })
+        
+        # Create metadata
+        metadata = {
+            'marker_count': len(markers),
+            'size_mm': size_mm,
+            'border_bits': border_bits,
+            'include_labels': include_labels
+        }
+        
+        # Export to BytesIO
+        output = self.export(context, metadata)
+        
+        # Return as string for compatibility
+        return output.getvalue().decode('utf-8')

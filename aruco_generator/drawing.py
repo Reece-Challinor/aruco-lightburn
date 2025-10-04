@@ -44,7 +44,7 @@ class DrawingContext:
         self._update_bounds(x, y, width, height)
     
     def add_marker_grid(self, markers: List[Dict[str, Any]], include_borders: bool = True, include_outer_border: bool = False, border_width: float = 2.0):
-        """Add ArUCO markers as filled rectangles"""
+        """Add ArUCO markers as filled rectangles with 2D optimization"""
         for marker in markers:
             size = marker['size']
             x, y = marker['x'], marker['y']
@@ -56,17 +56,27 @@ class DrawingContext:
             
             # Check if we have actual image data or just placeholder
             if 'image' in marker:
-                # Full ArUCO marker generation for file export
+                # Use 2D rectangle merging for optimal XML size
                 image = marker['image']
                 pixel_size = size / image.shape[0]
                 
-                for row in range(image.shape[0]):
-                    for col in range(image.shape[1]):
-                        if image[row, col] == 0:  # Black pixel in ArUCO
-                            px_x = x + col * pixel_size
-                            px_y = y + row * pixel_size
-                            self.add_rectangle(px_x, px_y, pixel_size, pixel_size, 
-                                             fill=True, layer=0, marker_id=marker_id)
+                # Find all black rectangles using 2D merging
+                rectangles = self._find_merged_rectangles(image)
+                
+                # Add merged rectangles with overlap to prevent gaps
+                for rect in rectangles:
+                    # Calculate positions with proper precision
+                    px_x = x + rect['col'] * pixel_size
+                    px_y = y + rect['row'] * pixel_size
+                    width = rect['width'] * pixel_size
+                    height = rect['height'] * pixel_size
+                    
+                    # Add small overlap to prevent gaps but maintain dimensions
+                    # Use 0.5% of the rectangle size or 0.05mm, whichever is smaller
+                    overlap = min(0.05, max(width * 0.005, height * 0.005))  # Max 0.05mm, or 0.5% of size
+                    self.add_rectangle(px_x, px_y,
+                                     width + overlap, height + overlap,
+                                     fill=True, layer=0, marker_id=marker_id)
             else:
                 # For preview, use simplified representation
                 self.elements.append({
@@ -110,19 +120,26 @@ class DrawingContext:
             if include_borders:
                 self.add_rectangle(x, y, size, size, fill=False, layer=1, marker_id=marker_id)
             
-            # Convert ArUCO image to rectangles with optimization for preview
+            # Convert ArUCO image to rectangles - use merged rectangles for better quality
             pixel_size = size / image.shape[0]
             
-            # Sample every 2nd pixel for preview to reduce complexity
-            step = 2
-            for row in range(0, image.shape[0], step):
-                for col in range(0, image.shape[1], step):
-                    if image[row, col] == 0:  # Black pixel in ArUCO
-                        px_x = x + col * pixel_size
-                        px_y = y + row * pixel_size
-                        # Use larger rectangles to represent sampled pixels
-                        self.add_rectangle(px_x, px_y, pixel_size * step, pixel_size * step, 
-                                         fill=True, layer=0, marker_id=marker_id)
+            # Use rectangle merging algorithm for preview as well to prevent artifacts
+            rectangles = self._find_merged_rectangles(image)
+            
+            # Add merged rectangles with overlap to prevent gaps
+            for rect in rectangles:
+                # Calculate positions
+                px_x = x + rect['col'] * pixel_size
+                px_y = y + rect['row'] * pixel_size
+                width = rect['width'] * pixel_size
+                height = rect['height'] * pixel_size
+                
+                # Add small overlap to prevent gaps but maintain dimensions
+                # Use 0.5% of the rectangle size or 0.05mm, whichever is smaller
+                overlap = min(0.05, max(width * 0.005, height * 0.005))  # Max 0.05mm, or 0.5% of size
+                self.add_rectangle(px_x, px_y,
+                                 width + overlap, height + overlap,
+                                 fill=True, layer=0, marker_id=marker_id)
             
             # Update bounds
             self._update_bounds(x, y, size, size)
@@ -168,6 +185,51 @@ class DrawingContext:
         self.bounds['min_y'] = min(self.bounds['min_y'], y)
         self.bounds['max_x'] = max(self.bounds['max_x'], x + width)
         self.bounds['max_y'] = max(self.bounds['max_y'], y + height)
+    
+    def _find_merged_rectangles(self, image: np.ndarray) -> List[Dict[str, int]]:
+        """Find merged rectangles in binary image using 2D merging"""
+        rectangles = []
+        visited = np.zeros_like(image, dtype=bool)
+        
+        for row in range(image.shape[0]):
+            for col in range(image.shape[1]):
+                if image[row, col] == 0 and not visited[row, col]:  # Black and unvisited
+                    # Find the largest rectangle starting from this point
+                    max_width = image.shape[1] - col
+                    max_height = image.shape[0] - row
+                    
+                    # Find maximum width for this row
+                    width = 0
+                    while width < max_width and image[row, col + width] == 0 and not visited[row, col + width]:
+                        width += 1
+                    
+                    # Find maximum height maintaining this width
+                    height = 1
+                    while height < max_height:
+                        # Check if the entire row at this height is black
+                        row_valid = True
+                        for w in range(width):
+                            if image[row + height, col + w] != 0 or visited[row + height, col + w]:
+                                row_valid = False
+                                break
+                        if not row_valid:
+                            break
+                        height += 1
+                    
+                    # Mark all pixels in this rectangle as visited
+                    for r in range(height):
+                        for c in range(width):
+                            visited[row + r, col + c] = True
+                    
+                    # Add the rectangle
+                    rectangles.append({
+                        'row': row,
+                        'col': col,
+                        'width': width,
+                        'height': height
+                    })
+        
+        return rectangles
     
     def get_svg(self) -> str:
         """Generate SVG preview"""

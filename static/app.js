@@ -4,12 +4,10 @@
 
 class ArUCOGenerator {
     constructor() {
-        this.debugMode = true;
         this.setupErrorLogging();
         this.initializeElements();
         this.attachEventListeners();
         this.loadDictionaries();
-        this.log('ArUCO Generator initialized successfully');
     }
 
     // HTML escaping utility function to prevent XSS
@@ -65,15 +63,8 @@ class ArUCOGenerator {
         }
     }
 
-    log(message, data = null) {
-        if (this.debugMode) {
-            console.log(`[ArUCO Debug] ${message}`, data || '');
-        }
-    }
 
     initializeElements() {
-        this.log('Initializing UI elements');
-        
         try {
             // ArUco tab elements
             this.quickDictionary = document.getElementById('quickDictionary');
@@ -149,27 +140,22 @@ class ArUCOGenerator {
     }
 
     attachEventListeners() {
-        this.log('Attaching event listeners');
-        
         try {
             // ArUco tab event listeners
             if (this.generateSingleBtn) {
                 this.generateSingleBtn.addEventListener('click', () => {
-                    this.log('Single marker button clicked');
                     this.generateSingle();
                 });
             }
             
             if (this.generateGridBtn) {
                 this.generateGridBtn.addEventListener('click', () => {
-                    this.log('Grid button clicked');
                     this.generateGrid();
                 });
             }
             
             if (this.downloadQuickBtn) {
                 this.downloadQuickBtn.addEventListener('click', () => {
-                    this.log('Quick download button clicked');
                     this.downloadCurrent();
                 });
             }
@@ -187,21 +173,18 @@ class ArUCOGenerator {
             // Advanced tab event listeners
             if (this.generateAdvancedBtn) {
                 this.generateAdvancedBtn.addEventListener('click', () => {
-                    this.log('Advanced generate button clicked');
                     this.generateAdvanced();
                 });
             }
             
             if (this.downloadAdvancedBtn) {
                 this.downloadAdvancedBtn.addEventListener('click', () => {
-                    this.log('Advanced download button clicked');
                     this.downloadAdvanced();
                 });
             }
             
             if (this.includeOuterBorderCheck) {
                 this.includeOuterBorderCheck.addEventListener('change', () => {
-                    this.log('Outer border checkbox changed');
                     this.toggleBorderWidth();
                 });
             }
@@ -243,7 +226,6 @@ class ArUCOGenerator {
                 const size = parseFloat(e.target.dataset.size);
                 if (this.sizeMmInput) {
                     this.sizeMmInput.value = size;
-                    this.log('Size preset applied', size);
                 }
                 // Update button states
                 document.querySelectorAll('.size-preset').forEach(b => b.classList.remove('active'));
@@ -273,7 +255,6 @@ class ArUCOGenerator {
                     this.startIdInput.max = maxMarkers - 1;
                 }
                 
-                this.log('Max marker info updated', { dict: selectedDict, max: maxMarkers });
             }
         } catch (error) {
             this.logError('Max Marker Info Update', error);
@@ -406,19 +387,14 @@ class ArUCOGenerator {
     }
 
     async loadDictionaries() {
-        this.log('Loading ArUCO dictionaries');
         
         try {
             const response = await fetch('/api/dictionaries');
             if (response.ok) {
                 this.dictionaries = await response.json();
-                this.log('Dictionaries loaded successfully', this.dictionaries);
                 
                 // Initialize advanced mode features after dictionaries are loaded
                 this.initializeAdvancedMode();
-                
-                // Load presets after dictionaries
-                await this.loadPresets();
             } else {
                 throw new Error(`Failed to load dictionaries: ${response.status}`);
             }
@@ -428,22 +404,6 @@ class ArUCOGenerator {
         }
     }
 
-    async loadPresets() {
-        try {
-            this.log('Loading presets');
-            const response = await fetch('/api/presets');
-            if (response.ok) {
-                this.presets = await response.json();
-                this.log('Presets loaded successfully', this.presets);
-            } else {
-                this.log('Presets not available, using defaults');
-                this.presets = {};
-            }
-        } catch (error) {
-            this.logError('Preset Loading', error);
-            this.presets = {};
-        }
-    }
 
     initializeAdvancedMode() {
         try {
@@ -456,7 +416,6 @@ class ArUCOGenerator {
             // Set initial validation state
             this.validateAdvancedFormRealTime();
             
-            this.log('Advanced mode initialized');
         } catch (error) {
             this.logError('Advanced Mode Initialization', error);
         }
@@ -482,7 +441,6 @@ class ArUCOGenerator {
                 border_width: 2.0
             };
             
-            this.log('Generating single marker', data);
             await this.generatePreview(data, 'single');
         } catch (error) {
             this.logError('Single Generation', error);
@@ -510,7 +468,6 @@ class ArUCOGenerator {
                 border_width: 2.0
             };
             
-            this.log('Generating grid', data);
             await this.generatePreview(data, 'grid');
         } catch (error) {
             this.logError('Grid Generation', error);
@@ -525,7 +482,6 @@ class ArUCOGenerator {
                 return;
             }
             
-            this.log('Downloading with format:', format);
             
             // For non-LightBurn formats, we need to handle differently
             if (format === 'pdf' || format === 'svg') {
@@ -633,10 +589,8 @@ markers:
     // Advanced tab methods
     async generateAdvanced() {
         try {
-            this.log('Starting advanced generation');
             
             const data = this.getAdvancedFormData();
-            this.log('Advanced form data collected', data);
             
             if (!this.validateAdvancedForm(data)) {
                 return; // Validation error already shown
@@ -651,7 +605,6 @@ markers:
 
     async downloadAdvanced() {
         try {
-            this.log('Starting advanced download');
             
             const data = this.getAdvancedFormData();
             
@@ -681,7 +634,6 @@ markers:
                 border_width: parseFloat(this.borderWidthInput?.value) || 2.0
             };
             
-            this.log('Form data extracted', data);
             return data;
         } catch (error) {
             this.logError('Form Data Extraction', error);
@@ -720,11 +672,9 @@ markers:
             if (errors.length > 0) {
                 const errorMessage = 'Please fix the following issues:\n• ' + errors.join('\n• ');
                 this.showAdvancedError(errorMessage);
-                this.log('Form validation failed', errors);
                 return false;
             }
             
-            this.log('Form validation passed');
             return true;
         } catch (error) {
             this.logError('Form Validation', error);
@@ -738,7 +688,6 @@ markers:
             if (this.includeOuterBorderCheck && this.borderWidthContainer) {
                 const shouldShow = this.includeOuterBorderCheck.checked;
                 this.borderWidthContainer.style.display = shouldShow ? 'block' : 'none';
-                this.log('Border width visibility toggled', shouldShow);
             }
         } catch (error) {
             this.logError('Border Width Toggle', error);
@@ -748,7 +697,6 @@ markers:
     // Core generation methods
     async generatePreview(data, type) {
         try {
-            this.log('Generating preview', { data, type });
             this.showLoading();
             
             const response = await fetch('/api/preview', {
@@ -759,7 +707,6 @@ markers:
 
             if (response.ok) {
                 const result = await response.json();
-                this.log('Preview generated successfully', result);
                 this.showPreview(result, data);
                 this.currentGenerationData = { data, type };
             } else {
@@ -774,7 +721,6 @@ markers:
 
     async generateAdvancedPreview(data) {
         try {
-            this.log('Generating advanced preview', data);
             this.showAdvancedLoading();
             
             const response = await fetch('/api/preview', {
@@ -785,7 +731,6 @@ markers:
 
             if (response.ok) {
                 const result = await response.json();
-                this.log('Advanced preview generated successfully', result);
                 this.showAdvancedPreview(result, data);
                 this.currentAdvancedData = data;
                 
@@ -810,7 +755,6 @@ markers:
                 throw new Error('No data available for download');
             }
 
-            this.log('Downloading current generation');
             
             if (this.currentGenerationData.type === 'quick-test') {
                 await this.downloadQuickTest();
@@ -825,7 +769,6 @@ markers:
 
     async downloadQuickTest() {
         try {
-            this.log('Downloading quick test file');
             
             const response = await fetch('/api/quick-test/download', { method: 'POST' });
             
@@ -860,7 +803,6 @@ markers:
 
     async downloadLightBurn(data) {
         try {
-            this.log('Downloading LightBurn file', data);
             
             const response = await fetch('/api/download', {
                 method: 'POST',
@@ -909,7 +851,6 @@ markers:
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
             this.showSuccess(`File "${filename}" downloaded successfully`);
-            this.log('File downloaded', filename);
         } catch (error) {
             this.logError('Blob Download', error);
             this.showError('File download failed');
@@ -951,7 +892,6 @@ markers:
             this.errorState.style.display = 'block';
             this.errorMessage.textContent = message;
         }
-        this.log('Error displayed', message);
     }
 
     hideAllStates() {
@@ -1056,7 +996,6 @@ markers:
             this.advancedPreview.innerHTML = '';
             this.advancedPreview.appendChild(container);
         }
-        this.log('Advanced error displayed', message);
     }
 
     hideAdvancedStates() {
