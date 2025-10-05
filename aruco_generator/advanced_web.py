@@ -66,7 +66,7 @@ def advanced_preview():
                     y=marker['y'] - 2
                 )
 
-        svg_content = ctx.to_svg()
+        svg_content = ctx.get_svg()
         total_width, total_height = aruco_gen.calculate_total_size(
             rows=rows,
             cols=cols,
