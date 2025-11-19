@@ -1,0 +1,95 @@
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Distribution / packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Database files (use volumes instead)
+instance/*.db
+instance/*.db-journal
+*.sqlite
+*.sqlite3
+
+# Documentation
+docs/_build/
+*.md
+CLAUDE.md
+README.md
+
+# Git and version control
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD and deployment
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Environment files (use docker-compose environment instead)
+.env
+.env.local
+.env.*.local
+
+# Docker files (don't copy these into the image)
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Logs
+*.log
+logs/
+
+# MacOS
+.DS_Store
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Optimization documentation (not needed in container)
+CICD_OPTIMIZATION_PLAN.md
+OPTIMIZATION_EXECUTIVE_SUMMARY.md
+QUICK_START_GUIDE.md
+
+# Pre-commit hooks
+.pre-commit-config.yaml

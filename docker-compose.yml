@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  # ArUCO Generator Web Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aruco-generator
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=production
+      - DATABASE_URL=postgresql://aruco:aruco_password@db:5432/aruco_db
+      # Fallback to SQLite if PostgreSQL is not available
+      - SQLALCHEMY_DATABASE_URI=sqlite:///instance/aruco.db
+    volumes:
+      # Mount instance directory for SQLite persistence
+      - ./instance:/app/instance
+      # Mount static files for development (optional)
+      # - ./static:/app/static
+      # - ./templates:/app/templates
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - aruco-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:5000/', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # PostgreSQL Database (optional - for production use)
+  db:
+    image: postgres:15-alpine
+    container_name: aruco-postgres
+    environment:
+      - POSTGRES_USER=aruco
+      - POSTGRES_PASSWORD=aruco_password
+      - POSTGRES_DB=aruco_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - aruco-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aruco"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Nginx Reverse Proxy (optional - for production deployment)
+  nginx:
+    image: nginx:alpine
+    container_name: aruco-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      # SSL certificates (if using HTTPS)
+      # - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      - app
+    networks:
+      - aruco-network
+    restart: unless-stopped
+    profiles:
+      - production
+
+networks:
+  aruco-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
