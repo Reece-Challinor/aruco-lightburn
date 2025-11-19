@@ -1196,6 +1196,75 @@ git commit -m "type: msg"     # Conventional commit
 
 ---
 
+## Error Handling Standards
+
+### Standard JSON Error Response
+```json
+{
+  "error": "Human-readable error description",
+  "details": "Optional technical details",
+  "code": "Optional error code"
+}
+```
+
+### HTTP Status Codes
+- **400 Bad Request**: Invalid user input or parameters
+- **404 Not Found**: Resource not found or unavailable
+- **500 Internal Server Error**: Unexpected server-side errors
+- **501 Not Implemented**: Features not yet available
+
+### Best Practices
+```python
+# ✅ Specific error messages
+return jsonify({'error': 'Marker size must be positive (in millimeters)'}), 400
+
+# ✅ Context-aware errors
+available = list(aruco_gen.dictionaries.keys())
+return jsonify({
+    'error': f'Invalid dictionary "{dictionary}". Available: {available[:3]}'
+}), 400
+
+# ✅ Consistent logging
+logger.error(f"Technical details: {e}", exc_info=True)
+return jsonify({'error': 'User-friendly message'}), 500
+```
+
+---
+
+## Future Development Roadmap
+
+### Completed Improvements
+- ✅ Test suite stabilization (59/59 passing)
+- ✅ API error handling improvements
+- ✅ Code quality infrastructure (pre-commit hooks, linting)
+- ✅ Comprehensive documentation system
+- ✅ Docker containerization
+- ✅ Vercel deployment configuration
+- ✅ CI/CD pipeline with GitHub Actions
+
+### High Priority Objectives
+- [ ] Frontend modernization (React + TypeScript)
+- [ ] Real-time marker detection via WebSockets
+- [ ] Advanced calibration system improvements
+- [ ] Performance optimization (caching, database queries)
+- [ ] Security enhancements (authentication, RBAC)
+
+### Medium Priority Objectives
+- [ ] Additional export formats (DXF, STL)
+- [ ] Machine learning integration (quality prediction)
+- [ ] Collaborative features (shared libraries)
+- [ ] Progressive Web App (PWA) support
+- [ ] Mobile responsiveness improvements
+
+### Technical Architecture Goals
+- Backend: Consider FastAPI migration for async support
+- Frontend: React + TypeScript for better maintainability
+- Database: Add Redis caching layer for performance
+- Monitoring: Prometheus + Grafana for observability
+- Testing: Achieve >90% code coverage
+
+---
+
 **Last Updated**: 2025-11-18
 **Version**: 2.0.0
 **Python**: 3.11+
