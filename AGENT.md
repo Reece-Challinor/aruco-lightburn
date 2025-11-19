@@ -659,6 +659,353 @@ THREADS=2
 - AWS ECS/EKS (Docker)
 - Google Cloud Run (Docker)
 
+### Vercel Deployment
+
+**Vercel** is recommended for production Flask deployments with automatic CI/CD.
+
+#### Prerequisites
+
+```bash
+# Install Vercel CLI
+npm install -g vercel
+
+# Login to Vercel
+vercel login
+
+# Link project to Vercel
+cd aruco-lightburn
+vercel link
+```
+
+#### Configuration (vercel.json)
+
+Create `vercel.json` in project root:
+
+```json
+{
+  "version": 2,
+  "name": "aruco-generator",
+  "builds": [
+    {
+      "src": "app.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "15mb",
+        "runtime": "python3.11"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/static/(.*)",
+      "dest": "/static/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "app.py"
+    }
+  ],
+  "env": {
+    "FLASK_APP": "app.py",
+    "FLASK_ENV": "production"
+  },
+  "regions": ["iad1"]
+}
+```
+
+#### Environment Variables
+
+Set in Vercel dashboard or CLI:
+
+```bash
+# Production environment
+vercel env add SECRET_KEY production
+vercel env add DATABASE_URL production
+vercel env add FLASK_ENV production
+
+# Staging environment
+vercel env add SECRET_KEY preview
+vercel env add DATABASE_URL preview
+vercel env add FLASK_ENV preview
+```
+
+**Required Variables:**
+- `SECRET_KEY`: Flask secret key (generate with `python -c "import secrets; print(secrets.token_hex(32))"`)
+- `DATABASE_URL`: PostgreSQL connection string (use Vercel Postgres)
+- `FLASK_ENV`: Set to `production`
+- `PYTHONUNBUFFERED`: Set to `1`
+
+#### Deployment Commands
+
+```bash
+# Deploy to staging (preview)
+vercel
+
+# Deploy to production
+vercel --prod
+
+# Check deployment status
+vercel ls
+
+# View deployment logs
+vercel logs <deployment-url>
+
+# Promote staging to production
+vercel promote <deployment-url>
+```
+
+#### GitHub Integration
+
+**Automatic Deployments:**
+1. Connect repository to Vercel dashboard
+2. Enable automatic deployments
+3. Configure branch settings:
+   - `main` branch → Production
+   - All other branches → Preview/Staging
+
+**Deployment Triggers:**
+- Push to `main` → Production deployment
+- Push to feature branch → Preview deployment
+- Pull request → Preview deployment with URL in PR
+
+### CI/CD Pipeline (GitHub Actions)
+
+**Automated testing and deployment** on every push and pull request.
+
+#### GitHub Actions Workflow
+
+Create `.github/workflows/deploy.yml`:
+
+```yaml
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgl1-mesa-glx libglib2.0-0
+
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -e .
+          pip install pytest pytest-cov flake8 black
+
+      - name: Run linter (flake8)
+        run: |
+          flake8 aruco_generator/ tests/ app.py \
+            --max-line-length=88 \
+            --exclude=__pycache__ \
+            --ignore=E501,W503
+
+      - name: Check code formatting (black)
+        run: |
+          black --check aruco_generator/ tests/ app.py \
+            --line-length 88
+
+      - name: Run unit tests
+        run: |
+          pytest tests/test_aruco_generator.py -v
+
+      - name: Run integration tests
+        run: |
+          pytest tests/test_api_endpoints.py -v
+
+      - name: Run quality tests
+        run: |
+          pytest tests/test_generation_quality.py -v
+          pytest tests/test_export_formats.py -v
+
+      - name: Generate coverage report
+        run: |
+          pytest tests/ \
+            --cov=aruco_generator \
+            --cov=app \
+            --cov-report=xml \
+            --cov-report=term
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/develop'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Vercel Staging
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          scope: ${{ secrets.VERCEL_ORG_ID }}
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Vercel Production
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+          scope: ${{ secrets.VERCEL_ORG_ID }}
+
+  docker-build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/aruco-generator:latest
+            ${{ secrets.DOCKER_USERNAME }}/aruco-generator:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+```
+
+#### GitHub Secrets Configuration
+
+Add these secrets to your GitHub repository (Settings → Secrets → Actions):
+
+```bash
+# Vercel
+VERCEL_TOKEN          # Get from vercel.com/account/tokens
+VERCEL_ORG_ID         # Get from vercel.json after `vercel link`
+VERCEL_PROJECT_ID     # Get from vercel.json after `vercel link`
+
+# Docker Hub (optional)
+DOCKER_USERNAME       # Your Docker Hub username
+DOCKER_PASSWORD       # Docker Hub access token
+
+# Codecov (optional)
+CODECOV_TOKEN         # Get from codecov.io
+```
+
+#### Branch Strategy
+
+```
+main (production)
+├── develop (staging)
+│   ├── feature/new-feature-1
+│   ├── feature/new-feature-2
+│   └── bugfix/fix-issue-123
+└── hotfix/critical-fix
+```
+
+**Workflow:**
+1. Create feature branch from `develop`
+2. Make changes, commit often
+3. Push to GitHub → CI runs tests → Preview deployment
+4. Create PR to `develop` → CI runs tests → Review
+5. Merge to `develop` → Deploy to staging
+6. Test on staging
+7. Create PR to `main` → CI runs tests → Review
+8. Merge to `main` → Deploy to production
+
+#### Deployment URL Naming
+
+- **Production**: `https://aruco-generator.vercel.app`
+- **Staging**: `https://aruco-generator-git-develop.vercel.app`
+- **Preview**: `https://aruco-generator-git-feature-xyz.vercel.app`
+
+#### Health Checks & Monitoring
+
+Add health check endpoint to `app.py`:
+
+```python
+@app.route('/health')
+def health_check():
+    """Health check endpoint for monitoring."""
+    return jsonify({
+        'status': 'healthy',
+        'version': '2.0.0',
+        'timestamp': datetime.utcnow().isoformat()
+    }), 200
+```
+
+**Vercel Monitoring:**
+- Navigate to Vercel dashboard → Project → Analytics
+- View deployment logs, function invocations, errors
+- Set up alerts for failed deployments
+
+#### Rollback Strategy
+
+```bash
+# List recent deployments
+vercel ls
+
+# Rollback to previous deployment
+vercel rollback <deployment-url>
+
+# Or promote specific deployment to production
+vercel promote <deployment-url>
+```
+
+#### Production Deployment Checklist
+
+- [ ] Tests passing (59/59)
+- [ ] Code linted and formatted
+- [ ] Environment variables configured
+- [ ] Database migrations applied
+- [ ] Static files optimized
+- [ ] Health check endpoint working
+- [ ] Vercel CLI connected
+- [ ] GitHub Actions secrets configured
+- [ ] Branch strategy documented
+- [ ] Team has access to Vercel project
+- [ ] Monitoring/alerts configured
+- [ ] Rollback procedure tested
+
 ---
 
 ## Code Standards

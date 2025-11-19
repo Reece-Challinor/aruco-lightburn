@@ -1,0 +1,47 @@
+{
+  "builds": [
+    {
+      "config": {
+        "maxLambdaSize": "15mb",
+        "runtime": "python3.11"
+      },
+      "src": "app.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "static/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "env": {
+    "FLASK_APP": "app.py",
+    "FLASK_ENV": "production",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "headers": [
+    {
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ],
+      "source": "/static/(.*)"
+    }
+  ],
+  "name": "aruco-generator",
+  "regions": [
+    "iad1"
+  ],
+  "routes": [
+    {
+      "dest": "/static/$1",
+      "src": "/static/(.*)"
+    },
+    {
+      "dest": "app.py",
+      "src": "/(.*)"
+    }
+  ],
+  "version": 2
+}

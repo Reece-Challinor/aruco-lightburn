@@ -184,8 +184,9 @@ Version: 3.0.0
 
 import logging
 import os
+from datetime import datetime
 
-from flask import Flask
+from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -242,3 +243,25 @@ with app.app_context():
     from aruco_generator.web import *  # noqa: F401, F403
 
     logger.info("Routes registered")
+
+
+# Health check endpoint for monitoring and deployment
+@app.route("/health")
+def health_check():
+    """
+    Health check endpoint for monitoring and deployment platforms.
+
+    Returns:
+        JSON response with status, version, and timestamp
+    """
+    return (
+        jsonify(
+            {
+                "status": "healthy",
+                "version": "2.0.0",
+                "timestamp": datetime.utcnow().isoformat(),
+                "database": "connected" if db else "unavailable",
+            }
+        ),
+        200,
+    )
