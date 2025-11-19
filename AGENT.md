@@ -82,6 +82,65 @@ aruco_generator/
 
 ---
 
+## Module Navigation & XML Headers
+
+### Core Module Workflows
+
+#### ArUCOGenerator (aruco.py)
+**Golden Path**: Primary workflow for ArUCO marker generation
+1. Initialize ArUCOGenerator() → Load dictionaries (OpenCV or fallback)
+2. Call get_dictionary_info() → Return available dictionaries with metadata
+3. Call generate_marker(id, dict, size) → Generate single marker as numpy array
+4. Call generate_grid(params) → Generate positioned grid of markers
+5. Optional: generate_with_coordinates() → Add 3D coordinate metadata
+
+**Fallback Paths**:
+- opencv_unavailable → Use fallback pattern generation
+- invalid_dictionary → Raise ValueError with available options
+- invalid_marker_id → Raise ValueError with valid range
+
+#### DrawingContext (drawing.py)
+**Golden Path**: SVG generation and rendering workflow
+1. Initialize DrawingContext() → Set up SVG canvas
+2. Add elements (rectangles, markers, labels)
+3. Call to_svg() → Generate final SVG markup
+
+**Key Methods**:
+- add_rectangle() - Add rectangle shapes
+- add_marker_grid() - Add ArUCO markers as filled rectangles
+- add_text_labels() - Add text labels below markers
+- get_svg() - Generate SVG output
+
+#### Flask Application (app.py)
+**Golden Path**: Application initialization workflow
+1. Import modules → Flask, SQLAlchemy, logging
+2. Create Flask app instance → Configure basic settings
+3. Configure database → PostgreSQL or SQLite fallback
+4. Initialize extensions → SQLAlchemy, ProxyFix
+5. Create database tables → Import models, call create_all
+6. Register routes → Import web modules
+7. Configure logging → Set up structured logging
+
+**Deployment Patterns**:
+- Production: Gunicorn + PostgreSQL + Nginx
+- Development: Flask dev server + SQLite
+- Docker: Environment variables for configuration
+
+### Quick File Location Reference
+- **Core Logic**: aruco_generator/aruco.py:100 (generate_marker)
+- **API Endpoints**: aruco_generator/web.py:55 (generate_preview)
+- **Error Handling**: Search `return jsonify.*error` across web modules
+- **Database Models**: models.py:15 (CalibrationPattern class)
+- **Frontend API**: static/js/core/api.js:20 (API communication)
+- **Health Check**: app.py:253 (/health endpoint)
+
+### Common Modification Patterns
+1. **Add New API Endpoint**: Add route in appropriate web module (web.py, advanced_web.py)
+2. **New ArUCO Feature**: Extend ArUCOGenerator class in aruco.py
+3. **Frontend Enhancement**: Modify page-specific JS in static/js/pages/
+4. **Test Addition**: Add test in appropriate test_*.py file
+5. **Documentation Update**: Update AGENT.md and README.md
+
 ## File Structure
 
 ### Root Directory
