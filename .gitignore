@@ -78,3 +78,4 @@ temp/
 attached_assets/
 test_outputs/
 generated_files/
+.vercel

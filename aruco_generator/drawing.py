@@ -351,7 +351,7 @@ class DrawingContext:
                 center_y = y + size / 2
                 svg += f"""<text x="{center_x:.3f}" y="{center_y:.3f}"
                                text-anchor="middle" dominant-baseline="central"
-                               style="fill: red; font-family: Arial; font-size: {size/10:.1f}px; font-weight: bold;">{marker_id}</text>"""
+                               style="fill: red; font-family: Arial; font-size: {size / 10:.1f}px; font-weight: bold;">{marker_id}</text>"""
 
             elif element["type"] == "text":
                 svg += f"""<text x="{element['x']:.3f}" y="{element['y']:.3f}"

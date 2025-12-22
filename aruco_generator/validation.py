@@ -2,10 +2,8 @@
 Simplified detection validation and quality assurance tools for ArUCO markers.
 """
 
-import hashlib
-import json
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 import cv2
 import numpy as np

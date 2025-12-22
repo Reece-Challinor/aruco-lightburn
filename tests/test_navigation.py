@@ -3,7 +3,6 @@ Test suite for navigation and routing improvements
 """
 
 import pytest
-from flask import url_for
 
 from app import app, db
 
@@ -114,7 +113,7 @@ def test_api_calibration_charuco(client):
     )
     assert response.status_code == 200
     data = response.get_json()
-    assert data["success"] == True
+    assert data["success"] is True
     assert "image_base64" in data
 
 
@@ -126,7 +125,7 @@ def test_api_validation_hamming(client):
     )
     assert response.status_code == 200
     data = response.get_json()
-    assert data["success"] == True
+    assert data["success"] is True
     assert "hamming_distance" in data
     assert "safety_level" in data
 

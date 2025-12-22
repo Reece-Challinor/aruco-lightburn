@@ -184,9 +184,9 @@ class LightBurnExporter:
 
         vertices = [
             f"V{x:.3f} {y:.3f}c0x1c1x1",
-            f"V{x+w:.3f} {y:.3f}c0x1c1x1",
-            f"V{x+w:.3f} {y+h:.3f}c0x1c1x1",
-            f"V{x:.3f} {y+h:.3f}c0x1c1x1",
+            f"V{x + w:.3f} {y:.3f}c0x1c1x1",
+            f"V{x + w:.3f} {y + h:.3f}c0x1c1x1",
+            f"V{x:.3f} {y + h:.3f}c0x1c1x1",
         ]
 
         vl = ET.SubElement(shape, "VertList")
@@ -223,27 +223,27 @@ class LightBurnExporter:
         for key, value in metadata.items():
             notes_text += f"{key}: {value}\n"
 
-        notes_text += f"\n=== MATERIAL SETTINGS ===\n"
+        notes_text += "\n=== MATERIAL SETTINGS ===\n"
         notes_text += f"Material: {material_config['name']}\n"
         notes_text += f"Description: {material_config['description']}\n"
-        notes_text += f'Thickness: 1/16" (1.5875mm)\n\n'
+        notes_text += 'Thickness: 1/16" (1.5875mm)\n\n'
 
-        notes_text += f"=== RECOMMENDED LASER SETTINGS ===\n"
+        notes_text += "=== RECOMMENDED LASER SETTINGS ===\n"
         notes_text += f"Border Cut: {material_config['cut_speed']}mm/min @ {material_config['cut_power']}% power\n"
         notes_text += f"Fill Engrave: {material_config['engrave_speed']}mm/min @ {material_config['engrave_power']}% power\n"
         notes_text += f"Label Mark: {material_config['mark_speed']}mm/min @ {material_config['mark_power']}% power\n\n"
 
-        notes_text += f"=== LAYER INFORMATION ===\n"
-        notes_text += f"Layer 00 (Black): ArUCO marker fill areas - ENGRAVE\n"
-        notes_text += f"Layer 01 (Blue): Border outlines - CUT\n"
-        notes_text += f"Layer T1 (Red): ID labels - MARK/ENGRAVE\n\n"
+        notes_text += "=== LAYER INFORMATION ===\n"
+        notes_text += "Layer 00 (Black): ArUCO marker fill areas - ENGRAVE\n"
+        notes_text += "Layer 01 (Blue): Border outlines - CUT\n"
+        notes_text += "Layer T1 (Red): ID labels - MARK/ENGRAVE\n\n"
 
-        notes_text += f"=== USAGE INSTRUCTIONS ===\n"
-        notes_text += f"1. Load material and set focus height\n"
-        notes_text += f"2. Review and adjust laser settings if needed\n"
-        notes_text += f"3. Run test cuts on scrap material first\n"
-        notes_text += f"4. Process layers in order: Fill (engrave) → Borders (cut) → Labels (mark)\n"
-        notes_text += f"5. Use air assist for clean cuts and prevent charring"
+        notes_text += "=== USAGE INSTRUCTIONS ===\n"
+        notes_text += "1. Load material and set focus height\n"
+        notes_text += "2. Review and adjust laser settings if needed\n"
+        notes_text += "3. Run test cuts on scrap material first\n"
+        notes_text += "4. Process layers in order: Fill (engrave) → Borders (cut) → Labels (mark)\n"
+        notes_text += "5. Use air assist for clean cuts and prevent charring"
 
         notes = ET.SubElement(root, "Notes", ShowOnLoad="1", Notes=notes_text)
         notes.text = ""

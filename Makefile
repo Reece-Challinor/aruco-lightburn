@@ -37,22 +37,22 @@ test: lint unit-test integration
 # Run unit tests
 unit-test:
 	@echo "Running unit tests..."
-	python -m pytest tests/test_aruco_generator.py -v
+	python3 -m pytest tests/test_aruco_generator.py -v
 
 # Run integration tests
 integration:
 	@echo "Running integration tests..."
-	python -m pytest tests/test_api_endpoints.py -v
+	python3 -m pytest tests/test_api_endpoints.py -v
 
 # Run generation quality tests
 test-quality:
 	@echo "Running generation quality tests..."
-	python -m pytest tests/test_generation_quality.py -v
+	python3 -m pytest tests/test_generation_quality.py -v
 
 # Run export format tests
 test-export:
 	@echo "Running export format tests..."
-	python -m pytest tests/test_export_formats.py -v
+	python3 -m pytest tests/test_export_formats.py -v
 
 # Run all quality assurance tests
 test-qa: test-quality test-export
@@ -61,7 +61,7 @@ test-qa: test-quality test-export
 # Run tests with coverage
 coverage:
 	@echo "Running tests with coverage..."
-	python -m pytest tests/ --cov=aruco_generator --cov=app --cov-report=html --cov-report=term
+	python3 -m pytest tests/ --cov=aruco_generator --cov=app --cov-report=html --cov-report=term
 
 # Lint code
 lint:
@@ -103,7 +103,7 @@ check-deps:
 # Initialize database
 db-init:
 	@echo "Initializing database..."
-	python -c "from app import app, db; app.app_context().push(); db.create_all(); print('Database initialized')"
+	python3 -c "from app import app, db; app.app_context().push(); db.create_all(); print('Database initialized')"
 
 # Install and setup pre-commit hooks
 pre-commit-install:
@@ -127,17 +127,17 @@ ci: clean install-dev lint test test-qa coverage
 # Validate generation pipeline (no artifacts)
 validate-generation:
 	@echo "Validating generation pipeline..."
-	python -m pytest tests/test_generation_quality.py::TestGenerationQuality::test_no_line_artifacts_in_single_marker -xvs
-	python -m pytest tests/test_generation_quality.py::TestGenerationQuality::test_no_gaps_in_merged_rectangles -xvs
-	python -m pytest tests/test_generation_quality.py::TestGenerationQuality::test_scaling_preserves_quality -xvs
+	python3 -m pytest tests/test_generation_quality.py::TestGenerationQuality::test_no_line_artifacts_in_single_marker -xvs
+	python3 -m pytest tests/test_generation_quality.py::TestGenerationQuality::test_no_gaps_in_merged_rectangles -xvs
+	python3 -m pytest tests/test_generation_quality.py::TestGenerationQuality::test_scaling_preserves_quality -xvs
 	@echo "Generation pipeline validated - no artifacts detected!"
 
 # Validate export formats
 validate-export:
 	@echo "Validating export formats..."
-	python -m pytest tests/test_export_formats.py::TestSVGExport -xvs
-	python -m pytest tests/test_export_formats.py::TestLightBurnExport -xvs
-	python -m pytest tests/test_export_formats.py::TestExportConsistency -xvs
+	python3 -m pytest tests/test_export_formats.py::TestSVGExport -xvs
+	python3 -m pytest tests/test_export_formats.py::TestLightBurnExport -xvs
+	python3 -m pytest tests/test_export_formats.py::TestExportConsistency -xvs
 	@echo "Export formats validated successfully!"
 
 # Docker build (if needed in future)

@@ -32,7 +32,7 @@ except ImportError:
 import hashlib
 import json
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 import yaml
 
@@ -140,7 +140,7 @@ class CalibrationPatternGenerator:
             ),
             "marker_ids": list(range((squares_x - 1) * (squares_y - 1) // 2)),
             "generation_date": datetime.now().isoformat(),
-            "checksum": hashlib.md5(board_image.tobytes()).hexdigest(),
+            "checksum": hashlib.md5(board_image.tobytes()).hexdigest(),  # nosec
         }
 
         return {
@@ -243,7 +243,7 @@ class CalibrationPatternGenerator:
             "first_marker_id": first_marker_id,
             "marker_corners_3d": marker_corners,
             "generation_date": datetime.now().isoformat(),
-            "checksum": hashlib.md5(board_image.tobytes()).hexdigest(),
+            "checksum": hashlib.md5(board_image.tobytes()).hexdigest(),  # nosec
         }
 
         return {
@@ -334,7 +334,7 @@ class CalibrationPatternGenerator:
                 [0, tag_size_mm, 0],
             ],
             "generation_date": datetime.now().isoformat(),
-            "checksum": hashlib.md5(tag_image.tobytes()).hexdigest(),
+            "checksum": hashlib.md5(tag_image.tobytes()).hexdigest(),  # nosec
         }
 
         return {

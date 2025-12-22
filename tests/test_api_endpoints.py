@@ -10,7 +10,7 @@ import unittest
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from app import app
+from app import app  # noqa: E402
 
 
 class TestAPIEndpoints(unittest.TestCase):

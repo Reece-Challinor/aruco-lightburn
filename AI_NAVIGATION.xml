@@ -12,7 +12,6 @@
     <application_structure>
         <entry_points>
             <entry_point type="web" file="app.py" line="22" description="Flask application factory"/>
-            <entry_point type="production" file="main.py" description="Production WSGI entry point"/>
             <entry_point type="core_logic" file="aruco_generator/aruco.py" line="39" description="ArUCO generation engine"/>
         </entry_points>
 
@@ -78,6 +77,16 @@
             </classes>
 
             <submodules>
+                <submodule name="extensions" file="extensions.py">
+                    <description>Shared Flask extensions to avoid circular imports</description>
+                    <key_objects>db (SQLAlchemy)</key_objects>
+                </submodule>
+
+                <submodule name="models" file="models.py">
+                    <description>Database models for calibration patterns and metrics</description>
+                    <models>CalibrationPattern, DetectionMetric, User</models>
+                </submodule>
+
                 <submodule name="web" file="web.py">
                     <description>Main Flask API endpoints for marker generation</description>
                     <endpoints>
@@ -163,7 +172,7 @@
             </structure>
         </module>
 
-        <module name="database" type="sqlalchemy" path="models.py">
+        <module name="database" type="sqlalchemy" path="aruco_generator/models.py">
             <description>Database models for calibration patterns and metrics</description>
             <models>
                 <model name="CalibrationPattern" line="15">
@@ -265,9 +274,11 @@
         <test_files>
             <test_file name="test_api.py" purpose="API endpoint testing" coverage="core endpoints"/>
             <test_file name="test_aruco_generator.py" purpose="Core generation logic" coverage="marker creation"/>
+            <test_file name="test_batch_generator.py" purpose="Batch processing" coverage="zip generation, grid optimization"/>
             <test_file name="test_export_formats.py" purpose="Export format validation" coverage="LightBurn, SVG"/>
             <test_file name="test_generation_quality.py" purpose="Quality assurance" coverage="marker quality"/>
             <test_file name="test_navigation.py" purpose="Navigation and routing" coverage="frontend routes"/>
+            <test_file name="test_utils.py" purpose="Utility functions" coverage="validation, error handling"/>
         </test_files>
         <test_commands>
             <command>python -m pytest tests/ -v</command>
@@ -293,7 +304,7 @@
             <main_api>aruco_generator/web.py</main_api>
             <advanced_api>aruco_generator/advanced_web.py</advanced_api>
             <svg_generation>aruco_generator/drawing.py</svg_generation>
-            <database_models>models.py</database_models>
+            <database_models>aruco_generator/models.py</database_models>
             <frontend_api>static/js/core/api.js</frontend_api>
             <error_patterns>ERROR_HANDLING.md</error_patterns>
             <navigation_tree>NAVIGATION.md</navigation_tree>

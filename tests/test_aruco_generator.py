@@ -5,7 +5,7 @@ Unit tests for ArUCO marker generation - Fixed for updated API
 import os
 import sys
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import numpy as np
 import pytest
@@ -13,7 +13,7 @@ import pytest
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from aruco_generator.aruco import ArUCOGenerator
+from aruco_generator.aruco import ArUCOGenerator  # noqa: E402
 
 
 class TestArUCOGenerator(unittest.TestCase):

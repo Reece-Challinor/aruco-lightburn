@@ -3,21 +3,19 @@ Tests for various export format quality and correctness.
 Validates SVG, LightBurn, and other export formats.
 """
 
-import json
 import os
 import re
 import sys
 import xml.etree.ElementTree as ET
-from io import BytesIO
 
 import pytest
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from aruco_generator.aruco import ArUCOGenerator
-from aruco_generator.drawing import DrawingContext
-from aruco_generator.lightburn import LightBurnExporter
+from aruco_generator.aruco import ArUCOGenerator  # noqa: E402
+from aruco_generator.drawing import DrawingContext  # noqa: E402
+from aruco_generator.lightburn import LightBurnExporter  # noqa: E402
 
 
 class TestSVGExport:
@@ -316,12 +314,12 @@ class TestExportConsistency:
         svg = svg_ctx.get_svg()
 
         # Count markers in SVG (simplified check)
-        svg_marker_count = svg.count("marker_id")
+        _ = svg.count("marker_id")
 
         # LightBurn export
         lb_ctx = DrawingContext()
         lb_ctx.add_marker_grid(markers)
-        lb_output = self.exporter.export(lb_ctx, {})
+        self.exporter.export(lb_ctx, {})
 
         # Both should represent the same number of markers
         expected_count = rows * cols
@@ -354,8 +352,8 @@ class TestExportConsistency:
         width = svg_ctx.bounds["max_x"] - svg_ctx.bounds["min_x"]
         height = svg_ctx.bounds["max_y"] - svg_ctx.bounds["min_y"]
 
-        assert abs(width - expected_width) < 0.1, f"SVG width mismatch"
-        assert abs(height - expected_height) < 0.1, f"SVG height mismatch"
+        assert abs(width - expected_width) < 0.1, "SVG width mismatch"
+        assert abs(height - expected_height) < 0.1, "SVG height mismatch"
 
         # Test LightBurn dimensions
         lb_ctx = DrawingContext()
@@ -364,8 +362,8 @@ class TestExportConsistency:
         width = lb_ctx.bounds["max_x"] - lb_ctx.bounds["min_x"]
         height = lb_ctx.bounds["max_y"] - lb_ctx.bounds["min_y"]
 
-        assert abs(width - expected_width) < 0.1, f"LightBurn width mismatch"
-        assert abs(height - expected_height) < 0.1, f"LightBurn height mismatch"
+        assert abs(width - expected_width) < 0.1, "LightBurn width mismatch"
+        assert abs(height - expected_height) < 0.1, "LightBurn height mismatch"
 
 
 if __name__ == "__main__":

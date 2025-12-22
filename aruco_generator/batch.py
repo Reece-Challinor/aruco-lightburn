@@ -96,7 +96,7 @@ class BatchGenerator:
                 lbrn_file = self.exporter.export(context, metadata)
 
                 # Add to ZIP with descriptive filename
-                filename = f"aruco_batch_{batch_num+1:03d}_ids_{file_start_id}-{file_end_id}_{rows}x{cols}.lbrn2"
+                filename = f"aruco_batch_{batch_num + 1:03d}_ids_{file_start_id}-{file_end_id}_{rows}x{cols}.lbrn2"
                 zip_file.writestr(filename, lbrn_file.getvalue())
 
             # Add batch summary file
@@ -222,9 +222,9 @@ FILE LIST:
             file_end = file_start + markers_per_file - 1
             rows, cols = self._calculate_optimal_grid(markers_per_file)
 
-            summary += f"  {i+1:3d}. aruco_batch_{i+1:03d}_ids_{file_start}-{file_end}_{rows}x{cols}.lbrn2\n"
+            summary += f"  {i + 1:3d}. aruco_batch_{i + 1:03d}_ids_{file_start}-{file_end}_{rows}x{cols}.lbrn2\n"
 
-        summary += f"""
+        summary += """
 MATERIAL SETTINGS:
 - Optimized for 1/16" White/Black 2-Ply Cast Acrylic
 - Cut: 150mm/min @ 75% power

@@ -3,12 +3,9 @@ Integration tests for ArUCO marker generation quality.
 Tests ensure no line artifacts or rendering issues in generated markers.
 """
 
-import json
 import os
 import sys
-import tempfile
 import xml.etree.ElementTree as ET
-from io import BytesIO
 
 import numpy as np
 import pytest
@@ -16,9 +13,9 @@ import pytest
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from aruco_generator.aruco import ArUCOGenerator
-from aruco_generator.drawing import DrawingContext
-from aruco_generator.lightburn import LightBurnExporter
+from aruco_generator.aruco import ArUCOGenerator  # noqa: E402
+from aruco_generator.drawing import DrawingContext  # noqa: E402
+from aruco_generator.lightburn import LightBurnExporter  # noqa: E402
 
 
 class TestGenerationQuality:

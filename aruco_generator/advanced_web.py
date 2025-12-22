@@ -3,17 +3,16 @@ Advanced web routes for coordinate systems, professional exports, and validation
 """
 
 import base64
-import json
 from io import BytesIO
 
 import cv2
 from flask import jsonify, request, send_file
 
 from app import app, db
-from models import CalibrationPattern, DetectionMetric
 
 from .aruco import ArUCOGenerator
 from .exporters import ProfessionalExporter
+from .models import DetectionMetric
 from .validation import DetectionValidator
 
 # Initialize components

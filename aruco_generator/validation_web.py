@@ -2,9 +2,7 @@
 Web routes for marker validation and testing interface.
 """
 
-from flask import jsonify, render_template, request
-
-from app import app
+from flask import render_template
 
 
 # Route defined in web.py

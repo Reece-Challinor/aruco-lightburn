@@ -3,7 +3,7 @@
 <ai_agent_documentation>
   <file_meta>
     <name>app.py</name>
-    <version>3.0.0</version>
+    <version>3.1.0</version>
     <type>flask_application_factory</type>
     <purpose>Main Flask application factory with database integration and route registration</purpose>
     <last_updated>2025-01-15</last_updated>
@@ -13,13 +13,14 @@
   <golden_path>
     <description>Flask application initialization and configuration workflow</description>
     <steps>
-      <step id="1">Import required modules → Flask, SQLAlchemy, logging</step>
-      <step id="2">Create Flask app instance → Configure basic settings</step>
-      <step id="3">Configure database → PostgreSQL or SQLite based on environment</step>
-      <step id="4">Initialize extensions → SQLAlchemy, ProxyFix for HTTPS</step>
-      <step id="5">Create database tables → Import models and call create_all</step>
-      <step id="6">Register routes → Import web modules to register blueprints</step>
-      <step id="7">Configure logging → Set up structured logging for production</step>
+      <step id="1">Import required modules → Flask, logging</step>
+      <step id="2">Import extensions → from aruco_generator.extensions import db</step>
+      <step id="3">Create Flask app instance → Configure basic settings</step>
+      <step id="4">Configure database → PostgreSQL or SQLite based on environment</step>
+      <step id="5">Initialize extensions → db.init_app(app)</step>
+      <step id="6">Create database tables → Import aruco_generator.models and call create_all</step>
+      <step id="7">Register routes → Import web modules to register blueprints</step>
+      <step id="8">Configure logging → Set up structured logging for production</step>
     </steps>
     <fallback_paths>
       <fallback condition="database_unavailable">Log warning and continue without persistence</fallback>
@@ -74,7 +75,7 @@
 
   <deployment_patterns>
     <production_deployment>
-      <wsgi_server>Gunicorn or uWSGI recommended</wsgi_server>
+      <wsgi_server>Gunicorn (app:app)</wsgi_server>
       <database>PostgreSQL with connection pooling</database>
       <environment_variables>DATABASE_URL, SESSION_SECRET required</environment_variables>
       <reverse_proxy>Nginx with HTTPS termination</reverse_proxy>
@@ -123,6 +124,13 @@
   </monitoring_and_observability>
 
   <version_history>
+    <version number="3.1.0" date="2025-01-15">
+      <changes>
+        <change>Refactored DB to extensions.py module</change>
+        <change>Moved models to aruco_generator package</change>
+        <change>Cleaned up root directory topology</change>
+      </changes>
+    </version>
     <version number="3.0.0" date="2025-01-15">
       <changes>
         <change>Enhanced XML documentation system</change>
@@ -179,7 +187,7 @@ Deployment Patterns:
 - Docker: Environment variables for configuration
 
 Author: ArUCO Generator Team
-Version: 3.0.0
+Version: 1.0.0
 """
 
 import logging
@@ -187,17 +195,9 @@ import os
 from datetime import datetime
 
 from flask import Flask, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-
-class Base(DeclarativeBase):
-    pass
-
-
-# Initialize extensions
-db = SQLAlchemy(model_class=Base)
+from aruco_generator.extensions import db
 
 # Create Flask application
 app = Flask(__name__)
@@ -207,15 +207,45 @@ app.secret_key = os.environ.get("SESSION_SECRET")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 # Database configuration
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
-    "DATABASE_URL", "sqlite:///aruco_generator.db"
-)
+db_url = os.environ.get("DATABASE_URL")
+if not db_url or db_url == "sqlite:///aruco_generator.db":
+    # Use default local DB if not potentially configured, or specific dev path
+    app.config["SQLALCHEMY_DATABASE_URI"] = db_url or "sqlite:///aruco_generator.db"
+    # In "lightweight" mode, we might want to skip DB entirely if desired, but for now
+    # we'll default to sqlite if nothing is set, OR we can make it strictly optional.
+    # The plan was to make it strictly optional.
+
+    # Let's check a specific flag or just presence of DATABASE_URL for "Production" DB.
+    # If no DATABASE_URL is set, we will assume "Lightweight/No-Persistance" mode if explicitly requested,
+    # or just use SQLite. However, to match the plan: "Application will run in 'Stateless Mode' by default if no DB URL is provided."
+    pass
+
+# We will actually interpret "No DATABASE_URL" as "Use SQLite" for now to keep existing functioanlity simpler,
+# BUT we will catch the import errors effectively.
+# Actually, let's implement the "Stateless Mode" properly.
+
+USE_DB = False
+if os.environ.get("DATABASE_URL"):
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+    USE_DB = True
+elif os.environ.get("USE_SQLITE"):
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///aruco_generator.db"
+    USE_DB = True
+else:
+    # Stateless mode
+    app.config["SQLALCHEMY_DATABASE_URI"] = (
+        "sqlite:///:memory:"  # Or just don't init DB?
+    )
+    # SQLAlchemy requires a URI if we init it. :memory: is a good stateless safe fallback.
+    # But if we don't want to use models, we should control that.
+    USE_DB = False
+
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,
 }
 
-# Initialize database
+# Initialize database extension only if we intend to use it, or always init with safe fallback
 db.init_app(app)
 
 # Simple logging setup
@@ -224,17 +254,20 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Create database tables with error handling
-try:
-    with app.app_context():
-        # Import models to ensure tables are created
-        import models  # noqa: F401
+# Create database tables only if we are using persistence
+if USE_DB:
+    try:
+        with app.app_context():
+            # Import models to ensure tables are created
+            from aruco_generator import models  # noqa: F401
 
-        db.create_all()
-        logger.info("Database initialized")
-except Exception as e:
-    logger.warning(f"Database initialization skipped: {e}")
-    logger.info("Application will run without database persistence")
+            db.create_all()
+            logger.info("Database initialized")
+    except Exception as e:
+        logger.warning(f"Database initialization skipped: {e}")
+        logger.info("Application will run without database persistence")
+else:
+    logger.info("Running in Stateless Mode (No Database Persistence)")
 
 # Import and register routes
 with app.app_context():
@@ -258,7 +291,7 @@ def health_check():
         jsonify(
             {
                 "status": "healthy",
-                "version": "2.0.0",
+                "version": "3.0.0",
                 "timestamp": datetime.utcnow().isoformat(),
                 "database": "connected" if db else "unavailable",
             }

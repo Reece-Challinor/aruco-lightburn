@@ -10,9 +10,9 @@ import cv2
 from flask import jsonify, render_template, request, send_file
 
 from app import app, db
-from models import CalibrationPattern, DetectionMetric
 
 from .calibration import CalibrationPatternGenerator
+from .models import CalibrationPattern, DetectionMetric
 
 # Initialize calibration generator
 calibration_gen = CalibrationPatternGenerator()

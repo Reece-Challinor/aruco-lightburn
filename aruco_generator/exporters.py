@@ -4,7 +4,6 @@ Professional export formats for calibration and manufacturing.
 
 import json
 import math
-import xml.etree.ElementTree as ET
 from datetime import datetime
 from io import BytesIO
 from typing import Any, Dict, List, Optional
@@ -22,15 +21,7 @@ class ProfessionalExporter:
     def export_opencv_yaml(
         self, calibration_data: Dict[str, Any], camera_params: Optional[Dict] = None
     ) -> str:
-        """Export to OpenCV calibration YAML format.
-
-        Args:
-            calibration_data: Pattern calibration data with coordinates
-            camera_params: Optional camera parameters (intrinsics, distortion)
-
-        Returns:
-            YAML string in OpenCV format
-        """
+        """Export to OpenCV calibration YAML format."""
         # Default camera parameters if not provided
         if not camera_params:
             camera_params = {
@@ -123,15 +114,7 @@ class ProfessionalExporter:
     def export_ros_format(
         self, calibration_data: Dict[str, Any], frame_id: str = "camera_optical_frame"
     ) -> str:
-        """Export to ROS calibration format (JSON).
-
-        Args:
-            calibration_data: Pattern calibration data
-            frame_id: ROS frame ID
-
-        Returns:
-            JSON string in ROS format
-        """
+        """Export to ROS calibration format (JSON)."""
         ros_data = {
             "header": {
                 "seq": 0,
@@ -199,15 +182,7 @@ class ProfessionalExporter:
     def export_dxf(
         self, calibration_data: Dict[str, Any], markers_data: List[Dict] = None
     ) -> BytesIO:
-        """Export to DXF format for CNC/laser cutting.
-
-        Args:
-            calibration_data: Pattern calibration data
-            markers_data: Optional marker image data
-
-        Returns:
-            BytesIO object containing DXF file
-        """
+        """Export to DXF format for CNC/laser cutting."""
         dxf_content = []
 
         # DXF Header
@@ -280,9 +255,7 @@ class ProfessionalExporter:
             height = calibration_data["physical_height_mm"]
 
             # Outer boundary rectangle
-            dxf_content.append(
-                f"0\nPOLYLINE\n8\nCUT\n66\n1\n70\n1\n"  # Closed polyline
-            )
+            dxf_content.append("0\nPOLYLINE\n8\nCUT\n66\n1\n70\n1\n")  # Closed polyline
             corners = [[0, 0], [width, 0], [width, height], [0, height]]
             for corner in corners:
                 dxf_content.append(
@@ -300,47 +273,14 @@ class ProfessionalExporter:
 
         return dxf_bytes
 
-    def export_pdf_precise(
-        self, calibration_data: Dict[str, Any], dpi: int = 300
-    ) -> BytesIO:
-        """Export to PDF with precise dimensions for printing.
-
-        Note: This is a placeholder for PDF generation.
-        Full implementation would use reportlab or similar library.
-        """
-        # This would require reportlab or similar PDF library
-        # For now, return a simple implementation indicator
-        pdf_data = {
-            "format": "PDF",
-            "dpi": dpi,
-            "physical_width_mm": calibration_data.get("physical_width_mm"),
-            "physical_height_mm": calibration_data.get("physical_height_mm"),
-            "markers": len(calibration_data.get("markers", [])),
-            "note": "Full PDF implementation requires reportlab library",
-        }
-
-        pdf_bytes = BytesIO()
-        pdf_bytes.write(json.dumps(pdf_data, indent=2).encode("utf-8"))
-        pdf_bytes.seek(0)
-
-        return pdf_bytes
-
     def export_stl_3d(
         self, calibration_data: Dict[str, Any], thickness_mm: float = 3.0
     ) -> BytesIO:
-        """Export to STL format for 3D printing landing pads.
-
-        Args:
-            calibration_data: Pattern calibration data
-            thickness_mm: Thickness of the 3D printed pad
-
-        Returns:
-            BytesIO object containing STL file
-        """
+        """Export to STL format for 3D printing landing pads."""
         stl_content = []
 
         # STL ASCII format header
-        stl_content.append(f"solid landing_pad\n")
+        stl_content.append("solid landing_pad\n")
 
         # Create a base plate
         width = calibration_data.get("physical_width_mm", 200)
@@ -404,12 +344,12 @@ class ProfessionalExporter:
             stl_content.append(
                 f"  facet normal {normal[0]:.6f} {normal[1]:.6f} {normal[2]:.6f}\n"
             )
-            stl_content.append(f"    outer loop\n")
+            stl_content.append("    outer loop\n")
             for vertex_idx in face:
                 v = vertices[vertex_idx]
                 stl_content.append(f"      vertex {v[0]:.6f} {v[1]:.6f} {v[2]:.6f}\n")
-            stl_content.append(f"    endloop\n")
-            stl_content.append(f"  endfacet\n")
+            stl_content.append("    endloop\n")
+            stl_content.append("  endfacet\n")
 
         # Add raised markers if needed (simplified)
         if "markers" in calibration_data:
@@ -426,17 +366,17 @@ class ProfessionalExporter:
                         marker_vertices.append([corner[0], corner[1], marker_height])
 
                     # Add top face of raised marker
-                    stl_content.append(f"  facet normal 0 0 1\n")
-                    stl_content.append(f"    outer loop\n")
+                    stl_content.append("  facet normal 0 0 1\n")
+                    stl_content.append("    outer loop\n")
                     for i in [1, 3, 5]:  # Top vertices
                         v = marker_vertices[i]
                         stl_content.append(
                             f"      vertex {v[0]:.6f} {v[1]:.6f} {v[2]:.6f}\n"
                         )
-                    stl_content.append(f"    endloop\n")
-                    stl_content.append(f"  endfacet\n")
+                    stl_content.append("    endloop\n")
+                    stl_content.append("  endfacet\n")
 
-        stl_content.append(f"endsolid landing_pad\n")
+        stl_content.append("endsolid landing_pad\n")
 
         # Create BytesIO object
         stl_bytes = BytesIO()
@@ -494,3 +434,132 @@ class ProfessionalExporter:
         ) * math.sin(pitch / 2) * math.sin(yaw / 2)
 
         return {"x": qx, "y": qy, "z": qz, "w": qw}
+
+
+class PDFExporter:
+    """Export patterns as PDF using ReportLab."""
+
+    def __init__(self):
+        try:
+            import reportlab  # noqa: F401
+
+            self.available = True
+        except ImportError:
+            self.available = False
+
+    def generate_pdf(
+        self, markers: List[Dict[str, Any]], size_mm: float, include_labels: bool = True
+    ) -> bytes:
+        """
+        Generate PDF with marker grid.
+
+        Args:
+            markers: List of marker data (including images)
+            size_mm: Size of each marker in mm
+            include_labels: Whether to include ID labels
+
+        Returns:
+            bytes: PDF file content
+
+        Raises:
+            ImportError: If reportlab is not installed
+        """
+        if not self.available:
+            raise ImportError("ReportLab is not installed")
+
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib.units import mms
+        from reportlab.pdfgen import canvas
+
+        # Calculate grid bounds to center on page
+        # Note: we are receiving absolute positions in 'markers', assuming they start from 0,0
+        # If we want to center them on A4, we need to find bounding box.
+
+        if not markers:
+            return b""
+
+        max_x = max(m["x"] for m in markers) + size_mm
+        max_y = max(m["y"] for m in markers) + size_mm
+
+        # Center on A4 (or adjust page size if too big)
+        page_w, page_h = A4
+
+        content_w = max_x * mms
+        content_h = max_y * mms
+
+        if content_w > page_w or content_h > page_h:
+            # Create custom pagesize
+            page_size = (content_w + 20 * mms, content_h + 20 * mms)
+        else:
+            page_size = A4
+
+        buffer = BytesIO()
+        c = canvas.Canvas(buffer, pagesize=page_size)
+
+        # Calculate offset to center
+        margin_x = (page_size[0] - content_w) / 2
+        margin_y = (page_size[1] - content_h) / 2
+
+        # In PDF, origin is bottom-left. In our system, origin is top-left usually or handled by logic.
+        # Let's assume our Y is from top-down logic (SVG style), so we need to flip it for PDF.
+        # But wait, our 'y' values in markers are 0-based from top-left.
+        # So marker at y=0 should be at page_height - margin_y - size_mm
+
+        for marker in markers:
+            # Position
+            x = margin_x + marker["x"] * mms
+            # Flip Y coordinate system: page_height - top_margin - y_offset - height of marker
+            y = page_size[1] - margin_y - marker["y"] * mms - size_mm * mms
+
+            w = size_mm * mms
+            h = size_mm * mms
+
+            # Draw Marker
+            if "image" in marker and marker["image"] is not None:
+                self._draw_marker_vector(c, marker["image"], x, y, w)
+            else:
+                # Fallback placeholder
+                c.rect(x, y, w, h)
+
+            # Draw Label
+            if include_labels:
+                c.setFont("Helvetica", 10)
+                text = f"ID: {marker['id']}"
+                text_w = c.stringWidth(text, "Helvetica", 10)
+                # Text below marker
+                c.drawString(x + (w - text_w) / 2, y - 12, text)
+
+        c.showPage()
+        c.save()
+
+        return buffer.getvalue()
+
+    def _draw_marker_vector(
+        self, c, image: np.ndarray, x: float, y: float, size: float
+    ):
+        """Draw marker using vector rectangles for sharpness."""
+        # Image is a binary numpy array (0=white, 255=black) or similar
+        # If it's pure black/white, we only draw black (255?) squares?
+        # Usually ArUCO: 0=black, 255=white. Let's check `aruco.py` generate_marker docstring:
+        # "0=white, 255=black" based on standard image conventions?
+        # Wait, cv2.aruco.generateImageMarker returns 0 for black and 255 for white usually.
+        # Let's verify standard assumption: Markers have black borders.
+        # If I look at `aruco.py` fallback: "final_pattern[i, j] = 255 if value > 127 else 0"
+        # And it says "Create border (always black)".
+        # Let's assume convention: 0 is black, 255 is white.
+        # Actually in `aruco.py` fallback: "pattern[i + 1, j + 1] = 255 if bit_value else 0". border is 0.
+        # So 0 is BLACK, 255 is WHITE.
+
+        rows, cols = image.shape
+        pixel_size = size / cols
+
+        c.setFillColorRGB(0, 0, 0)
+
+        for r in range(rows):
+            for col in range(cols):
+                val = image[r, col]
+                if val < 127:  # Black pixel
+                    # PDF Y is bottom-left, so row 0 is at top (y + size - pixel_size)
+                    px = x + col * pixel_size
+                    py = y + size - (r + 1) * pixel_size
+                    c.rect(px, py, pixel_size, pixel_size, fill=1, stroke=0)

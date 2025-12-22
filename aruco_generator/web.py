@@ -228,6 +228,7 @@ from app import app
 from .aruco import ArUCOGenerator
 from .drawing import DrawingContext
 from .lightburn import LightBurnExporter
+from .utils import handle_api_errors, validate_generation_params
 
 # Initialize core components
 aruco_gen = ArUCOGenerator()
@@ -271,268 +272,169 @@ def get_dictionaries():
 
 
 @app.route("/api/preview", methods=["POST"])
+@handle_api_errors
 def generate_preview():
     """Generate SVG preview of markers"""
-    try:
-        data = request.get_json()
+    data = request.get_json()
+    params = validate_generation_params(data, list(aruco_gen.dictionaries.keys()))
 
-        # Extract and validate parameters
-        dictionary = data.get("dictionary")
-        if not dictionary or dictionary not in aruco_gen.dictionaries:
-            available = list(aruco_gen.dictionaries.keys())
-            return (
-                jsonify(
-                    {
-                        "error": f'Invalid dictionary "{dictionary}". Available dictionaries: {", ".join(available[:5])}{"..." if len(available) > 5 else ""}'
-                    }
-                ),
-                400,
-            )
+    # Generate markers
+    markers = aruco_gen.generate_grid(
+        start_id=params["start_id"],
+        dict_name=params["dictionary"],
+        rows=params["rows"],
+        cols=params["cols"],
+        size_mm=params["size_mm"],
+        spacing_mm=params["spacing_mm"],
+    )
 
-        start_id = int(data.get("start_id", 0))
-        rows = int(data.get("rows", 1))
-        cols = int(data.get("cols", 1))
-        size_mm = float(data.get("size_mm", 20))
-        spacing_mm = float(data.get("spacing_mm", 5))
-        border_bits = int(data.get("border_bits", 1))
-
-        # Validate ranges
-        if start_id < 0:
-            return jsonify({"error": "Start ID must be non-negative"}), 400
-        if rows <= 0 or cols <= 0:
-            return jsonify({"error": "Rows and columns must be positive integers"}), 400
-        if size_mm <= 0:
-            return (
-                jsonify({"error": "Marker size must be positive (in millimeters)"}),
-                400,
-            )
-        if spacing_mm < 0:
-            return (
-                jsonify({"error": "Spacing must be non-negative (in millimeters)"}),
-                400,
-            )
-
-        # Generate markers - fixed parameter order
-        markers = aruco_gen.generate_grid(
-            start_id=start_id,
-            dict_name=dictionary,
-            rows=rows,
-            cols=cols,
-            size_mm=size_mm,
-            spacing_mm=spacing_mm,
-        )
-
-        # Prepare markers for drawing
-        marker_data = []
-        for marker_info in markers:
-            marker_data.append(
-                {
-                    "x": marker_info["x"],
-                    "y": marker_info["y"],
-                    "size": marker_info["size"],
-                    "id": marker_info["id"],
-                    "image": marker_info.get("image"),
-                }
-            )
-
-        # Create drawing context and generate SVG
-        ctx = DrawingContext()
-        ctx.add_marker_grid_preview(
-            marker_data,
-            include_borders=True,
-            include_outer_border=data.get("include_outer_border", False),
-            border_width=float(data.get("border_width", 2.0)),
-        )
-
-        # Add labels if requested
-        if data.get("include_labels"):
-            ctx.add_text_labels(marker_data)
-
-        svg_content = ctx.get_svg()
-
-        # Calculate dimensions
-        total_width, total_height = aruco_gen.calculate_total_size(
-            rows, cols, size_mm, spacing_mm
-        )
-
-        if data.get("include_labels"):
-            total_height += 6
-
-        if data.get("include_outer_border"):
-            border_width = float(data.get("border_width", 2.0))
-            total_width += 2 * border_width
-            total_height += 2 * border_width
-
-        return jsonify(
+    # Prepare markers for drawing
+    marker_data = []
+    for marker_info in markers:
+        marker_data.append(
             {
-                "svg": svg_content,
-                "dimensions": {
-                    "width": round(total_width, 2),
-                    "height": round(total_height, 2),
-                },
-                "total_width": total_width,
-                "total_height": total_height,
-                "marker_count": rows * cols,
-                "success": True,
+                "x": marker_info["x"],
+                "y": marker_info["y"],
+                "size": marker_info["size"],
+                "id": marker_info["id"],
+                "image": marker_info.get("image"),
             }
         )
 
-    except ValueError as e:
-        return jsonify({"error": f"Invalid input parameter: {str(e)}"}), 400
-    except Exception as e:
-        logger.error(f"Preview generation error: {e}")
-        return (
-            jsonify(
-                {
-                    "error": "Failed to generate preview. Please check your parameters and try again."
-                }
-            ),
-            500,
-        )
+    # Create drawing context and generate SVG
+    ctx = DrawingContext()
+    ctx.add_marker_grid_preview(
+        marker_data,
+        include_borders=True,
+        include_outer_border=params["include_outer_border"],
+        border_width=params["border_width"],
+    )
+
+    # Add labels if requested
+    if params["include_labels"]:
+        ctx.add_text_labels(marker_data)
+
+    svg_content = ctx.get_svg()
+
+    # Calculate dimensions
+    total_width, total_height = aruco_gen.calculate_total_size(
+        params["rows"], params["cols"], params["size_mm"], params["spacing_mm"]
+    )
+
+    if params["include_labels"]:
+        total_height += 6
+
+    if params["include_outer_border"]:
+        total_width += 2 * params["border_width"]
+        total_height += 2 * params["border_width"]
+
+    return jsonify(
+        {
+            "svg": svg_content,
+            "dimensions": {
+                "width": round(total_width, 2),
+                "height": round(total_height, 2),
+            },
+            "total_width": total_width,
+            "total_height": total_height,
+            "marker_count": params["rows"] * params["cols"],
+            "success": True,
+        }
+    )
 
 
 @app.route("/api/download", methods=["POST"])
+@handle_api_errors
 def download_lightburn():
     """Generate and download LightBurn file"""
-    try:
-        data = request.get_json()
+    data = request.get_json()
+    params = validate_generation_params(data, list(aruco_gen.dictionaries.keys()))
 
-        # Extract and validate parameters
-        dictionary = data.get("dictionary")
-        if not dictionary or dictionary not in aruco_gen.dictionaries:
-            available = list(aruco_gen.dictionaries.keys())
-            return (
-                jsonify(
-                    {
-                        "error": f'Invalid dictionary "{dictionary}". Available dictionaries: {", ".join(available[:5])}{"..." if len(available) > 5 else ""}'
-                    }
-                ),
-                400,
-            )
+    # Generate markers
+    markers = aruco_gen.generate_grid(
+        start_id=params["start_id"],
+        dict_name=params["dictionary"],
+        rows=params["rows"],
+        cols=params["cols"],
+        size_mm=params["size_mm"],
+        spacing_mm=params["spacing_mm"],
+    )
 
-        start_id = int(data.get("start_id", 0))
-        rows = int(data.get("rows", 1))
-        cols = int(data.get("cols", 1))
-        size_mm = float(data.get("size_mm", 20))
-        spacing_mm = float(data.get("spacing_mm", 5))
-        border_bits = int(data.get("border_bits", 1))
+    # Generate LightBurn file
+    lightburn_content = lightburn_exporter.create_lightburn_file(
+        markers=markers,
+        size_mm=params["size_mm"],
+        border_bits=params["border_bits"],
+        include_labels=params["include_labels"],
+        include_alignment=params["include_alignment"],
+        include_rulers=params["include_rulers"],
+    )
 
-        # Generate markers - fixed parameter order
-        markers = aruco_gen.generate_grid(
-            start_id=start_id,
-            dict_name=dictionary,
-            rows=rows,
-            cols=cols,
-            size_mm=size_mm,
-            spacing_mm=spacing_mm,
-        )
+    # Generate filename
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"aruco_{params['dictionary']}_{params['rows']}x{params['cols']}_{timestamp}.lbrn2"
 
-        # Generate LightBurn file
-        lightburn_content = lightburn_exporter.create_lightburn_file(
-            markers=markers,
-            size_mm=size_mm,
-            border_bits=border_bits,
-            include_labels=data.get("include_labels", False),
-            include_alignment=data.get("include_alignment", False),
-            include_rulers=data.get("include_rulers", False),
-        )
-
-        # Generate filename
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"aruco_{dictionary}_{rows}x{cols}_{timestamp}.lbrn2"
-
-        return send_file(
-            io.BytesIO(lightburn_content.encode("utf-8")),
-            as_attachment=True,
-            download_name=filename,
-            mimetype="application/octet-stream",
-        )
-
-    except ValueError as e:
-        return jsonify({"error": f"Invalid input parameter: {str(e)}"}), 400
-    except Exception as e:
-        logger.error(f"Download error: {e}")
-        return (
-            jsonify(
-                {
-                    "error": "Failed to generate LightBurn file. Please check your parameters and try again."
-                }
-            ),
-            500,
-        )
+    return send_file(
+        io.BytesIO(lightburn_content.encode("utf-8")),
+        as_attachment=True,
+        download_name=filename,
+        mimetype="application/octet-stream",
+    )
 
 
 @app.route("/api/advanced_preview", methods=["POST"])
+@handle_api_errors
 def generate_advanced_preview():
     """Generate advanced preview with additional options"""
-    try:
-        data = request.get_json()
+    data = request.get_json()
+    # reuse basic validation but extract specific advanced flag manually if strictly needed,
+    # or rely on the dict returned. validate_generation_params passes through unknown keys?
+    # Actually validate_generation_params extracts specific keys.
+    # But advanced_preview uses 'include_borders' which we added to the utils return.
+    params = validate_generation_params(data, list(aruco_gen.dictionaries.keys()))
 
-        # Extract parameters (similar to regular preview)
-        dictionary = data.get("dictionary")
-        if not dictionary or dictionary not in aruco_gen.dictionaries:
-            available = list(aruco_gen.dictionaries.keys())
-            return (
-                jsonify(
-                    {
-                        "error": f'Invalid dictionary "{dictionary}". Available dictionaries: {", ".join(available[:5])}{"..." if len(available) > 5 else ""}'
-                    }
-                ),
-                400,
+    # Generate markers
+    markers = aruco_gen.generate_grid(
+        start_id=params["start_id"],
+        dict_name=params["dictionary"],
+        rows=params["rows"],
+        cols=params["cols"],
+        size_mm=params["size_mm"],
+        spacing_mm=params["spacing_mm"],
+    )
+
+    # Create drawing context and generate SVG with advanced options
+    ctx = DrawingContext()
+    ctx.add_marker_grid_preview(
+        markers=markers,
+        size_mm=params["size_mm"],
+        spacing_mm=params["spacing_mm"],
+        include_borders=params["include_borders"],
+    )
+
+    if params["include_labels"]:
+        for marker in markers:
+            ctx.add_text(
+                text=f"ID: {marker['id']}",
+                x=marker["x"] + params["size_mm"] / 2,
+                y=marker["y"] - 2,
             )
 
-        start_id = int(data.get("start_id", 0))
-        rows = int(data.get("rows", 1))
-        cols = int(data.get("cols", 1))
-        size_mm = float(data.get("size_mm", 20))
-        spacing_mm = float(data.get("spacing_mm", 5))
-        border_bits = int(data.get("border_bits", 1))
-        include_borders = data.get("include_borders", False)
-        include_labels = data.get("include_labels", False)
+    svg_content = ctx.to_svg()
+    total_width, total_height = aruco_gen.calculate_total_size(
+        rows=params["rows"],
+        cols=params["cols"],
+        size_mm=params["size_mm"],
+        spacing_mm=params["spacing_mm"],
+    )
 
-        # Generate markers
-        markers = aruco_gen.generate_grid(
-            start_id=start_id,
-            dict_name=dictionary,
-            rows=rows,
-            cols=cols,
-            size_mm=size_mm,
-            spacing_mm=spacing_mm,
-        )
-
-        # Create drawing context and generate SVG with advanced options
-        ctx = DrawingContext()
-        ctx.add_marker_grid_preview(
-            markers=markers,
-            size_mm=size_mm,
-            spacing_mm=spacing_mm,
-            include_borders=include_borders,
-        )
-
-        if include_labels:
-            for marker in markers:
-                ctx.add_text(
-                    text=f"ID: {marker['id']}",
-                    x=marker["x"] + size_mm / 2,
-                    y=marker["y"] - 2,
-                )
-
-        svg_content = ctx.to_svg()
-        total_width, total_height = aruco_gen.calculate_total_size(
-            rows=rows, cols=cols, size_mm=size_mm, spacing_mm=spacing_mm
-        )
-
-        return jsonify(
-            {
-                "svg": svg_content,
-                "count": len(markers),
-                "dimensions": {"width": total_width, "height": total_height},
-            }
-        )
-
-    except Exception as e:
-        logger.error(f"Advanced preview error: {e}")
-        return jsonify({"error": str(e)}), 500
+    return jsonify(
+        {
+            "svg": svg_content,
+            "count": len(markers),
+            "dimensions": {"width": total_width, "height": total_height},
+        }
+    )
 
 
 @app.route("/api/batch_generate", methods=["POST"])
@@ -541,6 +443,7 @@ def batch_generate():
     try:
         data = request.get_json()
 
+        # Batch specific validation (keeping it simple here for now or could refactor too)
         sets = int(data.get("sets", 1))
         markers_per_set = int(data.get("markers_per_set", 5))
         start_id = int(data.get("start_id", 0))
@@ -549,15 +452,8 @@ def batch_generate():
         spacing_mm = float(data.get("spacing_mm", 5))
 
         if dictionary not in aruco_gen.dictionaries:
-            available = list(aruco_gen.dictionaries.keys())
-            return (
-                jsonify(
-                    {
-                        "error": f'Invalid dictionary "{dictionary}". Available dictionaries: {", ".join(available[:5])}{"..." if len(available) > 5 else ""}'
-                    }
-                ),
-                400,
-            )
+            # Just reusing the logic for now as it's slightly different structure
+            raise ValueError(f"Invalid dictionary: {dictionary}")
 
         all_markers = []
         for set_idx in range(sets):
@@ -647,95 +543,97 @@ def get_presets():
 
 
 @app.route("/api/export/svg", methods=["POST"])
+@handle_api_errors
 def export_svg():
     """Export markers as SVG file"""
-    try:
-        data = request.get_json()
+    data = request.get_json()
+    params = validate_generation_params(data, list(aruco_gen.dictionaries.keys()))
 
-        # Extract and validate parameters (same as preview)
-        dictionary = data.get("dictionary")
-        if not dictionary or dictionary not in aruco_gen.dictionaries:
-            available = list(aruco_gen.dictionaries.keys())
-            return (
-                jsonify(
-                    {
-                        "error": f'Invalid dictionary "{dictionary}". Available dictionaries: {", ".join(available[:5])}{"..." if len(available) > 5 else ""}'
-                    }
-                ),
-                400,
-            )
+    # Generate markers with actual images
+    markers = aruco_gen.generate_grid(
+        start_id=params["start_id"],
+        dict_name=params["dictionary"],
+        rows=params["rows"],
+        cols=params["cols"],
+        size_mm=params["size_mm"],
+        spacing_mm=params["spacing_mm"],
+    )
 
-        start_id = int(data.get("start_id", 0))
-        rows = int(data.get("rows", 1))
-        cols = int(data.get("cols", 1))
-        size_mm = float(data.get("size_mm", 20))
-        spacing_mm = float(data.get("spacing_mm", 5))
+    # Create drawing context and generate SVG with merged rectangles
+    ctx = DrawingContext()
+    ctx.add_marker_grid(
+        markers,
+        include_borders=params["include_borders"],
+        include_outer_border=params["include_outer_border"],
+    )
 
-        # Generate markers with actual images
-        markers = aruco_gen.generate_grid(
-            start_id=start_id,
-            dict_name=dictionary,
-            rows=rows,
-            cols=cols,
-            size_mm=size_mm,
-            spacing_mm=spacing_mm,
-        )
+    if params["include_labels"]:
+        ctx.add_text_labels(markers)
 
-        # Create drawing context and generate SVG with merged rectangles
-        ctx = DrawingContext()
-        ctx.add_marker_grid(
-            markers,
-            include_borders=data.get("include_borders", True),
-            include_outer_border=data.get("include_outer_border", False),
-        )
+    svg_content = ctx.get_svg()
 
-        if data.get("include_labels"):
-            ctx.add_text_labels(markers)
+    # Generate filename
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"aruco_{params['dictionary']}_{params['rows']}x{params['cols']}_{timestamp}.svg"
 
-        svg_content = ctx.get_svg()
-
-        # Generate filename
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"aruco_{dictionary}_{rows}x{cols}_{timestamp}.svg"
-
-        return send_file(
-            io.BytesIO(svg_content.encode("utf-8")),
-            as_attachment=True,
-            download_name=filename,
-            mimetype="image/svg+xml",
-        )
-
-    except ValueError as e:
-        return jsonify({"error": f"Invalid input parameter: {str(e)}"}), 400
-    except Exception as e:
-        logger.error(f"SVG export error: {e}")
-        return (
-            jsonify(
-                {
-                    "error": "Failed to export SVG file. Please check your parameters and try again."
-                }
-            ),
-            500,
-        )
+    return send_file(
+        io.BytesIO(svg_content.encode("utf-8")),
+        as_attachment=True,
+        download_name=filename,
+        mimetype="image/svg+xml",
+    )
 
 
 @app.route("/api/export/pdf", methods=["POST"])
+@handle_api_errors
 def export_pdf():
-    """Export markers as PDF file (placeholder for now)"""
+    """Export markers as PDF file"""
     try:
-        # For now, return a JSON response indicating PDF export is not yet implemented
+        from .exporters import PDFExporter
+
+        pdf_exporter = PDFExporter()
+
+        data = request.get_json()
+        params = validate_generation_params(data, list(aruco_gen.dictionaries.keys()))
+
+        # Generate markers with actual images
+        markers = aruco_gen.generate_grid(
+            start_id=params["start_id"],
+            dict_name=params["dictionary"],
+            rows=params["rows"],
+            cols=params["cols"],
+            size_mm=params["size_mm"],
+            spacing_mm=params["spacing_mm"],
+        )
+
+        # Generate PDF
+        pdf_content = pdf_exporter.generate_pdf(
+            markers=markers,
+            size_mm=params["size_mm"],
+            include_labels=params["include_labels"],
+        )
+
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"aruco_{params['dictionary']}_{params['rows']}x{params['cols']}_{timestamp}.pdf"
+
+        return send_file(
+            io.BytesIO(pdf_content),
+            as_attachment=True,
+            download_name=filename,
+            mimetype="application/pdf",
+        )
+    except ImportError:
         return (
             jsonify(
                 {
-                    "error": "PDF export is not yet implemented. Please use SVG or LightBurn format instead."
+                    "error": "PDF export libraries not installed. Please install reportlab."
                 }
             ),
             501,
         )
-
     except Exception as e:
-        logger.error(f"PDF export error: {e}")
-        return jsonify({"error": f"Unexpected error: {str(e)}"}), 500
+        logger.error(f"PDF Export failed: {e}")
+        raise e
 
 
 @app.route("/api/quick-test")
@@ -768,7 +666,7 @@ def debug_status():
         import cv2
 
         opencv_version = cv2.__version__
-    except:
+    except Exception:
         opencv_version = "Not available"
 
     return jsonify(

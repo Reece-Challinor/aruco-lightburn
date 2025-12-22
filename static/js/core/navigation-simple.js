@@ -8,33 +8,33 @@ class SimpleNavigation {
         this.currentPath = window.location.pathname;
         this.init();
     }
-    
+
     init() {
         // Mark active navigation item
         this.markActiveNav();
-        
+
         // Setup basic keyboard shortcuts
         this.setupKeyboardShortcuts();
-        
+
         // Log navigation
         console.log(`Navigation initialized: ${this.currentPath}`);
     }
-    
+
     markActiveNav() {
-        // Remove all active classes
-        document.querySelectorAll('.nav-link').forEach(link => {
+        // Remove all active classes from global nav only
+        document.querySelectorAll('.global-nav .nav-link').forEach(link => {
             link.classList.remove('active');
         });
-        
-        // Add active class to current page
-        document.querySelectorAll('.nav-link').forEach(link => {
+
+        // Add active class to current page in global nav
+        document.querySelectorAll('.global-nav .nav-link').forEach(link => {
             const href = link.getAttribute('href');
             if (href === this.currentPath) {
                 link.classList.add('active');
             }
         });
     }
-    
+
     setupKeyboardShortcuts() {
         // Simple keyboard shortcuts
         document.addEventListener('keydown', (e) => {
@@ -42,7 +42,7 @@ class SimpleNavigation {
             if (e.target.matches('input, textarea, select')) {
                 return;
             }
-            
+
             // Alt + key shortcuts
             if (e.altKey) {
                 switch(e.key.toLowerCase()) {
@@ -68,7 +68,7 @@ class SimpleNavigation {
                         break;
                 }
             }
-            
+
             // Help shortcut
             if (e.key === '?' && !e.altKey && !e.ctrlKey) {
                 e.preventDefault();
@@ -76,13 +76,13 @@ class SimpleNavigation {
             }
         });
     }
-    
+
     navigate(path) {
         if (this.currentPath !== path) {
             window.location.href = path;
         }
     }
-    
+
     showHelp() {
         const helpText = `
 Keyboard Shortcuts:

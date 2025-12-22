@@ -22,17 +22,18 @@
 
 ## Project Overview
 
-**ArUCO LightBurn Generator** v2.0.0
+**ArUCO LightBurn Generator** v1.0.0
 Professional computer vision marker generation suite with LightBurn export.
 
 **Tech Stack:**
 - **Backend**: Flask 3.1+ (Python 3.11+)
 - **Frontend**: Vanilla JavaScript ES6+ with Bootstrap 5
-- **Database**: SQLAlchemy (PostgreSQL/SQLite)
+- **Database**: SQLAlchemy (Optional - SQLite/PostgreSQL/None)
 - **Computer Vision**: OpenCV 4.11+
 - **Template Engine**: Jinja2
 - **Server**: Gunicorn
 - **Containerization**: Docker + docker-compose
+- **PDF Generation**: ReportLab (Optional)
 
 **Key Features:**
 - ArUCO marker generation (single/grid layouts)
@@ -507,11 +508,13 @@ window.showToast = (message, type) => {...}
 ```
 tests/
 ├── test_api.py                 # API integration tests
-├── test_api_endpoints.py       # Endpoint-specific tests
-├── test_aruco_generator.py     # Unit tests for core logic
+├── test_api_endpoints.py       # Detailed API tests
+├── test_aruco_generator.py     # Core generation tests
+├── test_batch_generator.py     # Batch processing tests
 ├── test_export_formats.py      # Export format validation
 ├── test_generation_quality.py  # Quality assurance tests
-└── test_navigation.py          # UI/template tests
+├── test_navigation.py          # UI/template tests
+└── test_utils.py               # Utilities validation tests
 ```
 
 ### Running Tests
@@ -539,6 +542,8 @@ pytest --cov=aruco_generator --cov-report=html
 - Export format logic
 - Drawing utilities
 - Validation algorithms
+- Batch generators
+- Utility functions
 
 **Integration Tests:**
 - API endpoints
@@ -554,7 +559,7 @@ pytest --cov=aruco_generator --cov-report=html
 
 ### Test Status
 
-**Current:** 59 passing, 7 skipped (100% pass rate)
+**Current:** 59 passing, 6 skipped (100% pass rate)
 
 **Skipped Tests:**
 - Advanced preview (requires specific setup)

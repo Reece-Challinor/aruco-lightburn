@@ -172,7 +172,7 @@ class ArUCOGenerator:
                         marker_data["image"] = self.generate_marker(
                             marker_id, dict_name, 200
                         )
-                    except ValueError as e:
+                    except ValueError:
                         # Skip invalid marker IDs
                         continue
 
