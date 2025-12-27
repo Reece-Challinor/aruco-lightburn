@@ -32,7 +32,7 @@ except ImportError:
 import hashlib
 import json
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import yaml
 
@@ -426,6 +426,99 @@ class CalibrationPatternGenerator:
             "image": canvas,
             "metadata": metadata,
             "dimensions_mm": (grid_width_mm, grid_height_mm),
+        }
+
+    def calibrate_camera(
+        self,
+        images: List[np.ndarray],
+        pattern_size: Tuple[int, int],
+        square_size_mm: float = 25.0,
+    ) -> Dict[str, Any]:
+        """
+        Calibrate camera using a set of checkerboard images.
+
+        Args:
+            images: List of images containing the checkerboard pattern
+            pattern_size: Tuple of (rows, cols) of inner corners (e.g., (9, 6))
+            square_size_mm: Size of one square side in mm
+
+        Returns:
+            Dictionary containing calibration results (matrix, distortion, error)
+        """
+        if not OPENCV_AVAILABLE or cv2 is None:
+            raise RuntimeError("OpenCV required for camera calibration")
+
+        # Prepare object points (0,0,0), (1,0,0), (2,0,0) ...
+        # pattern_size is (columns, rows) of internal corners
+        objp = np.zeros((pattern_size[0] * pattern_size[1], 3), np.float32)
+        objp[:, :2] = np.mgrid[0 : pattern_size[0], 0 : pattern_size[1]].T.reshape(
+            -1, 2
+        )
+        objp = objp * square_size_mm
+
+        # Arrays to store object points and image points from all the images
+        objpoints = []  # 3d point in real world space
+        imgpoints = []  # 2d points in image plane
+
+        valid_images = 0
+        image_size = None
+
+        for img in images:
+            if len(img.shape) == 3:
+                gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            else:
+                gray = img
+
+            if image_size is None:
+                image_size = gray.shape[::-1]
+            elif gray.shape[::-1] != image_size:
+                continue  # Skip images with inconsistent sizes
+
+            # Find the chess board corners
+            ret, corners = cv2.findChessboardCorners(gray, pattern_size, None)
+
+            if ret:
+                objpoints.append(objp)
+                # Refine corner locations
+                corners2 = cv2.cornerSubPix(
+                    gray,
+                    corners,
+                    (11, 11),
+                    (-1, -1),
+                    (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001),
+                )
+                imgpoints.append(corners2)
+                valid_images += 1
+
+        if valid_images < 3:
+            return {
+                "calibrated": False,
+                "error": "Insufficient valid frames for calibration (minimum 3 required)",
+            }
+
+        # Perform calibration
+        ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(
+            objpoints, imgpoints, image_size, None, None
+        )
+
+        # Calculate re-projection error
+        mean_error = 0
+        for i in range(len(objpoints)):
+            imgpoints2, _ = cv2.projectPoints(
+                objpoints[i], rvecs[i], tvecs[i], mtx, dist
+            )
+            error = cv2.norm(imgpoints[i], imgpoints2, cv2.NORM_L2) / len(imgpoints2)
+            mean_error += error
+        total_error = mean_error / len(objpoints)
+
+        return {
+            "calibrated": True,
+            "camera_matrix": mtx.tolist(),
+            "distortion_coefficients": dist.tolist(),
+            "rms_error": ret,
+            "reprojection_error": total_error,
+            "images_used": valid_images,
+            "image_size": image_size,
         }
 
     def export_calibration_yaml(

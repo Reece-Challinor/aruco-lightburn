@@ -33,7 +33,9 @@ from .drawing import DrawingContext
 
 class LightBurnExporter:
     def __init__(self):
-        # Material-specific settings for 1/16" White/Black 2-Ply Cast Acrylic
+        self.materials_file = "materials.json"
+
+        # Default settings
         self.material_settings = {
             "1_16_cast_acrylic": {
                 "name": '1/16" Cast Acrylic (Default)',
@@ -47,6 +49,22 @@ class LightBurnExporter:
                 "mark_power": 20,  # %
             }
         }
+
+        # Try to load custom settings
+        self._load_materials()
+
+    def _load_materials(self):
+        """Load material settings from JSON file if available matches"""
+        import json
+        import os
+
+        if os.path.exists(self.materials_file):
+            try:
+                with open(self.materials_file, "r") as f:
+                    custom_settings = json.load(f)
+                    self.material_settings.update(custom_settings)
+            except Exception as e:
+                print(f"Warning: Failed to load {self.materials_file}: {e}")
 
         # Layer configuration with material-specific settings
         self.layer_settings = {

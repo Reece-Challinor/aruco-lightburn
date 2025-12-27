@@ -29,6 +29,9 @@ from .lightburn import LightBurnExporter
 
 
 class BatchGenerator:
+    MAX_BATCH_SIZE = 1000
+    MAX_MARKERS_PER_FILE = 500
+
     def __init__(self):
         self.generator = ArUCOGenerator()
         self.exporter = LightBurnExporter()
@@ -37,6 +40,12 @@ class BatchGenerator:
         self, base_config: Dict[str, Any], batch_size: int, markers_per_file: int
     ) -> BytesIO:
         """Generate multiple LightBurn files with sequential ID ranges"""
+        if batch_size > self.MAX_BATCH_SIZE:
+            raise ValueError(f"Batch size too large (max {self.MAX_BATCH_SIZE})")
+        if markers_per_file > self.MAX_MARKERS_PER_FILE:
+            raise ValueError(
+                f"Too many markers per file (max {self.MAX_MARKERS_PER_FILE})"
+            )
 
         zip_buffer = BytesIO()
 

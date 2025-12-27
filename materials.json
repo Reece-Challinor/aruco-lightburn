@@ -1,0 +1,13 @@
+{
+  "1_16_cast_acrylic": {
+    "cut_passes": 1,
+    "cut_power": 75,
+    "cut_speed": 150,
+    "description": "White/Black 2-Ply Cast Acrylic",
+    "engrave_power": 45,
+    "engrave_speed": 800,
+    "mark_power": 20,
+    "mark_speed": 1000,
+    "name": "1/16\" Cast Acrylic (Default)"
+  }
+}

@@ -66,7 +66,7 @@ coverage:
 # Lint code
 lint:
 	@echo "Checking code style..."
-	flake8 aruco_generator/ tests/ app.py --max-line-length=88 --exclude=__pycache__ --ignore=E501,W503
+	flake8 aruco_generator/ tests/ app.py --max-line-length=88 --exclude=__pycache__ --ignore=E501,W503,E203
 
 # Format code with black
 format:

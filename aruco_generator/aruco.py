@@ -3,10 +3,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>aruco.py</name>
-    <version>3.0.0</version>
+    <version>1.0.1</version>
     <type>core_generation_module</type>
     <purpose>Core ArUCO marker generation engine with OpenCV integration and fallback support</purpose>
-    <last_updated>2025-01-15</last_updated>
+    <last_updated>2025-12-23</last_updated>
     <maintainer>ArUCO Generator Team</maintainer>
   </file_meta>
 
@@ -220,7 +220,7 @@
   </usage_patterns>
 
   <version_history>
-    <version number="3.0.0" date="2025-01-15">
+    <version number="1.0.1" date="2025-12-23">
       <changes>
         <change>Enhanced XML documentation system</change>
         <change>Comprehensive API documentation</change>
@@ -277,7 +277,7 @@ Golden Path Usage:
 Dependencies: opencv-python (optional), numpy (required)
 Used By: web.py, drawing.py, calibration.py, advanced_web.py
 Author: ArUCO Generator Team
-Version: 3.0.0
+Version: 1.0.1
 """
 
 try:
@@ -296,7 +296,7 @@ from typing import Any, Dict, List, Tuple, Union
 
 
 class ArUCOGenerator:
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize ArUCO generator with available dictionaries.
 
         Sets up OpenCV-based ArUCO dictionaries or fallback dictionaries

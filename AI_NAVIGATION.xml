@@ -11,8 +11,8 @@
     <!-- Core Application Structure -->
     <application_structure>
         <entry_points>
-            <entry_point type="web" file="app.py" line="22" description="Flask application factory"/>
-            <entry_point type="core_logic" file="aruco_generator/aruco.py" line="39" description="ArUCO generation engine"/>
+            <entry_point type="web" file="app.py" line="203" description="Flask application factory"/>
+            <entry_point type="core_logic" file="aruco_generator/aruco.py" line="298" description="ArUCO generation engine"/>
         </entry_points>
 
         <architecture_pattern>
@@ -28,47 +28,47 @@
         <module name="aruco_generator" type="python_package" path="aruco_generator/">
             <description>Core ArUCO marker generation and processing package</description>
             <primary_class>ArUCOGenerator</primary_class>
-            <initialization_line>39</initialization_line>
+            <initialization_line>298</initialization_line>
 
             <classes>
-                <class name="ArUCOGenerator" file="aruco.py" line="39">
+                <class name="ArUCOGenerator" file="aruco.py" line="298">
                     <description>Main ArUCO marker generation engine with OpenCV integration</description>
                     <methods>
-                        <method name="__init__" line="40" complexity="low">
+                        <method name="__init__" line="299" complexity="low">
                             <description>Initialize with OpenCV or fallback dictionaries</description>
                             <performance>O(1) - Dictionary setup</performance>
                         </method>
-                        <method name="get_dictionary_info" line="104" complexity="low">
+                        <method name="get_dictionary_info" line="366" complexity="low">
                             <description>Return comprehensive dictionary metadata for UI</description>
                             <performance>O(n) where n = number of dictionaries</performance>
                             <returns>Dict[str, Dict[str, Any]]</returns>
                         </method>
-                        <method name="generate_marker" line="177" complexity="medium">
+                        <method name="generate_marker" line="443" complexity="medium">
                             <description>Generate single ArUCO marker with ASCII diagrams</description>
                             <performance>OpenCV: ~0.1ms, Fallback: ~1ms</performance>
                             <returns>np.ndarray</returns>
                             <validation>dict_name, marker_id range checking</validation>
                         </method>
-                        <method name="generate_grid" line="289" complexity="high">
+                        <method name="generate_grid" line="557" complexity="high">
                             <description>Generate positioned grid of markers</description>
                             <performance>O(rows * cols) marker generation</performance>
                             <returns>List[Dict[str, Any]]</returns>
                         </method>
-                        <method name="generate_with_coordinates" line="337" complexity="high">
+                        <method name="generate_with_coordinates" line="605" complexity="high">
                             <description>Generate markers with 3D coordinate metadata</description>
                             <use_case>Camera calibration, pose estimation</use_case>
                         </method>
                     </methods>
                 </class>
 
-                <class name="DrawingContext" file="drawing.py" line="24">
+                <class name="DrawingContext" file="drawing.py" line="26">
                     <description>SVG drawing and rendering system for ArUCO markers</description>
                     <methods>
-                        <method name="add_marker_grid" line="46" complexity="high">
+                        <method name="add_marker_grid" line="62" complexity="high">
                             <description>Add ArUCO markers with 2D rectangle optimization</description>
                             <performance>O(marker_pixels) with rectangle merging</performance>
                         </method>
-                        <method name="get_svg" line="234" complexity="medium">
+                        <method name="get_svg" line="297" complexity="medium">
                             <description>Generate SVG output with bounds calculation</description>
                             <returns>str - SVG XML content</returns>
                         </method>
@@ -90,16 +90,16 @@
                 <submodule name="web" file="web.py">
                     <description>Main Flask API endpoints for marker generation</description>
                     <endpoints>
-                        <endpoint path="/api/preview" method="POST" line="55">
+                        <endpoint path="/api/preview" method="POST" line="276">
                             <description>Generate SVG preview of markers</description>
                             <validation>dictionary, size_mm, rows, cols</validation>
                             <error_handling>specific validation messages</error_handling>
                         </endpoint>
-                        <endpoint path="/api/download" method="POST" line="145">
+                        <endpoint path="/api/download" method="POST" line="348">
                             <description>Generate and download LightBurn file</description>
                             <output_format>.lbrn2</output_format>
                         </endpoint>
-                        <endpoint path="/api/dictionaries" method="GET" line="49">
+                        <endpoint path="/api/dictionaries" method="GET" line="269">
                             <description>Get available ArUCO dictionaries</description>
                             <performance>O(1) - cached dictionary info</performance>
                         </endpoint>
@@ -109,11 +109,11 @@
                 <submodule name="advanced_web" file="advanced_web.py">
                     <description>Advanced API endpoints with 3D coordinates and validation</description>
                     <endpoints>
-                        <endpoint path="/api/advanced/generate_with_coordinates" method="POST" line="21">
+                        <endpoint path="/api/advanced/generate_with_coordinates" method="POST" line="90">
                             <description>Generate markers with full 3D coordinate system data</description>
                             <use_case>Professional calibration workflows</use_case>
                         </endpoint>
-                        <endpoint path="/api/validation/test_pattern" method="POST" line="178">
+                        <endpoint path="/api/validation/test_pattern" method="POST" line="257">
                             <description>Generate multi-scale test pattern for validation</description>
                             <use_case>Quality assurance testing</use_case>
                         </endpoint>
@@ -123,7 +123,7 @@
                 <submodule name="calibration" file="calibration.py">
                     <description>Camera calibration algorithms and ChArUco board generation</description>
                     <key_functions>
-                        <function name="generate_charuco_board" line="506" complexity="medium">
+                        <function name="generate_charuco_board" line="67" complexity="medium">
                             <description>Generate ChArUco board for camera calibration</description>
                             <parameters>squares_x, squares_y, square_length, marker_length</parameters>
                         </function>
@@ -148,9 +148,11 @@
                     <file name="api.js">
                         <description>API communication layer with error handling</description>
                         <key_functions>
-                            <function name="apiCall" line="20">
-                                <description>Centralized API request handling</description>
-                                <error_handling>User-friendly error messages</error_handling>
+                            <function name="APIClient" line="271">
+                                <description>Base API client class</description>
+                            </function>
+                            <function name="ArUCOAPI" line="407">
+                                <description>ArUCO-specific API methods</description>
                             </function>
                         </key_functions>
                     </file>
@@ -175,7 +177,7 @@
         <module name="database" type="sqlalchemy" path="aruco_generator/models.py">
             <description>Database models for calibration patterns and metrics</description>
             <models>
-                <model name="CalibrationPattern" line="15">
+                <model name="CalibrationPattern" line="56">
                     <description>Stores calibration pattern configurations</description>
                     <fields>
                         <field name="id" type="Integer" primary_key="true"/>
@@ -184,7 +186,7 @@
                         <field name="pattern_data" type="JSON" description="Configuration data"/>
                     </fields>
                 </model>
-                <model name="DetectionMetric" line="40">
+                <model name="DetectionMetric" line="109">
                     <description>Stores detection performance metrics</description>
                     <fields>
                         <field name="detection_rate" type="Float" description="Success rate percentage"/>
@@ -230,7 +232,7 @@
             </task>
             <task name="extend_aruco_functionality">
                 <steps>
-                    <step>Modify ArUCOGenerator class in aruco.py line 39</step>
+                    <step>Modify ArUCOGenerator class in aruco.py line 298</step>
                     <step>Add comprehensive docstring with ASCII diagrams</step>
                     <step>Update get_dictionary_info if needed</step>
                     <step>Add tests in tests/test_aruco_generator.py</step>
@@ -255,7 +257,7 @@
             <decision>
                 <topic>OpenCV Integration</topic>
                 <rationale>Graceful degradation with fallback pattern generation</rationale>
-                <location>aruco_generator/aruco.py lines 24-31</location>
+                <location>aruco_generator/aruco.py lines 283-293</location>
             </decision>
             <decision>
                 <topic>Modular Web Routes</topic>
@@ -311,11 +313,11 @@
         </file_locations>
 
         <common_line_references>
-            <line_ref description="ArUCO class initialization" file="aruco_generator/aruco.py" line="39"/>
-            <line_ref description="Main preview endpoint" file="aruco_generator/web.py" line="55"/>
-            <line_ref description="Dictionary info method" file="aruco_generator/aruco.py" line="104"/>
-            <line_ref description="Marker generation method" file="aruco_generator/aruco.py" line="177"/>
-            <line_ref description="SVG drawing context" file="aruco_generator/drawing.py" line="24"/>
+            <line_ref description="ArUCO class initialization" file="aruco_generator/aruco.py" line="298"/>
+            <line_ref description="Main preview endpoint" file="aruco_generator/web.py" line="276"/>
+            <line_ref description="Dictionary info method" file="aruco_generator/aruco.py" line="366"/>
+            <line_ref description="Marker generation method" file="aruco_generator/aruco.py" line="443"/>
+            <line_ref description="SVG drawing context" file="aruco_generator/drawing.py" line="26"/>
         </common_line_references>
     </quick_reference>
 </ai_navigation>
