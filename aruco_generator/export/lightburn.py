@@ -2,6 +2,7 @@
 {
   "file_type": "lightburn_exporter",
   "purpose": "Export ArUCO markers to LightBurn .lbrn2 format for laser cutting",
+  "last_updated": "2026-02-06",
   "dependencies": ["xml.etree.ElementTree", "drawing.py"],
   "main_class": "LightBurnExporter",
   "key_methods": {
@@ -139,6 +140,7 @@ class LightBurnExporter:
         tree = ET.ElementTree(root)
         output = BytesIO()
         tree.write(output, encoding="utf-8", xml_declaration=True, method="xml")
+        output.write(b"\n")
         output.seek(0)
         return output
 

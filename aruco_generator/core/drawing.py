@@ -2,6 +2,7 @@
 {
   "file_type": "svg_drawing_context",
   "purpose": "SVG drawing and rendering system for ArUCO markers",
+  "last_updated": "2026-02-06",
   "dependencies": ["numpy"],
   "main_class": "DrawingContext",
   "key_methods": {
@@ -321,7 +322,7 @@ class DrawingContext:
         """Generate SVG preview"""
         # Handle case where no elements have been added
         if self.bounds["min_x"] == float("inf"):
-            return '<svg width="100mm" height="100mm" xmlns="http://www.w3.org/2000/svg"><text x="50" y="50" text-anchor="middle">No markers</text></svg>'
+            return '<svg width="100mm" height="100mm" xmlns="http://www.w3.org/2000/svg"><text x="50" y="50" text-anchor="middle">No markers</text></svg>\n'
 
         width = self.bounds["max_x"] - self.bounds["min_x"]
         height = self.bounds["max_y"] - self.bounds["min_y"]
@@ -380,5 +381,5 @@ class DrawingContext:
                 svg += f"""<text x="{element['x']:.3f}" y="{element['y']:.3f}"
                                class="text">{element['text']}</text>"""
 
-        svg += "</svg>"
+        svg += "</svg>\n"
         return svg

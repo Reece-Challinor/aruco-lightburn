@@ -177,7 +177,11 @@ def test_advanced_export_endpoints(client):
         content_type="application/json",
     )
     assert response.status_code == 200
-    assert response.content_type in ["text/yaml", "application/yaml", "text/plain"]
+    assert (
+        response.content_type.startswith("text/yaml")
+        or response.content_type.startswith("application/yaml")
+        or response.content_type.startswith("text/plain")
+    )
 
     response = client.post(
         "/api/export/ros",

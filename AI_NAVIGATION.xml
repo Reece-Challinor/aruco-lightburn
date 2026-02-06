@@ -61,14 +61,14 @@
                     </methods>
                 </class>
 
-                <class name="DrawingContext" file="core/drawing.py" line="27">
+                <class name="DrawingContext" file="core/drawing.py" line="28">
                     <description>SVG drawing and rendering system for ArUCO markers</description>
                     <methods>
-                        <method name="add_marker_grid" line="63" complexity="high">
+                        <method name="add_marker_grid" line="64" complexity="high">
                             <description>Add ArUCO markers with 2D rectangle optimization</description>
                             <performance>O(marker_pixels) with rectangle merging</performance>
                         </method>
-                        <method name="get_svg" line="320" complexity="medium">
+                        <method name="get_svg" line="321" complexity="medium">
                             <description>Generate SVG output with bounds calculation</description>
                             <returns>str - SVG XML content</returns>
                         </method>
@@ -318,7 +318,7 @@
             <line_ref description="Main preview endpoint" file="aruco_generator/web/web.py" line="275"/>
             <line_ref description="Dictionary info method" file="aruco_generator/core/aruco.py" line="366"/>
             <line_ref description="Marker generation method" file="aruco_generator/core/aruco.py" line="443"/>
-            <line_ref description="SVG drawing context" file="aruco_generator/core/drawing.py" line="27"/>
+            <line_ref description="SVG drawing context" file="aruco_generator/core/drawing.py" line="28"/>
         </common_line_references>
     </quick_reference>
 </ai_navigation>

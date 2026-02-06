@@ -8,7 +8,7 @@ Simplified database models for ArUCO Generator
     <version>3.1.0</version>
     <type>sqlalchemy_models</type>
     <purpose>Database schema definitions for calibration patterns and metrics</purpose>
-    <last_updated>2025-01-15</last_updated>
+  <last_updated>2026-02-06</last_updated>
   </file_meta>
 
   <golden_path>
@@ -27,7 +27,7 @@ from datetime import datetime
 from flask_login import UserMixin
 from sqlalchemy import JSON
 
-from aruco_generator.extensions import db
+from .extensions import db
 
 
 class User(UserMixin, db.Model):
