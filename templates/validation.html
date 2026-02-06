@@ -12,10 +12,12 @@
         height: 100%;
         transition: all 0.3s ease;
     }
+
     .validation-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
     }
+
     .upload-zone {
         border: 2px dashed var(--primary-gradient-start);
         border-radius: 0.5rem;
@@ -24,10 +26,13 @@
         transition: all 0.3s ease;
         cursor: pointer;
     }
-    .upload-zone:hover, .upload-zone.drag-over {
+
+    .upload-zone:hover,
+    .upload-zone.drag-over {
         background: rgba(102, 126, 234, 0.1);
         border-color: var(--primary-gradient-end);
     }
+
     .metric-card {
         background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
         border-left: 4px solid var(--primary-gradient-start);
@@ -45,7 +50,8 @@
             <h1 class="display-6 gradient-text">
                 <i class="bi bi-check-circle me-2"></i>Validation Center
             </h1>
-            <p class="text-muted">Test marker detection quality, calculate Hamming distances, and validate your patterns</p>
+            <p class="text-muted">Test marker detection quality, calculate Hamming distances, and validate your patterns
+            </p>
         </div>
     </div>
 
@@ -66,7 +72,7 @@
                         <p class="text-muted small">Supports PNG, JPG, JPEG (Max 10MB)</p>
                         <input type="file" id="fileInput" class="d-none" accept="image/*">
                     </div>
-                    
+
                     <div id="testResults" class="mt-4" style="display: none;">
                         <h6>Detection Results</h6>
                         <div class="metric-card">
@@ -96,8 +102,9 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <p class="text-muted">Calculate the Hamming distance between two markers to assess confusion risk</p>
-                    
+                    <p class="text-muted">Calculate the Hamming distance between two markers to assess confusion risk
+                    </p>
+
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label">Dictionary</label>
@@ -119,22 +126,23 @@
                             <input type="number" class="form-control" id="markerId2" min="0" value="1">
                         </div>
                     </div>
-                    
-                    <button class="btn btn-primary mt-3" onclick="calculateHamming()">
+
+                    <button class="btn btn-primary mt-3" id="calculateHammingBtn">
                         <i class="bi bi-calculator me-2"></i>Calculate Distance
                     </button>
-                    
+
                     <div id="hammingResult" class="mt-4" style="display: none;">
                         <div class="alert" id="hammingAlert">
                             <h6 class="alert-heading">Hamming Distance: <span id="hammingValue">-</span></h6>
                             <p class="mb-0" id="hammingSafety">-</p>
                         </div>
-                        
+
                         <div class="small text-muted">
                             <p><strong>Reference Guide:</strong></p>
                             <ul>
                                 <li>Distance ≥ 5: <span class="text-success">Safe - Low confusion risk</span></li>
-                                <li>Distance 3-4: <span class="text-warning">Warning - Moderate confusion risk</span></li>
+                                <li>Distance 3-4: <span class="text-warning">Warning - Moderate confusion risk</span>
+                                </li>
                                 <li>Distance < 3: <span class="text-danger">Critical - High confusion risk</span></li>
                             </ul>
                         </div>
@@ -153,7 +161,7 @@
                 </div>
                 <div class="card-body">
                     <p class="text-muted">Generate multi-scale test patterns for validation</p>
-                    
+
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label">Dictionary</label>
@@ -165,7 +173,8 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Scales (mm)</label>
-                            <input type="text" class="form-control" id="testScales" value="10, 20, 50, 100" placeholder="e.g., 10, 20, 50">
+                            <input type="text" class="form-control" id="testScales" value="10, 20, 50, 100"
+                                placeholder="e.g., 10, 20, 50">
                         </div>
                         <div class="col-12">
                             <div class="form-check">
@@ -182,11 +191,11 @@
                             </div>
                         </div>
                     </div>
-                    
-                    <button class="btn btn-success mt-3" onclick="generateTestPattern()">
+
+                    <button class="btn btn-success mt-3" id="generateTestPatternBtn">
                         <i class="bi bi-magic me-2"></i>Generate Test Pattern
                     </button>
-                    
+
                     <div id="testPatternPreview" class="mt-4"></div>
                 </div>
             </div>
@@ -202,7 +211,7 @@
                 </div>
                 <div class="card-body">
                     <p class="text-muted">View detection performance statistics</p>
-                    
+
                     <div class="metric-card">
                         <h6 class="text-primary">Detection Statistics</h6>
                         <div class="row mt-3">
@@ -220,7 +229,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="metric-card">
                         <h6 class="text-primary">Recent Tests</h6>
                         <div class="list-group list-group-flush mt-3">
@@ -244,7 +253,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <button class="btn btn-outline-primary mt-3 w-100">
                         <i class="bi bi-download me-2"></i>Export Full Report
                     </button>

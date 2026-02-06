@@ -7,7 +7,7 @@ class GenerateManager {
     constructor() {
         this.currentResult = null;
         this.dictionaries = {};
-        
+
         this.init();
     }
 
@@ -30,11 +30,11 @@ class GenerateManager {
         // Simple tab event listeners
         const generateSingleBtn = document.getElementById('generateSingle');
         const generateGridBtn = document.getElementById('generateGrid');
-        
+
         if (generateSingleBtn) {
             generateSingleBtn.addEventListener('click', () => this.generateSingle());
         }
-        
+
         if (generateGridBtn) {
             generateGridBtn.addEventListener('click', () => this.generateGrid());
         }
@@ -65,12 +65,14 @@ class GenerateManager {
         if (outerBorderCheck) {
             outerBorderCheck.addEventListener('change', () => this.toggleBorderWidth());
         }
+
+        this.setupBatchListeners();
     }
 
     setupAdvancedMode() {
         this.updateMaxMarkerInfo();
         this.toggleBorderWidth();
-        
+
         // Form state management - disabled for now
         // const advancedForm = document.getElementById('advancedForm');
         // if (advancedForm) {
@@ -82,7 +84,7 @@ class GenerateManager {
         // Restore last active tab from URL or localStorage
         const urlParams = new URLSearchParams(window.location.search);
         const tab = urlParams.get('tab');
-        
+
         if (tab) {
             const tabElement = document.querySelector(`[data-bs-target="#${tab}"]`);
             if (tabElement) {
@@ -96,7 +98,7 @@ class GenerateManager {
         const dictionary = document.getElementById('quickDictionary').value;
         const markerId = parseInt(document.getElementById('singleMarkerId').value);
         const size = parseInt(document.getElementById('singleMarkerSize').value);
-        
+
         const params = {
             dictionary: dictionary,
             rows: 1,
@@ -107,7 +109,7 @@ class GenerateManager {
             include_borders: true,
             include_labels: true
         };
-        
+
         await this.generatePreview(params);
     }
 
@@ -116,7 +118,7 @@ class GenerateManager {
         const rows = parseInt(document.getElementById('gridRows').value);
         const cols = parseInt(document.getElementById('gridCols').value);
         const startId = parseInt(document.getElementById('gridStartId').value);
-        
+
         const params = {
             dictionary: dictionary,
             rows: rows,
@@ -127,14 +129,14 @@ class GenerateManager {
             include_borders: true,
             include_labels: true
         };
-        
+
         await this.generatePreview(params);
     }
 
     async generateAdvanced() {
         const form = document.getElementById('advancedForm');
         const formData = new FormData(form);
-        
+
         const params = {
             dictionary: formData.get('dictionary'),
             rows: parseInt(formData.get('rows')),
@@ -147,24 +149,24 @@ class GenerateManager {
             include_outer_border: formData.get('include_outer_border') === 'on',
             border_width: parseInt(formData.get('border_width') || 2)
         };
-        
+
         await this.generateAdvancedPreview(params);
     }
 
     async generatePreview(params) {
         this.showLoading();
-        
+
         try {
             const result = await window.arucoAPI.generatePreview(params);
             this.currentResult = result;
-            
+
             // Store in state manager
             window.stateManager.set('generation.lastParams', params);
             window.stateManager.set('generation.lastResult', result);
-            
+
             this.showPreview(result);
             window.notificationManager.showSuccess('Markers generated successfully');
-            
+
             // Enable download button
             document.getElementById('downloadBtn').disabled = false;
         } catch (error) {
@@ -176,11 +178,11 @@ class GenerateManager {
     async generateAdvancedPreview(params) {
         const preview = document.getElementById('advancedPreview');
         preview.innerHTML = '<div class="spinner-border text-primary" role="status"></div>';
-        
+
         try {
             const result = await window.arucoAPI.generateAdvanced(params);
             this.currentResult = result;
-            
+
             preview.innerHTML = `
                 <div class="text-center">
                     <div class="preview-svg">${result.svg}</div>
@@ -197,7 +199,7 @@ class GenerateManager {
                     </div>
                 </div>
             `;
-            
+
             window.notificationManager.showSuccess('Advanced markers generated');
         } catch (error) {
             preview.innerHTML = `
@@ -220,9 +222,9 @@ class GenerateManager {
         document.getElementById('emptyState').style.display = 'none';
         document.getElementById('errorState').style.display = 'none';
         document.getElementById('previewContainer').style.display = 'block';
-        
+
         document.getElementById('svgPreview').innerHTML = result.svg;
-        document.getElementById('dimensionsInfo').textContent = 
+        document.getElementById('dimensionsInfo').textContent =
             `Dimensions: ${result.dimensions.width}mm × ${result.dimensions.height}mm`;
     }
 
@@ -231,7 +233,7 @@ class GenerateManager {
         document.getElementById('emptyState').style.display = 'none';
         document.getElementById('errorState').style.display = 'block';
         document.getElementById('previewContainer').style.display = 'none';
-        
+
         document.getElementById('errorMessage').textContent = message;
     }
 
@@ -240,15 +242,15 @@ class GenerateManager {
             window.notificationManager.showWarning('Please generate markers first');
             return;
         }
-        
+
         const params = window.stateManager.get('generation.lastParams');
         if (!params) return;
-        
+
         try {
             // Show loading notification
             window.notificationManager.showInfo(`Exporting as ${format.toUpperCase()}...`);
-            
-            switch(format) {
+
+            switch (format) {
                 case 'lightburn':
                     await window.arucoAPI.exportLightBurn(params);
                     break;
@@ -265,7 +267,7 @@ class GenerateManager {
                     await window.arucoAPI.exportROS(params);
                     break;
             }
-            
+
             window.notificationManager.showSuccess(`Successfully exported as ${format.toUpperCase()}`);
         } catch (error) {
             window.notificationManager.showError(`Export failed: ${error.message}`);
@@ -285,13 +287,13 @@ class GenerateManager {
     updateMaxMarkerInfo() {
         const select = document.getElementById('dictionary');
         const maxInfo = document.getElementById('maxMarkerInfo');
-        
+
         if (select && maxInfo && select.selectedIndex >= 0) {
             const selectedOption = select.options[select.selectedIndex];
             if (!selectedOption) return;
             const maxMarkers = selectedOption.dataset?.max || '1000';
             maxInfo.textContent = maxMarkers;
-            
+
             // Update marker ID input max
             const markerIdInput = document.getElementById('markerId');
             if (markerIdInput) {
@@ -303,70 +305,83 @@ class GenerateManager {
     toggleBorderWidth() {
         const checkbox = document.getElementById('includeOuterBorder');
         const borderGroup = document.getElementById('borderWidthGroup');
-        
+
         if (checkbox && borderGroup) {
             borderGroup.style.display = checkbox.checked ? 'block' : 'none';
         }
     }
-}
 
-// Batch generation functions
-window.loadPreset = async function(presetName) {
-    try {
-        const presets = await window.arucoAPI.getPresets();
-        const preset = presets[presetName];
-        
-        if (preset) {
-            // Apply preset values to batch form
-            document.getElementById('batchSets').value = preset.rows || 5;
-            document.getElementById('batchMarkersPerSet').value = preset.cols || 10;
-            
-            window.notificationManager.showSuccess(`Loaded preset: ${preset.name}`);
+    setupBatchListeners() {
+        const batchBtn = document.getElementById('generateBatchBtn');
+        if (batchBtn) {
+            batchBtn.addEventListener('click', () => this.generateBatch());
         }
-    } catch (error) {
-        window.notificationManager.showError('Failed to load preset');
-    }
-};
 
-window.generateBatch = async function() {
-    const sets = parseInt(document.getElementById('batchSets').value);
-    const markersPerSet = parseInt(document.getElementById('batchMarkersPerSet').value);
-    const startId = parseInt(document.getElementById('batchStartId').value);
-    
-    const params = {
-        sets: sets,
-        markers_per_set: markersPerSet,
-        start_id: startId,
-        dictionary: '4X4_250',
-        size_mm: 50,
-        spacing_mm: 10
-    };
-    
-    try {
-        window.notificationManager.showLoading('Generating batch...');
-        const result = await window.arucoAPI.generateBatch(params);
-        
-        // Display batch results
-        const resultsDiv = document.getElementById('batchResults');
-        resultsDiv.innerHTML = `
-            <div class="alert alert-success">
-                <h6>Batch Generation Complete</h6>
-                <p>Generated ${sets} sets with ${markersPerSet} markers each</p>
-                <p>Total markers: ${sets * markersPerSet}</p>
-                <p>ID range: ${startId} - ${startId + (sets * markersPerSet) - 1}</p>
-                <button class="btn btn-success mt-2">
-                    <i class="bi bi-download me-2"></i>Download All
-                </button>
-            </div>
-        `;
-        
-        window.notificationManager.hideLoading();
-        window.notificationManager.showSuccess('Batch generated successfully');
-    } catch (error) {
-        window.notificationManager.hideLoading();
-        window.notificationManager.showError('Batch generation failed');
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const preset = e.currentTarget.dataset.preset;
+                this.loadPreset(preset);
+            });
+        });
     }
-};
+
+    async loadPreset(presetName) {
+        try {
+            const presets = await window.arucoAPI.getPresets();
+            const preset = presets[presetName];
+
+            if (preset) {
+                // Apply preset values to batch form
+                document.getElementById('batchSets').value = preset.rows || 5;
+                document.getElementById('batchMarkersPerSet').value = preset.cols || 10;
+
+                window.notificationManager.showSuccess(`Loaded preset: ${preset.name}`);
+            }
+        } catch (error) {
+            window.notificationManager.showError('Failed to load preset');
+        }
+    }
+
+    async generateBatch() {
+        const sets = parseInt(document.getElementById('batchSets').value);
+        const markersPerSet = parseInt(document.getElementById('batchMarkersPerSet').value);
+        const startId = parseInt(document.getElementById('batchStartId').value);
+
+        const params = {
+            sets: sets,
+            markers_per_set: markersPerSet,
+            start_id: startId,
+            dictionary: '4X4_250',
+            size_mm: 50,
+            spacing_mm: 10
+        };
+
+        try {
+            window.notificationManager.showLoading('Generating batch...');
+            const result = await window.arucoAPI.generateBatch(params);
+
+            // Display batch results
+            const resultsDiv = document.getElementById('batchResults');
+            resultsDiv.innerHTML = `
+                <div class="alert alert-success">
+                    <h6>Batch Generation Complete</h6>
+                    <p>Generated ${sets} sets with ${markersPerSet} markers each</p>
+                    <p>Total markers: ${sets * markersPerSet}</p>
+                    <p>ID range: ${startId} - ${startId + (sets * markersPerSet) - 1}</p>
+                    <button class="btn btn-success mt-2">
+                        <i class="bi bi-download me-2"></i>Download All
+                    </button>
+                </div>
+            `;
+
+            window.notificationManager.hideLoading();
+            window.notificationManager.showSuccess('Batch generated successfully');
+        } catch (error) {
+            window.notificationManager.hideLoading();
+            window.notificationManager.showError('Batch generation failed');
+        }
+    }
+}
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
@@ -380,7 +395,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!window.arucoAPI && typeof ArUCOAPI !== 'undefined') {
         window.arucoAPI = new ArUCOAPI();
     }
-    
+
     // Add minimal fallbacks if modules aren't loaded
     if (!window.notificationManager) {
         window.notificationManager = {
@@ -389,17 +404,17 @@ document.addEventListener('DOMContentLoaded', () => {
             showWarning: (msg) => console.warn('Warning:', msg),
             showInfo: (msg) => console.info('Info:', msg),
             showLoading: (msg) => console.log('Loading:', msg),
-            hideLoading: () => {}
+            hideLoading: () => { }
         };
     }
     if (!window.stateManager) {
         window.stateManager = {
             get: (key, defaultVal) => defaultVal,
-            set: (key, val) => {},
-            remove: (key) => {},
-            clear: () => {}
+            set: (key, val) => { },
+            remove: (key) => { },
+            clear: () => { }
         };
     }
-    
+
     window.generateManager = new GenerateManager();
 });

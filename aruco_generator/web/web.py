@@ -3,10 +3,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>web.py</name>
-    <version>3.0.0</version>
+    <version>3.1.0</version>
     <type>flask_web_module</type>
     <purpose>Main Flask API endpoints for ArUCO marker generation and management</purpose>
-    <last_updated>2025-01-15</last_updated>
+    <last_updated>2026-02-06</last_updated>
     <maintainer>ArUCO Generator Team</maintainer>
   </file_meta>
 
@@ -221,14 +221,15 @@ import io
 import logging
 from datetime import datetime
 
-from flask import jsonify, render_template, request, send_file
+from flask import Blueprint, jsonify, render_template, request, send_file
 
-from app import app
+from ..core.aruco import ArUCOGenerator
+from ..core.drawing import DrawingContext
+from ..core.utils import handle_api_errors, validate_generation_params
+from ..export.lightburn import LightBurnExporter
 
-from .aruco import ArUCOGenerator
-from .drawing import DrawingContext
-from .lightburn import LightBurnExporter
-from .utils import handle_api_errors, validate_generation_params
+# Create Blueprint
+web_bp = Blueprint("web", __name__)
 
 # Initialize core components
 aruco_gen = ArUCOGenerator()
@@ -237,13 +238,13 @@ logger = logging.getLogger(__name__)
 
 
 # Page routes
-@app.route("/")
+@web_bp.route("/")
 def index():
     """Landing page"""
     return render_template("home.html")
 
 
-@app.route("/generate")
+@web_bp.route("/generate")
 def generate_page():
     """Generate markers page"""
     return render_template("generate.html", dictionaries={})
@@ -252,26 +253,26 @@ def generate_page():
 # Calibration route is defined in calibration_web.py
 
 
-@app.route("/validation")
+@web_bp.route("/validation")
 def validation_page():
     """Validation page"""
     return render_template("validation.html")
 
 
-@app.route("/documentation")
+@web_bp.route("/documentation")
 def documentation_page():
     """Documentation page"""
     return render_template("documentation.html")
 
 
 # API endpoints - simplified without service layer
-@app.route("/api/dictionaries")
+@web_bp.route("/api/dictionaries")
 def get_dictionaries():
     """Get available ArUCO dictionaries"""
     return jsonify(aruco_gen.get_dictionary_info())
 
 
-@app.route("/api/preview", methods=["POST"])
+@web_bp.route("/api/preview", methods=["POST"])
 @handle_api_errors
 def generate_preview():
     """Generate SVG preview of markers"""
@@ -343,7 +344,7 @@ def generate_preview():
     )
 
 
-@app.route("/api/download", methods=["POST"])
+@web_bp.route("/api/download", methods=["POST"])
 @handle_api_errors
 def download_lightburn():
     """Generate and download LightBurn file"""
@@ -360,29 +361,49 @@ def download_lightburn():
         spacing_mm=params["spacing_mm"],
     )
 
-    # Generate LightBurn file
-    lightburn_content = lightburn_exporter.create_lightburn_file(
-        markers=markers,
-        size_mm=params["size_mm"],
-        border_bits=params["border_bits"],
-        include_labels=params["include_labels"],
-        include_alignment=params["include_alignment"],
-        include_rulers=params["include_rulers"],
+    # Create drawing context with actual marker pixels for accurate export
+    ctx = DrawingContext()
+    ctx.add_marker_grid(
+        markers,
+        include_borders=params["include_borders"],
+        include_outer_border=params["include_outer_border"],
+        border_width=params["border_width"],
     )
+
+    if params["include_labels"]:
+        ctx.add_text_labels(markers)
+
+    metadata = {
+        "dictionary": params["dictionary"],
+        "start_id": params["start_id"],
+        "rows": params["rows"],
+        "cols": params["cols"],
+        "size_mm": params["size_mm"],
+        "spacing_mm": params["spacing_mm"],
+        "border_bits": params["border_bits"],
+        "include_labels": params["include_labels"],
+        "include_outer_border": params["include_outer_border"],
+        "include_alignment": params["include_alignment"],
+        "include_rulers": params["include_rulers"],
+    }
+
+    # Generate LightBurn file
+    output = lightburn_exporter.export(ctx, metadata)
+    lightburn_content = output.getvalue()
 
     # Generate filename
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"aruco_{params['dictionary']}_{params['rows']}x{params['cols']}_{timestamp}.lbrn2"
 
     return send_file(
-        io.BytesIO(lightburn_content.encode("utf-8")),
+        io.BytesIO(lightburn_content),
         as_attachment=True,
         download_name=filename,
         mimetype="application/octet-stream",
     )
 
 
-@app.route("/api/advanced_preview", methods=["POST"])
+@web_bp.route("/api/advanced_preview", methods=["POST"])
 @handle_api_errors
 def generate_advanced_preview():
     """Generate advanced preview with additional options"""
@@ -407,9 +428,9 @@ def generate_advanced_preview():
     ctx = DrawingContext()
     ctx.add_marker_grid_preview(
         markers=markers,
-        size_mm=params["size_mm"],
-        spacing_mm=params["spacing_mm"],
         include_borders=params["include_borders"],
+        include_outer_border=params["include_outer_border"],
+        border_width=params["border_width"],
     )
 
     if params["include_labels"]:
@@ -420,7 +441,7 @@ def generate_advanced_preview():
                 y=marker["y"] - 2,
             )
 
-    svg_content = ctx.to_svg()
+    svg_content = ctx.get_svg()
     total_width, total_height = aruco_gen.calculate_total_size(
         rows=params["rows"],
         cols=params["cols"],
@@ -437,7 +458,7 @@ def generate_advanced_preview():
     )
 
 
-@app.route("/api/batch_generate", methods=["POST"])
+@web_bp.route("/api/batch_generate", methods=["POST"])
 def batch_generate():
     """Generate multiple sets of markers"""
     try:
@@ -497,7 +518,7 @@ def batch_generate():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route("/api/presets")
+@web_bp.route("/api/presets")
 def get_presets():
     """Get predefined marker configuration presets"""
     presets = {
@@ -542,7 +563,7 @@ def get_presets():
     return jsonify(presets)
 
 
-@app.route("/api/export/svg", methods=["POST"])
+@web_bp.route("/api/export/svg", methods=["POST"])
 @handle_api_errors
 def export_svg():
     """Export markers as SVG file"""
@@ -584,7 +605,7 @@ def export_svg():
     )
 
 
-@app.route("/api/export/pdf", methods=["POST"])
+@web_bp.route("/api/export/pdf", methods=["POST"])
 @handle_api_errors
 def export_pdf():
     """Export markers as PDF file"""
@@ -636,7 +657,7 @@ def export_pdf():
         raise e
 
 
-@app.route("/api/quick-test")
+@web_bp.route("/api/quick-test")
 def quick_test():
     """Quick test endpoint to verify API is working"""
     try:
@@ -659,7 +680,7 @@ def quick_test():
 
 
 # Debug endpoints (can be removed in production)
-@app.route("/api/debug/status")
+@web_bp.route("/api/debug/status")
 def debug_status():
     """Debug status endpoint"""
     try:
@@ -679,7 +700,7 @@ def debug_status():
     )
 
 
-@app.route("/api/log-error", methods=["POST"])
+@web_bp.route("/api/log-error", methods=["POST"])
 def log_error():
     """Log frontend errors"""
     try:

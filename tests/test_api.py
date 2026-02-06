@@ -46,7 +46,6 @@ def test_generate_preview(client):
     assert data["dimensions"]["height"] > 0
 
 
-@pytest.mark.skip(reason="Advanced preview endpoint needs implementation refinement")
 def test_advanced_preview(client):
     """Test advanced preview generation"""
     params = {
@@ -166,6 +165,43 @@ def test_validation_endpoints(client):
         content_type="application/json",
     )
     assert response.status_code == 200
+
+
+def test_advanced_export_endpoints(client):
+    """Test advanced export endpoints return files."""
+    payload = {"calibration_data": {"pattern_type": "aruco_markers"}}
+
+    response = client.post(
+        "/api/export/opencv_yaml",
+        data=json.dumps(payload),
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    assert response.content_type in ["text/yaml", "application/yaml", "text/plain"]
+
+    response = client.post(
+        "/api/export/ros",
+        data=json.dumps(payload),
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    assert response.content_type == "application/json"
+
+    response = client.post(
+        "/api/export/dxf",
+        data=json.dumps(payload),
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    assert response.content_type == "application/dxf"
+
+    response = client.post(
+        "/api/export/stl",
+        data=json.dumps(payload),
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    assert response.content_type == "application/sla"
 
 
 def test_presets_endpoint(client):

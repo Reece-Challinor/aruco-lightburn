@@ -1,0 +1,30 @@
+<svg width="20.1mm" height="20.1mm"
+                       viewBox="0.0 0.0 20.1 20.1"
+                       xmlns="http://www.w3.org/2000/svg">
+                  <style>
+                    .cut { fill: black; stroke: none; }
+                    .mark { fill: none; stroke: blue; stroke-width: 0.1; }
+                    .text { fill: red; font-family: Arial; font-size: 3px; }
+                    .marker { fill: black; stroke: none; }
+                    .marker-bg { fill: white; stroke: black; stroke-width: 0.1; }
+                  </style><rect x="0.000" y="0.000"
+                               width="20.000" height="20.000"
+                               class="mark" /><rect x="0.000" y="0.000"
+                               width="20.050" height="3.450"
+                               class="cut" /><rect x="0.000" y="3.400"
+                               width="3.450" height="16.650"
+                               class="cut" /><rect x="6.700" y="3.400"
+                               width="3.317" height="3.317"
+                               class="cut" /><rect x="16.700" y="3.400"
+                               width="3.350" height="16.650"
+                               class="cut" /><rect x="3.400" y="6.700"
+                               width="3.350" height="13.350"
+                               class="cut" /><rect x="10.000" y="6.700"
+                               width="3.417" height="3.317"
+                               class="cut" /><rect x="6.700" y="10.000"
+                               width="3.350" height="10.050"
+                               class="cut" /><rect x="13.400" y="13.400"
+                               width="3.333" height="6.633"
+                               class="cut" /><rect x="10.000" y="16.700"
+                               width="3.417" height="3.317"
+                               class="cut" /></svg>

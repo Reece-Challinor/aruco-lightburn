@@ -3,10 +3,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>app.py</name>
-    <version>3.1.0</version>
+    <version>3.2.0</version>
     <type>flask_application_factory</type>
     <purpose>Main Flask application factory with database integration and route registration</purpose>
-    <last_updated>2025-01-15</last_updated>
+    <last_updated>2026-02-06</last_updated>
     <maintainer>ArUCO Generator Team</maintainer>
   </file_meta>
 
@@ -192,61 +192,11 @@ Version: 1.0.0
 
 import logging
 import os
-from datetime import datetime
 
-from flask import Flask, jsonify
+from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from aruco_generator.extensions import db
-
-# Create Flask application
-app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET")
-
-# Proxy fix for HTTPS
-app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
-
-# Database configuration
-db_url = os.environ.get("DATABASE_URL")
-if not db_url or db_url == "sqlite:///aruco_generator.db":
-    # Use default local DB if not potentially configured, or specific dev path
-    app.config["SQLALCHEMY_DATABASE_URI"] = db_url or "sqlite:///aruco_generator.db"
-    # In "lightweight" mode, we might want to skip DB entirely if desired, but for now
-    # we'll default to sqlite if nothing is set, OR we can make it strictly optional.
-    # The plan was to make it strictly optional.
-
-    # Let's check a specific flag or just presence of DATABASE_URL for "Production" DB.
-    # If no DATABASE_URL is set, we will assume "Lightweight/No-Persistance" mode if explicitly requested,
-    # or just use SQLite. However, to match the plan: "Application will run in 'Stateless Mode' by default if no DB URL is provided."
-    pass
-
-# We will actually interpret "No DATABASE_URL" as "Use SQLite" for now to keep existing functioanlity simpler,
-# BUT we will catch the import errors effectively.
-# Actually, let's implement the "Stateless Mode" properly.
-
-USE_DB = False
-if os.environ.get("DATABASE_URL"):
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
-    USE_DB = True
-elif os.environ.get("USE_SQLITE"):
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///aruco_generator.db"
-    USE_DB = True
-else:
-    # Stateless mode
-    app.config["SQLALCHEMY_DATABASE_URI"] = (
-        "sqlite:///:memory:"  # Or just don't init DB?
-    )
-    # SQLAlchemy requires a URI if we init it. :memory: is a good stateless safe fallback.
-    # But if we don't want to use models, we should control that.
-    USE_DB = False
-
-app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-    "pool_recycle": 300,
-    "pool_pre_ping": True,
-}
-
-# Initialize database extension only if we intend to use it, or always init with safe fallback
-db.init_app(app)
 
 # Simple logging setup
 logging.basicConfig(
@@ -254,47 +204,72 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Create database tables only if we are using persistence
-if USE_DB:
-    try:
-        with app.app_context():
-            # Import models to ensure tables are created
-            from aruco_generator import models  # noqa: F401
 
-            db.create_all()
-            logger.info("Database initialized")
-    except Exception as e:
-        logger.warning(f"Database initialization skipped: {e}")
-        logger.info("Application will run without database persistence")
-else:
-    logger.info("Running in Stateless Mode (No Database Persistence)")
+def create_app() -> Flask:
+    """Create and configure the Flask application."""
+    app = Flask(__name__)
+    app.secret_key = os.environ.get("SESSION_SECRET")
 
-# Import and register routes
-with app.app_context():
-    from aruco_generator.advanced_web import *  # noqa: F401, F403
-    from aruco_generator.calibration_web import *  # noqa: F401, F403
-    from aruco_generator.web import *  # noqa: F401, F403
+    # Proxy fix for HTTPS
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
-    logger.info("Routes registered")
+    # Database configuration
+    db_url = os.environ.get("DATABASE_URL")
+    if not db_url or db_url == "sqlite:///aruco_generator.db":
+        app.config["SQLALCHEMY_DATABASE_URI"] = db_url or "sqlite:///aruco_generator.db"
+
+    USE_DB = False
+    if os.environ.get("DATABASE_URL"):
+        app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+        USE_DB = True
+    elif os.environ.get("USE_SQLITE"):
+        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///aruco_generator.db"
+        USE_DB = True
+    else:
+        # Stateless mode
+        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
+        USE_DB = False
+
+    app.config["USE_DB"] = USE_DB
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+        "pool_recycle": 300,
+        "pool_pre_ping": True,
+    }
+
+    # Initialize database extension only if we intend to use it, or always init with safe fallback
+    db.init_app(app)
+
+    # Create database tables only if we are using persistence
+    if USE_DB:
+        try:
+            with app.app_context():
+                # Import models to ensure tables are created
+                from aruco_generator import models  # noqa: F401
+
+                db.create_all()
+                logger.info("Database initialized")
+        except Exception as e:
+            logger.warning(f"Database initialization skipped: {e}")
+            logger.info("Application will run without database persistence")
+    else:
+        logger.info("Running in Stateless Mode (No Database Persistence)")
+
+    # Import and register blueprints
+    from aruco_generator.advanced_web import advanced_bp
+    from aruco_generator.calibration_web import calibration_bp
+    from aruco_generator.web import web_bp
+
+    app.register_blueprint(web_bp)
+    app.register_blueprint(calibration_bp)
+    app.register_blueprint(advanced_bp)
+
+    logger.info("Routes registered via Blueprints")
+
+    return app
 
 
-# Health check endpoint for monitoring and deployment
-@app.route("/health")
-def health_check():
-    """
-    Health check endpoint for monitoring and deployment platforms.
+app = create_app()
 
-    Returns:
-        JSON response with status, version, and timestamp
-    """
-    return (
-        jsonify(
-            {
-                "status": "healthy",
-                "version": "3.0.0",
-                "timestamp": datetime.utcnow().isoformat(),
-                "database": "connected" if db else "unavailable",
-            }
-        ),
-        200,
-    )
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
