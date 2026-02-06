@@ -67,6 +67,7 @@ replit.nix
 # Logs
 *.log
 logs/
+*.pid
 
 # Temporary files
 tmp/

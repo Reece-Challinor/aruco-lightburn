@@ -7,7 +7,6 @@
 {% endblock %}
 
 {% block extra_css %}
-<link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
 <link href="{{ url_for('static', filename='css/workflow.css') }}" rel="stylesheet">
 {% endblock %}
 
@@ -28,17 +27,20 @@
         <div class="col-12">
             <ul class="nav nav-tabs" id="mainTabs" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="simple-tab" data-bs-toggle="tab" data-bs-target="#simple" type="button" role="tab">
+                    <button class="nav-link active" id="simple-tab" data-bs-toggle="tab" data-bs-target="#simple"
+                        type="button" role="tab">
                         <i class="bi bi-lightning me-2"></i>Quick Generate
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="advanced-tab" data-bs-toggle="tab" data-bs-target="#advanced" type="button" role="tab">
+                    <button class="nav-link" id="advanced-tab" data-bs-toggle="tab" data-bs-target="#advanced"
+                        type="button" role="tab">
                         <i class="bi bi-sliders me-2"></i>Advanced Options
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="batch-tab" data-bs-toggle="tab" data-bs-target="#batch" type="button" role="tab">
+                    <button class="nav-link" id="batch-tab" data-bs-toggle="tab" data-bs-target="#batch" type="button"
+                        role="tab">
                         <i class="bi bi-stack me-2"></i>Batch Generation
                     </button>
                 </li>
@@ -92,11 +94,13 @@
                                 <div class="row mb-3">
                                     <div class="col-6">
                                         <label class="form-label">Marker ID</label>
-                                        <input type="number" class="form-control" id="singleMarkerId" value="0" min="0" max="1000">
+                                        <input type="number" class="form-control" id="singleMarkerId" value="0" min="0"
+                                            max="1000">
                                     </div>
                                     <div class="col-6">
                                         <label class="form-label">Size (mm)</label>
-                                        <input type="number" class="form-control" id="singleMarkerSize" value="50" min="10" max="200">
+                                        <input type="number" class="form-control" id="singleMarkerSize" value="50"
+                                            min="10" max="200">
                                     </div>
                                 </div>
                                 <button class="btn btn-primary w-100" id="generateSingle">
@@ -113,16 +117,19 @@
                                 <div class="row mb-3">
                                     <div class="col-6">
                                         <label class="form-label">Rows</label>
-                                        <input type="number" class="form-control" id="gridRows" value="2" min="1" max="5">
+                                        <input type="number" class="form-control" id="gridRows" value="2" min="1"
+                                            max="5">
                                     </div>
                                     <div class="col-6">
                                         <label class="form-label">Columns</label>
-                                        <input type="number" class="form-control" id="gridCols" value="2" min="1" max="5">
+                                        <input type="number" class="form-control" id="gridCols" value="2" min="1"
+                                            max="5">
                                     </div>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Starting ID</label>
-                                    <input type="number" class="form-control" id="gridStartId" value="0" min="0" max="1000">
+                                    <input type="number" class="form-control" id="gridStartId" value="0" min="0"
+                                        max="1000">
                                 </div>
                                 <button class="btn btn-success w-100" id="generateGrid">
                                     <i class="bi bi-grid-3x3 me-2"></i>Generate Grid
@@ -140,15 +147,21 @@
                                 <i class="bi bi-eye me-2"></i>Preview
                             </h5>
                             <div class="btn-group" role="group">
-                                <button type="button" class="btn btn-success btn-sm dropdown-toggle" id="downloadBtn" data-bs-toggle="dropdown" disabled>
+                                <button type="button" class="btn btn-success btn-sm dropdown-toggle" id="downloadBtn"
+                                    data-bs-toggle="dropdown" disabled>
                                     <i class="bi bi-download me-2"></i>Export
                                 </button>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item export-option" href="#" data-format="lightburn"><i class="bi bi-lightning me-2"></i>LightBurn (.lbrn2)</a></li>
-                                    <li><a class="dropdown-item export-option" href="#" data-format="pdf"><i class="bi bi-file-pdf me-2"></i>PDF</a></li>
-                                    <li><a class="dropdown-item export-option" href="#" data-format="svg"><i class="bi bi-image me-2"></i>SVG</a></li>
-                                    <li><a class="dropdown-item export-option" href="#" data-format="yaml"><i class="bi bi-code me-2"></i>OpenCV YAML</a></li>
-                                    <li><a class="dropdown-item export-option" href="#" data-format="json"><i class="bi bi-braces me-2"></i>ROS JSON</a></li>
+                                    <li><a class="dropdown-item export-option" href="#" data-format="lightburn"><i
+                                                class="bi bi-lightning me-2"></i>LightBurn (.lbrn2)</a></li>
+                                    <li><a class="dropdown-item export-option" href="#" data-format="pdf"><i
+                                                class="bi bi-file-pdf me-2"></i>PDF</a></li>
+                                    <li><a class="dropdown-item export-option" href="#" data-format="svg"><i
+                                                class="bi bi-image me-2"></i>SVG</a></li>
+                                    <li><a class="dropdown-item export-option" href="#" data-format="yaml"><i
+                                                class="bi bi-code me-2"></i>OpenCV YAML</a></li>
+                                    <li><a class="dropdown-item export-option" href="#" data-format="json"><i
+                                                class="bi bi-braces me-2"></i>ROS JSON</a></li>
                                 </ul>
                             </div>
                         </div>
@@ -210,9 +223,8 @@
                                     <select class="form-select" id="dictionary" name="dictionary" required>
                                         <optgroup label="Standard Dictionaries">
                                             {% for dict_name, dict_info in dictionaries.items() %}
-                                            <option value="{{ dict_name }}"
-                                                {% if dict_name == '4X4_250' %}selected{% endif %}
-                                                data-max="{{ dict_info.max_markers }}">
+                                            <option value="{{ dict_name }}" {% if dict_name=='4X4_250' %}selected{%
+                                                endif %} data-max="{{ dict_info.max_markers }}">
                                                 {{ dict_name }} - {{ dict_info.description }}
                                             </option>
                                             {% endfor %}
@@ -228,15 +240,18 @@
                                 <div class="row mb-3">
                                     <div class="col-6">
                                         <label class="form-label">Marker ID</label>
-                                        <input type="number" class="form-control" id="markerId" name="marker_id" value="0" min="0" required>
+                                        <input type="number" class="form-control" id="markerId" name="marker_id"
+                                            value="0" min="0" required>
                                         <div class="form-text">Max: <span id="maxMarkerInfo">250</span></div>
                                     </div>
                                     <div class="col-6">
                                         <label class="form-label">Grid Layout</label>
                                         <div class="input-group">
-                                            <input type="number" class="form-control" id="rows" name="rows" value="1" min="1" max="10" required>
+                                            <input type="number" class="form-control" id="rows" name="rows" value="1"
+                                                min="1" max="10" required>
                                             <span class="input-group-text">×</span>
-                                            <input type="number" class="form-control" id="cols" name="cols" value="1" min="1" max="10" required>
+                                            <input type="number" class="form-control" id="cols" name="cols" value="1"
+                                                min="1" max="10" required>
                                         </div>
                                     </div>
                                 </div>
@@ -250,14 +265,16 @@
                                     <div class="col-6">
                                         <label class="form-label">Marker Size</label>
                                         <div class="input-group">
-                                            <input type="number" class="form-control" id="markerSize" name="size_mm" value="50" min="5" max="500" required>
+                                            <input type="number" class="form-control" id="markerSize" name="size_mm"
+                                                value="50" min="5" max="500" required>
                                             <span class="input-group-text">mm</span>
                                         </div>
                                     </div>
                                     <div class="col-6">
                                         <label class="form-label">Spacing</label>
                                         <div class="input-group">
-                                            <input type="number" class="form-control" id="spacing" name="spacing_mm" value="10" min="0" max="100" required>
+                                            <input type="number" class="form-control" id="spacing" name="spacing_mm"
+                                                value="10" min="0" max="100" required>
                                             <span class="input-group-text">mm</span>
                                         </div>
                                     </div>
@@ -269,21 +286,24 @@
                                 </h6>
 
                                 <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="includeBorders" name="include_borders" checked>
+                                    <input class="form-check-input" type="checkbox" id="includeBorders"
+                                        name="include_borders" checked>
                                     <label class="form-check-label" for="includeBorders">
                                         Include white borders
                                     </label>
                                 </div>
 
                                 <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="includeLabels" name="include_labels" checked>
+                                    <input class="form-check-input" type="checkbox" id="includeLabels"
+                                        name="include_labels" checked>
                                     <label class="form-check-label" for="includeLabels">
                                         Include ID labels
                                     </label>
                                 </div>
 
                                 <div class="form-check mb-3">
-                                    <input class="form-check-input" type="checkbox" id="includeOuterBorder" name="include_outer_border">
+                                    <input class="form-check-input" type="checkbox" id="includeOuterBorder"
+                                        name="include_outer_border">
                                     <label class="form-check-label" for="includeOuterBorder">
                                         Include outer border
                                     </label>
@@ -292,7 +312,8 @@
                                 <div class="mb-3" id="borderWidthGroup" style="display: none;">
                                     <label class="form-label">Border Width</label>
                                     <div class="input-group">
-                                        <input type="number" class="form-control" id="borderWidth" name="border_width" value="2" min="1" max="10">
+                                        <input type="number" class="form-control" id="borderWidth" name="border_width"
+                                            value="2" min="1" max="10">
                                         <span class="input-group-text">mm</span>
                                     </div>
                                 </div>
@@ -342,16 +363,20 @@
                                 <div class="col-md-6">
                                     <h6>Preset Configurations</h6>
                                     <div class="list-group">
-                                        <button class="list-group-item list-group-item-action" onclick="loadPreset('business_cards')">
+                                        <button class="list-group-item list-group-item-action preset-btn"
+                                            data-preset="business_cards">
                                             <strong>Business Cards</strong> - Small markers for cards
                                         </button>
-                                        <button class="list-group-item list-group-item-action" onclick="loadPreset('inventory_tags')">
+                                        <button class="list-group-item list-group-item-action preset-btn"
+                                            data-preset="inventory_tags">
                                             <strong>Inventory Tags</strong> - Medium markers for tracking
                                         </button>
-                                        <button class="list-group-item list-group-item-action" onclick="loadPreset('large_markers')">
+                                        <button class="list-group-item list-group-item-action preset-btn"
+                                            data-preset="large_markers">
                                             <strong>Large Display</strong> - Wall-mounted markers
                                         </button>
-                                        <button class="list-group-item list-group-item-action" onclick="loadPreset('production_run')">
+                                        <button class="list-group-item list-group-item-action preset-btn"
+                                            data-preset="production_run">
                                             <strong>Production Run</strong> - Large batch generation
                                         </button>
                                     </div>
@@ -360,17 +385,19 @@
                                     <h6>Batch Configuration</h6>
                                     <div class="mb-3">
                                         <label class="form-label">Number of Sets</label>
-                                        <input type="number" class="form-control" id="batchSets" value="5" min="1" max="20">
+                                        <input type="number" class="form-control" id="batchSets" value="5" min="1"
+                                            max="20">
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Markers per Set</label>
-                                        <input type="number" class="form-control" id="batchMarkersPerSet" value="10" min="1" max="100">
+                                        <input type="number" class="form-control" id="batchMarkersPerSet" value="10"
+                                            min="1" max="100">
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Starting ID</label>
                                         <input type="number" class="form-control" id="batchStartId" value="0" min="0">
                                     </div>
-                                    <button class="btn btn-success w-100" onclick="generateBatch()">
+                                    <button class="btn btn-success w-100" id="generateBatchBtn">
                                         <i class="bi bi-stack me-2"></i>Generate Batch
                                     </button>
                                 </div>

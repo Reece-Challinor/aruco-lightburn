@@ -1,15 +1,17 @@
 """
-Shared extensions for the ArUCO Generator application.
-Initializing extensions here avoids circular import issues between app.py and models.py.
+<!--
+<ai_agent_documentation>
+  <file_meta>
+    <name>extensions.py</name>
+    <version>2.1.0</version>
+    <type>compatibility_shim</type>
+    <purpose>Compatibility wrapper for db extensions (moved to aruco_generator.db)</purpose>
+    <last_updated>2026-02-06</last_updated>
+  </file_meta>
+</ai_agent_documentation>
+-->
 """
 
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase
+from .db.extensions import db  # noqa: F401
 
-
-class Base(DeclarativeBase):
-    pass
-
-
-# Initialize database extension
-db = SQLAlchemy(model_class=Base)
+__all__ = ["db"]

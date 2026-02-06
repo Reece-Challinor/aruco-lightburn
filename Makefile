@@ -43,6 +43,7 @@ unit-test:
 integration:
 	@echo "Running integration tests..."
 	python3 -m pytest tests/test_api_endpoints.py -v
+	python3 -m pytest tests/test_api.py -v
 
 # Run generation quality tests
 test-quality:
@@ -53,6 +54,7 @@ test-quality:
 test-export:
 	@echo "Running export format tests..."
 	python3 -m pytest tests/test_export_formats.py -v
+	python3 -m pytest tests/test_export_snapshots.py -v
 
 # Run all quality assurance tests
 test-qa: test-quality test-export
@@ -88,12 +90,12 @@ clean:
 # Run production server
 run:
 	@echo "Starting production server on port 5000..."
-	gunicorn --bind 0.0.0.0:5000 --workers 2 --threads 2 main:app
+	gunicorn --bind 0.0.0.0:5000 --workers 2 --threads 2 app:app
 
 # Run development server with auto-reload
 dev:
 	@echo "Starting development server with auto-reload..."
-	gunicorn --bind 0.0.0.0:5000 --reload --log-level debug main:app
+	gunicorn --bind 0.0.0.0:5000 --reload --log-level debug app:app
 
 # Check for outdated dependencies
 check-deps:

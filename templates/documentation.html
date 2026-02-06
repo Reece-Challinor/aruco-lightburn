@@ -14,15 +14,18 @@
         height: calc(100vh - 2rem);
         overflow-y: auto;
     }
+
     .doc-content h2 {
         margin-top: 2rem;
         padding-top: 1rem;
         border-top: 1px solid var(--border-color);
     }
+
     .doc-content h2:first-child {
         margin-top: 0;
         border-top: none;
     }
+
     .code-example {
         background: var(--dark-bg);
         border: 1px solid var(--border-color);
@@ -30,6 +33,7 @@
         padding: 1rem;
         margin: 1rem 0;
     }
+
     .doc-nav-link {
         color: var(--text-muted);
         text-decoration: none;
@@ -37,10 +41,12 @@
         display: block;
         transition: all 0.3s ease;
     }
+
     .doc-nav-link:hover {
         color: white;
         background: rgba(102, 126, 234, 0.1);
     }
+
     .doc-nav-link.active {
         color: var(--primary-gradient-start);
         border-left: 3px solid var(--primary-gradient-start);
@@ -75,11 +81,13 @@
             <div class="card">
                 <div class="card-body doc-content">
                     <h1 class="gradient-text mb-4">ArUCO Generator Documentation</h1>
-                    
+
                     <section id="getting-started">
                         <h2>Getting Started</h2>
-                        <p>Welcome to the ArUCO Generator documentation. This professional-grade tool provides everything you need for generating, calibrating, and validating computer vision markers used in robotics, augmented reality, and computer vision applications.</p>
-                        
+                        <p>Welcome to the ArUCO Generator documentation. This professional-grade tool provides
+                            everything you need for generating, calibrating, and validating computer vision markers used
+                            in robotics, augmented reality, and computer vision applications.</p>
+
                         <h4>Quick Start Guide</h4>
                         <ol>
                             <li><strong>Generate Markers:</strong> Start with the Generate page to create ArUCO markers
@@ -89,26 +97,30 @@
                                     <li>Batch: Generate multiple marker sets efficiently</li>
                                 </ul>
                             </li>
-                            <li><strong>Create Calibration Patterns:</strong> Use the Calibration page for camera calibration
+                            <li><strong>Create Calibration Patterns:</strong> Use the Calibration page for camera
+                                calibration
                                 <ul>
                                     <li>ChArUco boards for precise calibration</li>
                                     <li>AprilTags for robotics applications</li>
                                 </ul>
                             </li>
                             <li><strong>Validate Detection:</strong> Test marker quality and detection reliability</li>
-                            <li><strong>Export Results:</strong> Download in various formats (SVG, PDF, LightBurn, DXF)</li>
+                            <li><strong>Export Results:</strong> Download in various formats (SVG, PDF, LightBurn, DXF)
+                            </li>
                         </ol>
-                        
+
                         <div class="alert alert-info">
                             <i class="bi bi-info-circle me-2"></i>
-                            <strong>Tip:</strong> For most applications, the 6X6_250 dictionary provides the best balance of robustness and detection speed. Start with 50mm markers for standard indoor use.
+                            <strong>Tip:</strong> For most applications, the 6X6_250 dictionary provides the best
+                            balance of robustness and detection speed. Start with 50mm markers for standard indoor use.
                         </div>
                     </section>
 
                     <section id="aruco-markers">
                         <h2>ArUCO Markers</h2>
-                        <p>ArUCO markers are square fiducial markers used in computer vision applications for pose estimation, camera calibration, and augmented reality.</p>
-                        
+                        <p>ArUCO markers are square fiducial markers used in computer vision applications for pose
+                            estimation, camera calibration, and augmented reality.</p>
+
                         <h4>Dictionary Selection</h4>
                         <table class="table">
                             <thead>
@@ -146,7 +158,7 @@
                                 </tr>
                             </tbody>
                         </table>
-                        
+
                         <h4>Size Recommendations</h4>
                         <ul>
                             <li><strong>20-50mm:</strong> Close-range detection (< 1m)</li>
@@ -158,9 +170,10 @@
 
                     <section id="calibration-patterns">
                         <h2>Calibration Patterns</h2>
-                        
+
                         <h4>ChArUco Boards</h4>
-                        <p>ChArUco boards combine checkerboard patterns with ArUco markers for precise camera calibration.</p>
+                        <p>ChArUco boards combine checkerboard patterns with ArUco markers for precise camera
+                            calibration.</p>
                         <div class="code-example">
                             <code>
                                 // Recommended ChArUco parameters<br>
@@ -170,7 +183,7 @@
                                 Dictionary: 4X4_50
                             </code>
                         </div>
-                        
+
                         <h4>AprilTags</h4>
                         <p>AprilTags are an alternative fiducial system preferred in robotics applications.</p>
                         <ul>
@@ -182,7 +195,7 @@
 
                     <section id="api-reference">
                         <h2>API Reference</h2>
-                        
+
                         <h4>Generation Endpoints</h4>
                         <div class="code-example">
                             <pre><code>POST /api/preview
@@ -195,7 +208,7 @@
     "start_id": 0
 }</code></pre>
                         </div>
-                        
+
                         <h4>Calibration Endpoints</h4>
                         <div class="code-example">
                             <pre><code>POST /api/calibration/charuco
@@ -207,7 +220,7 @@
     "dictionary": "4X4_50"
 }</code></pre>
                         </div>
-                        
+
                         <h4>Export Formats</h4>
                         <ul>
                             <li><strong>SVG:</strong> Vector graphics for digital use and printing</li>
@@ -216,16 +229,17 @@
                             <li><strong>DXF:</strong> CAD/CNC machining compatibility</li>
                             <li><strong>PNG:</strong> Raster images for web and applications</li>
                         </ul>
-                        
+
                         <div class="alert alert-success">
                             <i class="bi bi-check-circle me-2"></i>
-                            <strong>LightBurn Export:</strong> Includes optimized cutting parameters for common materials (paper, cardboard, acrylic).
+                            <strong>LightBurn Export:</strong> Includes optimized cutting parameters for common
+                            materials (paper, cardboard, acrylic).
                         </div>
                     </section>
 
                     <section id="best-practices">
                         <h2>Best Practices</h2>
-                        
+
                         <h4>Printing Guidelines</h4>
                         <ul>
                             <li>Use matte paper to reduce reflections</li>
@@ -233,7 +247,7 @@
                             <li>Keep markers flat and undistorted</li>
                             <li>Add white borders (at least 1 bit width)</li>
                         </ul>
-                        
+
                         <h4>Detection Optimization</h4>
                         <ul>
                             <li>Marker size should be ~1/5 of detection distance</li>
@@ -241,25 +255,29 @@
                             <li>Camera resolution: at least 10 pixels per marker bit</li>
                             <li>Avoid motion blur with adequate shutter speed</li>
                         </ul>
-                        
+
                         <h4>Common Pitfalls to Avoid</h4>
                         <div class="alert alert-warning">
                             <i class="bi bi-exclamation-triangle me-2"></i>
                             <strong>Watch out for these issues:</strong>
                             <ul>
                                 <li><strong>Glossy paper:</strong> Creates reflections that confuse detection</li>
-                                <li><strong>Small borders:</strong> Always maintain at least 1 bit width of white border</li>
-                                <li><strong>Resolution mismatch:</strong> Ensure camera has 10+ pixels per marker bit</li>
-                                <li><strong>Poor lighting:</strong> Uneven lighting creates shadows and reduces accuracy</li>
+                                <li><strong>Small borders:</strong> Always maintain at least 1 bit width of white border
+                                </li>
+                                <li><strong>Resolution mismatch:</strong> Ensure camera has 10+ pixels per marker bit
+                                </li>
+                                <li><strong>Poor lighting:</strong> Uneven lighting creates shadows and reduces accuracy
+                                </li>
                                 <li><strong>Warped markers:</strong> Keep printed markers perfectly flat</li>
-                                <li><strong>Wrong dictionary:</strong> Always verify you're using the correct dictionary in detection</li>
+                                <li><strong>Wrong dictionary:</strong> Always verify you're using the correct dictionary
+                                    in detection</li>
                             </ul>
                         </div>
                     </section>
 
                     <section id="troubleshooting">
                         <h2>Troubleshooting</h2>
-                        
+
                         <h4>Markers Not Detected</h4>
                         <ul>
                             <li>Check marker size relative to camera distance</li>
@@ -267,7 +285,7 @@
                             <li>Ensure adequate lighting</li>
                             <li>Check for motion blur or focus issues</li>
                         </ul>
-                        
+
                         <h4>Poor Pose Estimation</h4>
                         <ul>
                             <li>Calibrate camera for accurate intrinsic parameters</li>
@@ -275,7 +293,7 @@
                             <li>Ensure markers are perfectly flat</li>
                             <li>Check for lens distortion</li>
                         </ul>
-                        
+
                         <h4>High Confusion Rate</h4>
                         <ul>
                             <li>Use markers with larger Hamming distance</li>
@@ -287,7 +305,7 @@
 
                     <section id="keyboard-shortcuts">
                         <h2>Keyboard Shortcuts</h2>
-                        
+
                         <table class="table">
                             <thead>
                                 <tr>
@@ -331,44 +349,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-// Smooth scrolling for documentation navigation
-document.querySelectorAll('.doc-nav-link').forEach(link => {
-    link.addEventListener('click', (e) => {
-        e.preventDefault();
-        const targetId = link.getAttribute('href');
-        const targetElement = document.querySelector(targetId);
-        
-        if (targetElement) {
-            targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            
-            // Update active state
-            document.querySelectorAll('.doc-nav-link').forEach(l => l.classList.remove('active'));
-            link.classList.add('active');
-        }
-    });
-});
-
-// Highlight current section on scroll
-window.addEventListener('scroll', () => {
-    const sections = document.querySelectorAll('section[id]');
-    let current = '';
-    
-    sections.forEach(section => {
-        const rect = section.getBoundingClientRect();
-        if (rect.top <= 100 && rect.bottom >= 100) {
-            current = section.getAttribute('id');
-        }
-    });
-    
-    if (current) {
-        document.querySelectorAll('.doc-nav-link').forEach(link => {
-            link.classList.remove('active');
-            if (link.getAttribute('href') === `#${current}`) {
-                link.classList.add('active');
-            }
-        });
-    }
-});
-</script>
+<script src="{{ url_for('static', filename='js/pages/documentation.js') }}"></script>
 {% endblock %}
