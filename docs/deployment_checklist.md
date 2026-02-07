@@ -14,8 +14,8 @@
 # Deployment Checklist
 
 ## Pre-Release
-1. Update version in `pyproject.toml`, `aruco_generator/__init__.py`, `CHANGELOG.md`, and `AI_NAVIGATION.xml`.
-2. Ensure `AGENTS.md` and `implementation_plan.md` reflect current workflow.
+1. Update version in `pyproject.toml`, `aruco_generator/__init__.py`, `docs/CHANGELOG.md`, and `AI_NAVIGATION.xml`.
+2. Ensure `AGENTS.md` and `docs/ai/implementation_plan.md` reflect current workflow.
 3. Run local validation:
    - `make format`
    - `make lint`
@@ -33,7 +33,7 @@
 ## Release
 1. Create a branch with the `codex/` prefix.
 2. Commit changes and tag the release (e.g., `v2.2.0`).
-3. Open PR with summary + test results from `walkthrough.md`.
+3. Open PR with summary + test results from `docs/ai/walkthrough.md`.
 4. Merge PR after review and ensure CI passes.
 
 ## Post-Release

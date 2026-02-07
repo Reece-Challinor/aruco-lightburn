@@ -24,7 +24,7 @@ Date: 2026-02-07
 - `tests/test_api_endpoints.py`: added `/api/health` and `/api/healthz` coverage.
 - `Makefile`: added `test-health` target and help entry.
 - `AGENTS.md`: added observability guidance and updated testing list.
-- `AI_NAVIGATION.xml`, `task.md`: refreshed documentation and task tracking.
+- `AI_NAVIGATION.xml`, `docs/ai/task.md`: refreshed documentation and task tracking.
 
 ## Tests
 - `make validate`

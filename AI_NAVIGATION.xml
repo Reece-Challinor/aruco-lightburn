@@ -241,7 +241,7 @@
                 <description>OpenCV fallback with pattern generation</description>
             </pattern>
         </patterns>
-        <documentation_file>ERROR_HANDLING.md</documentation_file>
+        <documentation_file>docs/ai/ERROR_HANDLING.md</documentation_file>
     </error_handling>
 
     <!-- Navigation Shortcuts for AI Agents -->
@@ -250,9 +250,9 @@
             <task name="add_new_api_endpoint">
                 <steps>
                     <step>Add route in appropriate web module (web/web.py or web/advanced_web.py)</step>
-                    <step>Follow error handling patterns from ERROR_HANDLING.md</step>
+                    <step>Follow error handling patterns from docs/ai/ERROR_HANDLING.md</step>
                     <step>Add tests in tests/test_api*.py</step>
-                    <step>Update NAVIGATION.md</step>
+                    <step>Update docs/ai/NAVIGATION.md</step>
                 </steps>
             </task>
             <task name="extend_aruco_functionality">
@@ -291,7 +291,7 @@
             <decision>
                 <topic>Error Handling Strategy</topic>
                 <rationale>Specific validation messages over generic errors</rationale>
-                <documentation>ERROR_HANDLING.md</documentation>
+                <documentation>docs/ai/ERROR_HANDLING.md</documentation>
             </decision>
         </architecture_decisions>
     </ai_shortcuts>
@@ -325,12 +325,16 @@
 
     <!-- Documentation Files -->
     <documentation>
-        <file name="NAVIGATION.md" purpose="ASCII tree and method navigation"/>
+        <file name="docs/ai/NAVIGATION.md" purpose="ASCII tree and method navigation"/>
         <file name="AGENTS.md" purpose="Engineering guide and contributor protocols"/>
-        <file name="ERROR_HANDLING.md" purpose="Error patterns and anti-patterns"/>
-        <file name="AI_IMPROVEMENT_OBJECTIVES.md" purpose="AI development guidelines"/>
-        <file name="IMPROVEMENT_PLAN.md" purpose="Implementation roadmap"/>
+        <file name="docs/ai/ERROR_HANDLING.md" purpose="Error patterns and anti-patterns"/>
+        <file name="docs/ai/AI_IMPROVEMENT_OBJECTIVES.md" purpose="AI development guidelines"/>
+        <file name="docs/ai/IMPROVEMENT_PLAN.md" purpose="Implementation roadmap"/>
+        <file name="docs/ai/implementation_plan.md" purpose="Approved refactor execution plan"/>
+        <file name="docs/ai/task.md" purpose="Active work tracker"/>
+        <file name="docs/ai/walkthrough.md" purpose="Delivery summary and test logs"/>
         <file name="README.md" purpose="Main project documentation"/>
+        <file name="docs/CHANGELOG.md" purpose="Release and change history"/>
         <file name="docs/deployment_checklist.md" purpose="Release and deployment checklist"/>
         <file name="docs/GENERATION_QUALITY.md" purpose="Quality standards"/>
     </documentation>
@@ -344,8 +348,8 @@
             <svg_generation>aruco_generator/core/drawing.py</svg_generation>
             <database_models>aruco_generator/db/models.py</database_models>
             <frontend_api>static/js/core/api.js</frontend_api>
-            <error_patterns>ERROR_HANDLING.md</error_patterns>
-            <navigation_tree>NAVIGATION.md</navigation_tree>
+            <error_patterns>docs/ai/ERROR_HANDLING.md</error_patterns>
+            <navigation_tree>docs/ai/NAVIGATION.md</navigation_tree>
         </file_locations>
 
         <common_line_references>

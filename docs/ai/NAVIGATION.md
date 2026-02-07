@@ -5,7 +5,7 @@
     <version>1.0.0</version>
     <type>navigation_map</type>
     <purpose>High-level directory map and entrypoints</purpose>
-    <last_updated>2026-02-06</last_updated>
+    <last_updated>2026-02-07</last_updated>
   </file_meta>
 </ai_agent_documentation>
 -->
@@ -31,6 +31,12 @@
 
 ## Tests
 - `tests/` (unit + integration + export/quality tests)
+
+## Docs
+- `docs/ai/` (agent guidance, plans, and task tracking)
+- `docs/CHANGELOG.md` (release history)
+- `docs/deployment_checklist.md` (release checklist)
+- `docs/GENERATION_QUALITY.md` (quality standards)
 
 ## Compatibility Shims
 - Legacy module paths in `aruco_generator/*.py` re-export the new package locations.

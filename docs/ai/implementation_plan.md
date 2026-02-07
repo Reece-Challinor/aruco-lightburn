@@ -44,7 +44,7 @@ Extend scope to refactor calibration and advanced generation workflows for expor
 ### Phase 4: Packaging + Release Hygiene
 - Single source of truth for version (pyproject.toml).
 - Sync README, __init__, and AI_NAVIGATION metadata.
-- Add missing docs referenced in AI_NAVIGATION (NAVIGATION.md, ERROR_HANDLING.md, etc.).
+- Add missing docs referenced in AI_NAVIGATION (`docs/ai/NAVIGATION.md`, `docs/ai/ERROR_HANDLING.md`, etc.).
 
 ### Phase 5: Calibration + Advanced UX Refactor
 - Persist AprilTag single patterns in the database for export parity.
@@ -66,7 +66,7 @@ Extend scope to refactor calibration and advanced generation workflows for expor
 ## Documentation Deliverables
 - Update AI_NAVIGATION line references impacted by refactor.
 - Refresh file-level `<ai_agent_documentation>` headers for modified files.
-- Create `walkthrough.md` with change summary, tests, and commit log.
+- Create `docs/ai/walkthrough.md` with change summary, tests, and commit log.
 
 ## Validation Gates
 - `make validate` after structural changes.

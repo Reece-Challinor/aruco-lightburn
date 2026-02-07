@@ -29,7 +29,7 @@ Your work must be **Dynamic**, **Robust**, and **Aesthetically Pleasing**.
 2. **Documentation First**: Every modified file must keep its `<ai_agent_documentation>` header accurate (version, last_updated, purpose). If the header is missing, add it.
 3. **Blueprint Rule**: All route modules must be Flask Blueprints. Never import `app` in modules imported by `app.py`.
 4. **Validation Gate**: Run `make validate` after every significant change. For refactors touching UI + backend, also run `make integration` and `make test`.
-5. **Versioning**: On release-level changes, update `pyproject.toml`, `aruco_generator/__init__.py`, `CHANGELOG.md`, and `AI_NAVIGATION.xml`.
+5. **Versioning**: On release-level changes, update `pyproject.toml`, `aruco_generator/__init__.py`, `docs/CHANGELOG.md`, and `AI_NAVIGATION.xml`.
 6. **Deployment Checklist**: Follow `docs/deployment_checklist.md` before any release or deployment.
 7. **Observability First**: Use `/api/health` and `/api/healthz` to verify readiness and capture request IDs in error reports.
 
@@ -57,10 +57,10 @@ Start with `AI_NAVIGATION.xml` for exact file locations and line references.
 
 ## Development Workflow
 1. **READ**: Locate relevant files in `AI_NAVIGATION.xml`.
-2. **PLAN**: For complex changes, update `implementation_plan.md`.
+2. **PLAN**: For complex changes, update `docs/ai/implementation_plan.md`.
 3. **EDIT**: Make focused changes with stable API contracts.
 4. **VALIDATE**: Run `make validate` and any additional required targets.
-5. **DOCUMENT**: Update `walkthrough.md` and `task.md`.
+5. **DOCUMENT**: Update `docs/ai/walkthrough.md` and `docs/ai/task.md`.
 
 ---
 
@@ -80,14 +80,14 @@ Start with `AI_NAVIGATION.xml` for exact file locations and line references.
 - Ensure AI navigation line references are correct.
 - Create a branch using the `codex/` prefix.
 - Commit and tag releases with an annotated tag.
-- Prepare a PR summary in `walkthrough.md`.
+- Prepare a PR summary in `docs/ai/walkthrough.md`.
 
 ---
 
 ## Artifacts
-- `task.md` - Active work tracker
-- `implementation_plan.md` - Approved refactor plan
-- `walkthrough.md` - Delivery summary and test logs
+- `docs/ai/task.md` - Active work tracker
+- `docs/ai/implementation_plan.md` - Approved refactor plan
+- `docs/ai/walkthrough.md` - Delivery summary and test logs
 
 Go forth and code brilliantly.
 </INSTRUCTIONS>

@@ -1,3 +1,16 @@
+<!--
+<ai_agent_documentation>
+  <file_meta>
+    <name>README.md</name>
+    <version>1.0.0</version>
+    <type>project_readme</type>
+    <purpose>Overview, quick start, and AI agent entrypoints</purpose>
+    <last_updated>2026-02-07</last_updated>
+    <maintainer>ArUCO Generator Team</maintainer>
+  </file_meta>
+</ai_agent_documentation>
+-->
+
 # ArUCO Generator
 
 ![Version](https://img.shields.io/badge/version-2.2.0-blue.svg?style=for-the-badge)
@@ -67,12 +80,19 @@ If you are an AI assistant working on this repository, you **MUST** read:
 
 👉 **[AGENTS.md](AGENTS.md)**
 
- This file contains:
+This file contains:
 -   **The Prime Directive**: Your operational protocols.
 -   **Navigation**: How to use `AI_NAVIGATION.xml`.
 -   **Workflows**: Mandatory validation steps (`make validate`).
 
 *Do not attempt to modify this codebase without consulting `AGENTS.md`.*
+
+Additional AI-facing guidance lives in `docs/ai/` (navigation map, error handling, plans, and task tracking).
+
+## 📚 Documentation
+
+- Changelog: `docs/CHANGELOG.md`
+- Deployment checklist: `docs/deployment_checklist.md`
 
 ---
 
