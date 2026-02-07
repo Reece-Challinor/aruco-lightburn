@@ -5,7 +5,7 @@
     <version>1.0.0</version>
     <type>plan_document</type>
     <purpose>Approved refactor execution plan and validation gates</purpose>
-    <last_updated>2026-02-06</last_updated>
+    <last_updated>2026-02-07</last_updated>
     <maintainer>Codex (Senior CV Engineer)</maintainer>
   </file_meta>
 </ai_agent_documentation>
@@ -13,10 +13,11 @@
 
 # Implementation Plan - ArUCO Generator Refactor
 
-Status: Approved by maintainer on 2026-02-06
+Status: Updated on 2026-02-07 for calibration + advanced UX refactor
 
 ## Scope
 Implement phases 0-4 from the audit plan while preserving working behavior, with compatibility shims where needed.
+Extend scope to refactor calibration and advanced generation workflows for export-ready persistence and UX consistency.
 
 ## Phases
 
@@ -44,6 +45,28 @@ Implement phases 0-4 from the audit plan while preserving working behavior, with
 - Single source of truth for version (pyproject.toml).
 - Sync README, __init__, and AI_NAVIGATION metadata.
 - Add missing docs referenced in AI_NAVIGATION (NAVIGATION.md, ERROR_HANDLING.md, etc.).
+
+### Phase 5: Calibration + Advanced UX Refactor
+- Persist AprilTag single patterns in the database for export parity.
+- Normalize calibration API response shape across pattern types.
+- Replace inline handlers on calibration page with managed UI controller.
+- Add advanced export controls with isolated state from simple generation.
+- Deduplicate advanced preview logic and validation across endpoints.
+- Support DXF/STL exports from generation parameters for advanced flows.
+- Add PDF outer-border rendering option for advanced exports.
+- Move calibration-specific styles to a dedicated stylesheet.
+
+### Phase 6: Continuous Testing + CI Hygiene
+- Expand UI smoke coverage and wire into CI and pre-commit hooks.
+- Update Makefile targets to align local + CI workflows.
+- Add deployment checklist and release hygiene updates.
+- Expand unit-test coverage for calibration, utility, and navigation suites.
+- Add API smoke pre-commit hook and XML coverage output for CI uploads.
+
+## Documentation Deliverables
+- Update AI_NAVIGATION line references impacted by refactor.
+- Refresh file-level `<ai_agent_documentation>` headers for modified files.
+- Create `walkthrough.md` with change summary, tests, and commit log.
 
 ## Validation Gates
 - `make validate` after structural changes.

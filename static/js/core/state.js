@@ -32,7 +32,7 @@ class StateManager {
     get(key, defaultValue = null) {
         const keys = key.split('.');
         let value = this.state;
-        
+
         for (const k of keys) {
             if (value && typeof value === 'object' && k in value) {
                 value = value[k];
@@ -40,14 +40,14 @@ class StateManager {
                 return defaultValue;
             }
         }
-        
+
         return value;
     }
 
     set(key, value) {
         const keys = key.split('.');
         let target = this.state;
-        
+
         for (let i = 0; i < keys.length - 1; i++) {
             const k = keys[i];
             if (!(k in target) || typeof target[k] !== 'object') {
@@ -55,7 +55,7 @@ class StateManager {
             }
             target = target[k];
         }
-        
+
         target[keys[keys.length - 1]] = value;
         this.saveState();
     }

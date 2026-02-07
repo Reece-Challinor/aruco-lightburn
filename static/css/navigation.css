@@ -214,18 +214,18 @@ body.page-transitioning {
         border-radius: 0.5rem;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     }
-    
+
     .navbar-nav .nav-link {
         color: #495057;
         padding: 0.75rem;
         border-radius: 0.375rem;
         margin: 0.25rem 0;
     }
-    
+
     .navbar-nav .nav-link:hover {
         background: #f8f9fa;
     }
-    
+
     .navbar-nav .nav-link.active {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
@@ -359,24 +359,24 @@ a:focus {
         background: linear-gradient(to right, #1a1a1a, #2a2a2a);
         border-bottom-color: #3a3a3a;
     }
-    
+
     .breadcrumb-item a {
         color: #9a8cea;
     }
-    
+
     .breadcrumb-item.active {
         color: #adb5bd;
     }
-    
+
     .nav-tabs .nav-link {
         color: #adb5bd;
     }
-    
+
     .nav-tabs .nav-link:hover {
         background: #2a2a2a;
         color: #f8f9fa;
     }
-    
+
     .nav-tabs .nav-link.active {
         background: #1a1a1a;
         color: #9a8cea;

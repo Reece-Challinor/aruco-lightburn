@@ -7,8 +7,8 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
-    name: Test Suite
+  ci:
+    name: Quality Gate
     runs-on: ubuntu-latest
 
     steps:
@@ -29,40 +29,13 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -e .
-          pip install pytest pytest-cov flake8 black
+          make install-dev
 
-      - name: Run linter (flake8)
-        run: |
-          flake8 aruco_generator/ tests/ app.py \
-            --max-line-length=88 \
-            --exclude=__pycache__ \
-            --ignore=E501,W503
-
-      - name: Check code formatting (black)
-        run: |
-          black --check aruco_generator/ tests/ app.py \
-            --line-length 88
-
-      - name: Run unit tests
-        run: |
-          pytest tests/test_aruco_generator.py -v
-
-      - name: Run integration tests
-        run: |
-          pytest tests/test_api_endpoints.py -v
-
-      - name: Run quality tests
-        run: |
-          pytest tests/test_generation_quality.py -v
-          pytest tests/test_export_formats.py -v
+      - name: Run validation suite
+        run: make validate
 
       - name: Generate coverage report
-        run: |
-          pytest tests/ \
-            --cov=aruco_generator \
-            --cov=app \
-            --cov-report=xml \
-            --cov-report=term
+        run: make coverage
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -73,7 +46,7 @@ jobs:
   deploy-staging:
     name: Deploy to Staging
     runs-on: ubuntu-latest
-    needs: test
+    needs: ci
     if: github.ref == 'refs/heads/develop'
 
     steps:
@@ -90,7 +63,7 @@ jobs:
   deploy-production:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: test
+    needs: ci
     if: github.ref == 'refs/heads/main'
 
     steps:
@@ -108,7 +81,7 @@ jobs:
   docker-build:
     name: Build Docker Image
     runs-on: ubuntu-latest
-    needs: test
+    needs: ci
 
     steps:
       - uses: actions/checkout@v4

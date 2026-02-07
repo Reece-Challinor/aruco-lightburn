@@ -1,4 +1,16 @@
 {% extends "base.html" %}
+{#
+<ai_agent_documentation>
+  <file_meta>
+    <name>calibration.html</name>
+    <version>2.2.0</version>
+    <type>template</type>
+    <purpose>Calibration pattern selection and preview UI</purpose>
+    <last_updated>2026-02-07</last_updated>
+    <maintainer>ArUCO Generator Team</maintainer>
+  </file_meta>
+</ai_agent_documentation>
+#}
 
 {% block title %}Calibration Patterns - ArUCO Generator{% endblock %}
 
@@ -7,35 +19,11 @@
 {% endblock %}
 
 {% block extra_css %}
-<style>
-    .pattern-card {
-        transition: transform 0.2s;
-    }
-
-    .pattern-card:hover {
-        transform: translateY(-2px);
-    }
-
-    .preview-container {
-        background: #1a1a1a;
-        border-radius: 8px;
-        padding: 20px;
-        min-height: 400px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .preview-image {
-        max-width: 100%;
-        max-height: 500px;
-        border: 1px solid #333;
-    }
-</style>
+<link href="{{ url_for('static', filename='css/calibration.css') }}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 calibration-patterns">
     <!-- Page Header -->
     <div class="row mb-4">
         <div class="col-12">
@@ -57,7 +45,8 @@
                     <div class="row g-3">
                         <!-- ChArUco Board -->
                         <div class="col-md-3">
-                            <div class="pattern-card card h-100" onclick="selectPattern('charuco')">
+                            <div class="pattern-card card h-100" data-pattern="charuco" role="button" tabindex="0"
+                                aria-pressed="false">
                                 <div class="card-body text-center">
                                     <i class="bi bi-grid-3x3 display-4 text-primary mb-2"></i>
                                     <h6>ChArUco Board</h6>
@@ -68,7 +57,8 @@
 
                         <!-- ARUCO Board -->
                         <div class="col-md-3">
-                            <div class="pattern-card card h-100" onclick="selectPattern('aruco_board')">
+                            <div class="pattern-card card h-100" data-pattern="aruco_board" role="button" tabindex="0"
+                                aria-pressed="false">
                                 <div class="card-body text-center">
                                     <i class="bi bi-grid display-4 text-success mb-2"></i>
                                     <h6>ARUCO Board</h6>
@@ -79,7 +69,8 @@
 
                         <!-- AprilTag -->
                         <div class="col-md-3">
-                            <div class="pattern-card card h-100" onclick="selectPattern('apriltag')">
+                            <div class="pattern-card card h-100" data-pattern="apriltag" role="button" tabindex="0"
+                                aria-pressed="false">
                                 <div class="card-body text-center">
                                     <i class="bi bi-qr-code display-4 text-warning mb-2"></i>
                                     <h6>AprilTag</h6>
@@ -90,7 +81,8 @@
 
                         <!-- AprilTag Grid -->
                         <div class="col-md-3">
-                            <div class="pattern-card card h-100" onclick="selectPattern('apriltag_grid')">
+                            <div class="pattern-card card h-100" data-pattern="apriltag_grid" role="button"
+                                tabindex="0" aria-pressed="false">
                                 <div class="card-body text-center">
                                     <i class="bi bi-collection display-4 text-info mb-2"></i>
                                     <h6>AprilTag Grid</h6>
@@ -234,22 +226,23 @@
 
                     <!-- Action Buttons -->
                     <div class="d-grid gap-2">
-                        <button class="btn btn-primary" onclick="generatePattern()" id="generateBtn" disabled>
+                        <button class="btn btn-primary" type="button" id="generateBtn" disabled>
                             <i class="bi bi-magic me-2"></i>Generate Pattern
                         </button>
-                        <button class="btn btn-success" onclick="downloadPattern()" id="downloadBtn" disabled>
+                        <button class="btn btn-success" type="button" id="downloadBtn" disabled>
                             <i class="bi bi-download me-2"></i>Download Image
                         </button>
                         <div class="btn-group" role="group">
-                            <button class="btn btn-outline-secondary" onclick="exportData('yaml')" id="yamlBtn"
-                                disabled>
+                            <button class="btn btn-outline-secondary" type="button" data-export-format="yaml"
+                                id="yamlBtn" disabled>
                                 <i class="bi bi-file-code me-1"></i>YAML
                             </button>
-                            <button class="btn btn-outline-secondary" onclick="exportData('json')" id="jsonBtn"
-                                disabled>
+                            <button class="btn btn-outline-secondary" type="button" data-export-format="json"
+                                id="jsonBtn" disabled>
                                 <i class="bi bi-file-earmark-code me-1"></i>JSON
                             </button>
-                            <button class="btn btn-outline-secondary" onclick="exportData('ros')" id="rosBtn" disabled>
+                            <button class="btn btn-outline-secondary" type="button" data-export-format="ros"
+                                id="rosBtn" disabled>
                                 <i class="bi bi-robot me-1"></i>ROS
                             </button>
                         </div>
@@ -270,7 +263,7 @@
                             <i class="bi bi-image display-1 mb-3"></i>
                             <p>Select a pattern type and configure parameters to generate</p>
                         </div>
-                        <img id="previewImage" class="preview-image" style="display: none;">
+                        <img id="previewImage" class="preview-image calibration-preview-image" style="display: none;">
                     </div>
                     <div id="patternInfo" class="mt-3" style="display: none;">
                         <div class="alert alert-info">

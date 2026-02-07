@@ -1,5 +1,25 @@
 """
 Advanced web routes for coordinate systems, professional exports, and validation.
+
+<!--
+<ai_agent_documentation>
+  <file_meta>
+    <name>advanced_web.py</name>
+    <version>2.3.0</version>
+    <type>flask_blueprint</type>
+    <purpose>Advanced previews, calibration exports, and validation utilities</purpose>
+    <last_updated>2026-02-07</last_updated>
+    <maintainer>ArUCO Generator Team</maintainer>
+  </file_meta>
+  <route_summary>
+    <route path="/api/advanced/preview" method="POST" purpose="Advanced marker preview"/>
+    <route path="/api/export/opencv_yaml" method="POST" purpose="OpenCV YAML export"/>
+    <route path="/api/export/ros" method="POST" purpose="ROS JSON export"/>
+    <route path="/api/export/dxf" method="POST" purpose="DXF export"/>
+    <route path="/api/export/stl" method="POST" purpose="STL export"/>
+  </route_summary>
+</ai_agent_documentation>
+-->
 """
 
 import base64
@@ -9,6 +29,7 @@ import cv2
 from flask import Blueprint, current_app, jsonify, request, send_file
 
 from ..core.aruco import ArUCOGenerator
+from ..core.utils import handle_api_errors, validate_generation_params
 from ..db.extensions import db
 from ..db.models import DetectionMetric
 from ..export.exporters import ProfessionalExporter
@@ -23,69 +44,120 @@ exporter = ProfessionalExporter()
 validator = DetectionValidator()
 
 
-@advanced_bp.route("/api/advanced/preview", methods=["POST"])
-def advanced_preview():
-    """Generate advanced preview with additional features."""
-    try:
-        from ..core.drawing import DrawingContext
+def build_advanced_preview(params):
+    """Build advanced preview response from validated params."""
+    from ..core.drawing import DrawingContext
 
-        data = request.get_json()
+    markers = aruco_gen.generate_grid(
+        start_id=params["start_id"],
+        dict_name=params["dictionary"],
+        rows=params["rows"],
+        cols=params["cols"],
+        size_mm=params["size_mm"],
+        spacing_mm=params["spacing_mm"],
+    )
 
-        # Extract parameters
-        dictionary = data.get("dictionary", "4X4_250")
-        rows = int(data.get("rows", 1))
-        cols = int(data.get("cols", 1))
-        size_mm = float(data.get("size_mm", 100))
-        spacing_mm = float(data.get("spacing_mm", 20))
-        start_id = int(data.get("start_id", 0))
-        include_borders = data.get("include_borders", True)
-        include_labels = data.get("include_labels", False)
-        include_outer_border = data.get("include_outer_border", False)
-        border_width = float(data.get("border_width", 2.0))
+    ctx = DrawingContext()
+    ctx.add_marker_grid_preview(
+        markers=markers,
+        include_borders=params["include_borders"],
+        include_outer_border=params["include_outer_border"],
+        border_width=params["border_width"],
+    )
 
-        # Generate markers
-        markers = aruco_gen.generate_grid(
-            start_id=start_id,
-            dict_name=dictionary,
-            rows=rows,
-            cols=cols,
-            size_mm=size_mm,
-            spacing_mm=spacing_mm,
-        )
+    if params["include_labels"]:
+        for marker in markers:
+            ctx.add_text(
+                text=f"ID: {marker['id']}",
+                x=marker["x"] + params["size_mm"] / 2,
+                y=marker["y"] - 2,
+            )
 
-        # Create drawing context
-        ctx = DrawingContext()
-        ctx.add_marker_grid_preview(
-            markers=markers,
-            include_borders=include_borders,
-            include_outer_border=include_outer_border,
-            border_width=border_width,
-        )
+    svg_content = ctx.get_svg()
+    total_width, total_height = aruco_gen.calculate_total_size(
+        rows=params["rows"],
+        cols=params["cols"],
+        size_mm=params["size_mm"],
+        spacing_mm=params["spacing_mm"],
+    )
 
-        # Add labels if requested
-        if include_labels:
-            for marker in markers:
-                ctx.add_text(
-                    text=f"ID: {marker['id']}",
-                    x=marker["x"] + size_mm / 2,
-                    y=marker["y"] - 2,
-                )
+    if params["include_outer_border"]:
+        total_width += 2 * params["border_width"]
+        total_height += 2 * params["border_width"]
 
-        svg_content = ctx.get_svg()
-        total_width, total_height = aruco_gen.calculate_total_size(
-            rows=rows, cols=cols, size_mm=size_mm, spacing_mm=spacing_mm
-        )
+    return {
+        "svg": svg_content,
+        "count": len(markers),
+        "dimensions": {"width": total_width, "height": total_height},
+    }
 
-        return jsonify(
+
+def build_calibration_data_from_generation(params):
+    """Build calibration data payload from generation params."""
+    markers = aruco_gen.generate_grid(
+        start_id=params["start_id"],
+        dict_name=params["dictionary"],
+        rows=params["rows"],
+        cols=params["cols"],
+        size_mm=params["size_mm"],
+        spacing_mm=params["spacing_mm"],
+        generate_images=False,
+    )
+
+    marker_entries = []
+    marker_ids = []
+    border_offset = params["border_width"] if params["include_outer_border"] else 0.0
+    for marker in markers:
+        x = float(marker["x"]) + border_offset
+        y = float(marker["y"]) + border_offset
+        size = float(marker["size"])
+        marker_id = int(marker["id"])
+        marker_ids.append(marker_id)
+
+        marker_entries.append(
             {
-                "svg": svg_content,
-                "count": len(markers),
-                "dimensions": {"width": total_width, "height": total_height},
+                "id": marker_id,
+                "position": [x + size / 2, y + size / 2, 0.0],
+                "corners": [
+                    [x, y, 0.0],
+                    [x + size, y, 0.0],
+                    [x + size, y + size, 0.0],
+                    [x, y + size, 0.0],
+                ],
             }
         )
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    width, height = aruco_gen.calculate_total_size(
+        rows=params["rows"],
+        cols=params["cols"],
+        size_mm=params["size_mm"],
+        spacing_mm=params["spacing_mm"],
+    )
+
+    if params["include_outer_border"]:
+        width += 2 * params["border_width"]
+        height += 2 * params["border_width"]
+
+    return {
+        "pattern_type": "aruco_grid",
+        "dictionary": params["dictionary"],
+        "marker_size_mm": params["size_mm"],
+        "grid_size": [params["rows"], params["cols"]],
+        "spacing_mm": params["spacing_mm"],
+        "marker_ids": marker_ids,
+        "markers": marker_entries,
+        "physical_width_mm": width,
+        "physical_height_mm": height,
+    }
+
+
+@advanced_bp.route("/api/advanced/preview", methods=["POST"])
+@handle_api_errors
+def advanced_preview():
+    """Generate advanced preview with additional features."""
+    data = request.get_json() or {}
+    params = validate_generation_params(data, list(aruco_gen.dictionaries.keys()))
+    return jsonify(build_advanced_preview(params))
 
 
 @advanced_bp.route("/api/advanced/generate_with_coordinates", methods=["POST"])
@@ -218,8 +290,13 @@ def export_ros():
 def export_dxf():
     """Export pattern as DXF for CNC/laser cutting."""
     try:
-        data = request.get_json()
-        calibration_data = data.get("calibration_data", {})
+        data = request.get_json() or {}
+        calibration_data = data.get("calibration_data")
+        if not calibration_data:
+            params = validate_generation_params(
+                data, list(aruco_gen.dictionaries.keys())
+            )
+            calibration_data = build_calibration_data_from_generation(params)
 
         dxf_buffer = exporter.export_dxf(calibration_data)
 
@@ -238,8 +315,13 @@ def export_dxf():
 def export_stl():
     """Export pattern as STL for 3D printing."""
     try:
-        data = request.get_json()
-        calibration_data = data.get("calibration_data", {})
+        data = request.get_json() or {}
+        calibration_data = data.get("calibration_data")
+        if not calibration_data:
+            params = validate_generation_params(
+                data, list(aruco_gen.dictionaries.keys())
+            )
+            calibration_data = build_calibration_data_from_generation(params)
         thickness_mm = float(data.get("thickness_mm", 3.0))
 
         stl_buffer = exporter.export_stl_3d(calibration_data, thickness_mm)

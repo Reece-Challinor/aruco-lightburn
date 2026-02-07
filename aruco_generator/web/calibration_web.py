@@ -1,5 +1,26 @@
 """
 Web routes for calibration pattern generation.
+
+<!--
+<ai_agent_documentation>
+  <file_meta>
+    <name>calibration_web.py</name>
+    <version>2.1.0</version>
+    <type>flask_blueprint</type>
+    <purpose>Calibration pattern routes for ChArUco, ARUCO boards, and AprilTags</purpose>
+    <last_updated>2026-02-07</last_updated>
+    <maintainer>ArUCO Generator Team</maintainer>
+  </file_meta>
+  <route_summary>
+    <route path="/calibration" method="GET" purpose="Render calibration UI"/>
+    <route path="/api/calibration/charuco" method="POST" purpose="Generate ChArUco board"/>
+    <route path="/api/calibration/aruco_board" method="POST" purpose="Generate ARUCO board"/>
+    <route path="/api/calibration/apriltag" method="POST" purpose="Generate AprilTag marker"/>
+    <route path="/api/calibration/apriltag_grid" method="POST" purpose="Generate AprilTag grid"/>
+    <route path="/api/calibration/export/<id>" method="GET" purpose="Export calibration data"/>
+  </route_summary>
+</ai_agent_documentation>
+-->
 """
 
 import base64
@@ -181,6 +202,8 @@ def generate_apriltag():
         tag_family = data.get("tag_family", "tag36h11")
         tag_id = int(data.get("tag_id", 0))
         tag_size_mm = float(data.get("tag_size_mm", 50.0))
+        save_to_db = data.get("save_to_db", False)
+        pattern_name = data.get("pattern_name", f"AprilTag_{tag_family}_{tag_id}")
 
         # Generate AprilTag
         result = calibration_gen.generate_apriltag(
@@ -191,12 +214,39 @@ def generate_apriltag():
         _, buffer = cv2.imencode(".png", result["image"])
         image_base64 = base64.b64encode(buffer).decode("utf-8")
 
+        # Save to database if requested
+        pattern_id = None
+        if save_to_db:
+            try:
+                pattern = CalibrationPattern(
+                    pattern_type="apriltag",
+                    pattern_name=pattern_name,
+                    physical_width_mm=result["dimensions_mm"][0],
+                    physical_height_mm=result["dimensions_mm"][1],
+                    marker_size_mm=tag_size_mm,
+                    grid_size_x=1,
+                    grid_size_y=1,
+                    dictionary_type=tag_family,
+                    total_markers=1,
+                    first_marker_id=tag_id,
+                    calibration_data=result["metadata"],
+                    image_checksum=result["metadata"].get("checksum"),
+                )
+                db.session.add(pattern)
+                db.session.commit()
+                pattern_id = pattern.id
+            except Exception:
+                # Database save failed, continue without persistence
+                pass
+
         return jsonify(
             {
                 "success": True,
                 "image_base64": image_base64,
+                "calibration_data": result["metadata"],
                 "metadata": result["metadata"],
                 "dimensions_mm": result["dimensions_mm"],
+                "pattern_id": pattern_id,
             }
         )
 
@@ -263,6 +313,7 @@ def generate_apriltag_grid():
             {
                 "success": True,
                 "image_base64": image_base64,
+                "calibration_data": result["metadata"],
                 "metadata": result["metadata"],
                 "dimensions_mm": result["dimensions_mm"],
                 "pattern_id": pattern_id,

@@ -1,6 +1,6 @@
 # ArUCO Generator
 
-![Version](https://img.shields.io/badge/version-2.0.0-blue.svg?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-2.2.0-blue.svg?style=for-the-badge)
 ![License](https://img.shields.io/badge/license-MIT-green.svg?style=for-the-badge)
 ![Status](https://img.shields.io/badge/status-stable-success.svg?style=for-the-badge)
 
@@ -55,7 +55,7 @@ make run
 | :--- | :--- | :--- |
 | **Engine** | `aruco_generator/core/aruco.py` | Core CV algorithms. Handles fallback logic gracefully. |
 | **API** | `aruco_generator/web/web.py` | RESTful endpoints for generation and preview. |
-| **Validation** | `aruco_generator/validation.py` | Quality assurance and Hamming distance checks. |
+| **Validation** | `aruco_generator/validation/validation.py` | Quality assurance and Hamming distance checks. |
 | **Client** | `static/js/core/api.js` | Class-based frontend API client (`ArUCOAPI`). |
 | **Map** | `AI_NAVIGATION.xml` | **The Source of Truth** for codebase structure. |
 
@@ -82,10 +82,15 @@ We use `make` for all lifecycle events.
 
 | Command | Action |
 | :--- | :--- |
-| `make validate` | **Run full CI suite** (Lint + Test + Quality). Required before commit. |
+| `make validate` | **Run full CI suite** (Format Check + Lint + Unit + Integration + UI + QA). Required before commit. |
 | `make format` | Auto-format code with Black/Isort. |
-| `make test` | Run all unit and integration tests. |
+| `make test` | Run unit + integration + UI tests. |
+| `make test-qa` | Run quality + export tests. |
 | `make clean` | Remove build artifacts and caches. |
+
+## 📋 Deployment Checklist
+
+See `docs/deployment_checklist.md` for pre-release and deployment steps.
 
 ---
 

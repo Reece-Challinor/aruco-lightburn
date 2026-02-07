@@ -1,4 +1,16 @@
 """
+<!--
+<ai_agent_documentation>
+  <file_meta>
+    <name>test_api.py</name>
+    <version>1.2.0</version>
+    <type>integration_test</type>
+    <purpose>Verify API endpoints and export routes</purpose>
+    <last_updated>2026-02-07</last_updated>
+    <maintainer>ArUCO Generator Team</maintainer>
+  </file_meta>
+</ai_agent_documentation>
+-->
 Test suite for API endpoints
 """
 
@@ -170,6 +182,16 @@ def test_validation_endpoints(client):
 def test_advanced_export_endpoints(client):
     """Test advanced export endpoints return files."""
     payload = {"calibration_data": {"pattern_type": "aruco_markers"}}
+    generation_params = {
+        "dictionary": "4X4_50",
+        "rows": 2,
+        "cols": 2,
+        "size_mm": 30,
+        "spacing_mm": 5,
+        "start_id": 0,
+        "include_outer_border": True,
+        "border_width": 2,
+    }
 
     response = client.post(
         "/api/export/opencv_yaml",
@@ -200,12 +222,43 @@ def test_advanced_export_endpoints(client):
     assert response.content_type == "application/dxf"
 
     response = client.post(
+        "/api/export/dxf",
+        data=json.dumps(generation_params),
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    assert response.content_type == "application/dxf"
+
+    response = client.post(
         "/api/export/stl",
-        data=json.dumps(payload),
+        data=json.dumps(generation_params),
         content_type="application/json",
     )
     assert response.status_code == 200
     assert response.content_type == "application/sla"
+
+
+def test_pdf_export_outer_border(client):
+    """Test PDF export with outer border when reportlab is available."""
+    pytest.importorskip("reportlab")
+    params = {
+        "dictionary": "4X4_50",
+        "rows": 2,
+        "cols": 2,
+        "size_mm": 30,
+        "spacing_mm": 5,
+        "start_id": 0,
+        "include_outer_border": True,
+        "border_width": 3,
+    }
+
+    response = client.post(
+        "/api/export/pdf",
+        data=json.dumps(params),
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    assert response.content_type == "application/pdf"
 
 
 def test_presets_endpoint(client):

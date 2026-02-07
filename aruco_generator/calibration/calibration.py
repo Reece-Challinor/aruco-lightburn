@@ -4,6 +4,7 @@
   "purpose": "Generate calibration patterns for computer vision: ChArUco, ARUCO boards, AprilTags",
   "dependencies": ["opencv-python", "numpy"],
   "main_class": "CalibrationPatternGenerator",
+  "last_updated": "2026-02-07",
   "key_methods": {
     "generate_charuco_board": "ChArUco board for camera calibration",
     "generate_aruco_board": "Fixed grid ARUCO pattern with known dimensions",
@@ -324,6 +325,8 @@ class CalibrationPatternGenerator:
             "tag_family": tag_family,
             "tag_id": tag_id,
             "tag_size_mm": tag_size_mm,
+            "physical_width_mm": tag_size_mm,
+            "physical_height_mm": tag_size_mm,
             "tag_bits": tag_bits,
             "hamming_distance": hamming_distance,
             "border_bits": border_bits,
@@ -571,6 +574,23 @@ class CalibrationPatternGenerator:
                 "marker_size": calibration_data["marker_size_mm"],
                 "marker_separation": calibration_data["separation_mm"],
                 "dictionary": calibration_data["dictionary"],
+            }
+        elif calibration_data["pattern_type"] == "apriltag":
+            yaml_data["apriltag"] = {
+                "tag_family": calibration_data.get("tag_family"),
+                "tag_id": calibration_data.get("tag_id"),
+                "tag_size_mm": calibration_data.get("tag_size_mm"),
+                "border_bits": calibration_data.get("border_bits", 1),
+            }
+        elif calibration_data["pattern_type"] == "apriltag_grid":
+            grid_size = calibration_data.get("grid_size", [0, 0])
+            yaml_data["apriltag_grid"] = {
+                "grid_x": grid_size[0],
+                "grid_y": grid_size[1],
+                "tag_family": calibration_data.get("tag_family"),
+                "tag_size_mm": calibration_data.get("tag_size_mm"),
+                "spacing_mm": calibration_data.get("spacing_mm"),
+                "first_tag_id": calibration_data.get("first_tag_id", 0),
             }
 
         if filename:

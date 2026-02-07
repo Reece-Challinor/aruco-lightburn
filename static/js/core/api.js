@@ -289,14 +289,14 @@ class APIClient {
         try {
             // Show loading state
             this.showLoading(true);
-            
+
             const response = await fetch(url, config);
             const data = await response.json();
-            
+
             if (!response.ok) {
                 throw new Error(data.error || `HTTP error! status: ${response.status}`);
             }
-            
+
             return data;
         } catch (error) {
             this.handleError(error);
@@ -310,7 +310,7 @@ class APIClient {
     async get(endpoint, params = {}) {
         const url = new URL(`${window.location.origin}${this.baseURL}${endpoint}`);
         Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
-        
+
         return this.request(endpoint + url.search, {
             method: 'GET'
         });
@@ -328,7 +328,7 @@ class APIClient {
     async uploadFile(endpoint, file, additionalData = {}) {
         const formData = new FormData();
         formData.append('file', file);
-        
+
         Object.keys(additionalData).forEach(key => {
             formData.append(key, additionalData[key]);
         });
@@ -344,7 +344,7 @@ class APIClient {
     async downloadFile(endpoint, params = {}, filename = 'download') {
         try {
             this.showLoading(true);
-            
+
             // Use correct API path
             const fullURL = endpoint.startsWith('/api/') ? endpoint : `/api${endpoint}`;
             const response = await fetch(fullURL, {
@@ -364,12 +364,12 @@ class APIClient {
             }
 
             const blob = await response.blob();
-            
+
             // Check if blob is empty
             if (blob.size === 0) {
                 throw new Error('No data received from server');
             }
-            
+
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -395,7 +395,7 @@ class APIClient {
 
     handleError(error) {
         console.error('API Error:', error);
-        
+
         // Show error notification
         if (window.notificationManager) {
             window.notificationManager.showError(error.message || 'An error occurred');
@@ -484,11 +484,11 @@ class ArUCOAPI extends APIClient {
     async exportLightBurn(params) {
         return this.downloadFile('/download', params, 'aruco_markers.lbrn2');
     }
-    
+
     async exportPDF(params) {
         return this.downloadFile('/export/pdf', params, 'aruco_markers.pdf');
     }
-    
+
     async exportSVG(params) {
         return this.downloadFile('/export/svg', params, 'aruco_markers.svg');
     }
