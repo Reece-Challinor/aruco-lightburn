@@ -1,9 +1,23 @@
+#
+# <!--
+# <ai_agent_documentation>
+#   <file_meta>
+#     <name>Makefile</name>
+#     <version>1.1.0</version>
+#     <type>build_automation</type>
+#     <purpose>Development, testing, and deployment automation targets</purpose>
+#     <last_updated>2026-02-07</last_updated>
+#     <maintainer>ArUCO Generator Team</maintainer>
+#   </file_meta>
+# </ai_agent_documentation>
+# -->
 # ArUCO Generator Makefile
 # Automation for development, testing, and deployment
 
 .PHONY: help install install-dev format format-check lint test unit-test \
 	integration test-ui test-api test-export test-quality test-qa coverage \
-	clean run dev check-deps db-init pre-commit-install pre-commit validate ci
+	test-health clean run dev check-deps db-init pre-commit-install pre-commit \
+	validate ci
 
 # Default target
 help:
@@ -17,6 +31,7 @@ help:
 	@echo "make test          - Run unit + integration + UI tests"
 	@echo "make unit-test     - Run unit tests only"
 	@echo "make test-api      - Run API integration tests"
+	@echo "make test-health   - Run health endpoint checks"
 	@echo "make test-ui       - Run UI smoke tests"
 	@echo "make integration   - Run API + UI integration tests"
 	@echo "make test-quality  - Run generation quality tests"
@@ -61,6 +76,11 @@ test-api:
 	@echo "Running API integration tests..."
 	python3 -m pytest tests/test_api_endpoints.py -v
 	python3 -m pytest tests/test_api.py -v
+
+# Run health endpoint checks
+test-health:
+	@echo "Running health endpoint checks..."
+	python3 -m pytest tests/test_api_endpoints.py -k health -v
 
 # Run UI smoke tests
 test-ui:

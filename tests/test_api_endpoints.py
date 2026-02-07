@@ -1,4 +1,16 @@
 """
+<!--
+<ai_agent_documentation>
+  <file_meta>
+    <name>test_api_endpoints.py</name>
+    <version>1.1.0</version>
+    <type>test_suite</type>
+    <purpose>Integration coverage for core API endpoints and health checks</purpose>
+    <last_updated>2026-02-07</last_updated>
+    <maintainer>ArUCO Generator Team</maintainer>
+  </file_meta>
+</ai_agent_documentation>
+-->
 Integration tests for API endpoints
 """
 
@@ -172,6 +184,28 @@ class TestAPIEndpoints(unittest.TestCase):
         self.assertIn("opencv", data)
         self.assertIn("dictionaries", data)
         self.assertIn("timestamp", data)
+
+    def test_health_endpoint(self):
+        """Test comprehensive health endpoint"""
+        response = self.client.get("/api/health")
+        self.assertEqual(response.status_code, 200)
+
+        data = json.loads(response.data)
+        self.assertIn("status", data)
+        self.assertIn("metrics", data)
+        self.assertIn("dependencies", data)
+        self.assertIn("database", data)
+        self.assertIn("request_id", data)
+
+    def test_healthz_endpoint(self):
+        """Test lightweight health endpoint"""
+        response = self.client.get("/api/healthz")
+        self.assertEqual(response.status_code, 200)
+
+        data = json.loads(response.data)
+        self.assertEqual(data["status"], "ok")
+        self.assertIn("timestamp", data)
+        self.assertIn("request_id", data)
 
     def test_log_error_endpoint(self):
         """Test error logging endpoint"""

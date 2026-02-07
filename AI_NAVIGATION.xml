@@ -326,6 +326,7 @@
     <!-- Documentation Files -->
     <documentation>
         <file name="NAVIGATION.md" purpose="ASCII tree and method navigation"/>
+        <file name="AGENTS.md" purpose="Engineering guide and contributor protocols"/>
         <file name="ERROR_HANDLING.md" purpose="Error patterns and anti-patterns"/>
         <file name="AI_IMPROVEMENT_OBJECTIVES.md" purpose="AI development guidelines"/>
         <file name="IMPROVEMENT_PLAN.md" purpose="Implementation roadmap"/>

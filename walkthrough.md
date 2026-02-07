@@ -2,7 +2,7 @@
 <ai_agent_documentation>
   <file_meta>
     <name>walkthrough.md</name>
-  <version>1.3.0</version>
+  <version>1.4.0</version>
     <type>delivery_report</type>
     <purpose>Summarize completed work, tests, and recommended commits</purpose>
   <last_updated>2026-02-07</last_updated>
@@ -16,21 +16,18 @@
 Date: 2026-02-07
 
 ## Summary
-- Added request tracing, error-rate heuristics, and richer health endpoints for observability.
-- Improved API error payloads and frontend error handling with request IDs + client error logging.
-- Updated navigation map and docs to reflect new endpoints and diagnostics.
+- Added health endpoint test coverage and a dedicated Makefile target for health checks.
+- Updated AGENTS guidance and AI navigation documentation to reflect observability workflows.
+- Refreshed task tracking to capture observability and testing updates.
 
 ## Changes
-- `aruco_generator/core/observability.py`: new request tracing + metrics tracking with error-rate warnings.
-- `aruco_generator/core/utils.py`: richer error payloads, request-safe logging, and validation fixes.
-- `aruco_generator/web/web.py`: added `/api/health` + `/api/healthz`, expanded debug status, and improved error logging.
-- `static/js/core/api.js`: explicit network/timeout errors, request IDs, and client error telemetry.
-- `static/js/pages/generate.js`: surfaced detailed generation and dictionary load errors.
-- `app.py`: wired observability configuration and request tracing.
-- `AI_NAVIGATION.xml`, `task.md`: updated navigation map and task tracking.
+- `tests/test_api_endpoints.py`: added `/api/health` and `/api/healthz` coverage.
+- `Makefile`: added `test-health` target and help entry.
+- `AGENTS.md`: added observability guidance and updated testing list.
+- `AI_NAVIGATION.xml`, `task.md`: refreshed documentation and task tracking.
 
 ## Tests
 - `make validate`
 
 ## Commit Plan
-- `Improve observability + error handling diagnostics`
+- `Document health checks + update Makefile/test coverage`

@@ -1,3 +1,15 @@
+<!--
+<ai_agent_documentation>
+  <file_meta>
+    <name>AGENTS.md</name>
+    <version>1.1.0</version>
+    <type>engineering_guide</type>
+    <purpose>Operational rules, workflows, and quality gates for contributors</purpose>
+    <last_updated>2026-02-07</last_updated>
+    <maintainer>ArUCO Generator Team</maintainer>
+  </file_meta>
+</ai_agent_documentation>
+-->
 <INSTRUCTIONS>
 # AGENTS.md - Engineering Guide
 
@@ -19,6 +31,7 @@ Your work must be **Dynamic**, **Robust**, and **Aesthetically Pleasing**.
 4. **Validation Gate**: Run `make validate` after every significant change. For refactors touching UI + backend, also run `make integration` and `make test`.
 5. **Versioning**: On release-level changes, update `pyproject.toml`, `aruco_generator/__init__.py`, `CHANGELOG.md`, and `AI_NAVIGATION.xml`.
 6. **Deployment Checklist**: Follow `docs/deployment_checklist.md` before any release or deployment.
+7. **Observability First**: Use `/api/health` and `/api/healthz` to verify readiness and capture request IDs in error reports.
 
 ---
 
@@ -56,6 +69,7 @@ Start with `AI_NAVIGATION.xml` for exact file locations and line references.
 - Integration: `make integration`
 - UI smoke tests: `make test-ui`
 - API integration: `make test-api`
+- Health checks: `make test-health`
 - Quality gates: `make test-qa`
 - Full validation: `make validate`
 

@@ -2,7 +2,7 @@
 <ai_agent_documentation>
   <file_meta>
     <name>task.md</name>
-  <version>1.3.0</version>
+  <version>1.4.0</version>
     <type>task_tracker</type>
     <purpose>Track immediate engineering tasks for the active refactor</purpose>
   <last_updated>2026-02-07</last_updated>
@@ -25,3 +25,5 @@ Status: Completed (2026-02-07)
 - Ran full make test suite plus local gunicorn smoke checks.
 - Added request tracing, health endpoints, and error-rate heuristics for observability.
 - Improved API/JS error messaging with request IDs and frontend error logging.
+- Updated AGENTS guide, AI navigation docs, and Makefile health checks.
+- Added health endpoint coverage in API endpoint tests.
