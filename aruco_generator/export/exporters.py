@@ -1,5 +1,18 @@
 """
 Professional export formats for calibration and manufacturing.
+
+<!--
+<ai_agent_documentation>
+  <file_meta>
+    <name>exporters.py</name>
+    <version>2.2.0</version>
+    <type>export_module</type>
+    <purpose>Provide export pipelines for calibration and manufacturing outputs</purpose>
+    <last_updated>2026-02-07</last_updated>
+    <maintainer>ArUCO Generator Team</maintainer>
+  </file_meta>
+</ai_agent_documentation>
+-->
 """
 
 import json
@@ -448,7 +461,12 @@ class PDFExporter:
             self.available = False
 
     def generate_pdf(
-        self, markers: List[Dict[str, Any]], size_mm: float, include_labels: bool = True
+        self,
+        markers: List[Dict[str, Any]],
+        size_mm: float,
+        include_labels: bool = True,
+        include_outer_border: bool = False,
+        border_width: float = 2.0,
     ) -> bytes:
         """
         Generate PDF with marker grid.
@@ -457,6 +475,8 @@ class PDFExporter:
             markers: List of marker data (including images)
             size_mm: Size of each marker in mm
             include_labels: Whether to include ID labels
+            include_outer_border: Whether to render an outer border around the grid
+            border_width: Width of the outer border margin in mm
 
         Returns:
             bytes: PDF file content
@@ -480,12 +500,13 @@ class PDFExporter:
 
         max_x = max(m["x"] for m in markers) + size_mm
         max_y = max(m["y"] for m in markers) + size_mm
+        border_offset = border_width if include_outer_border else 0.0
 
         # Center on A4 (or adjust page size if too big)
         page_w, page_h = A4
 
-        content_w = max_x * mms
-        content_h = max_y * mms
+        content_w = (max_x + 2 * border_offset) * mms
+        content_h = (max_y + 2 * border_offset) * mms
 
         if content_w > page_w or content_h > page_h:
             # Create custom pagesize
@@ -507,9 +528,14 @@ class PDFExporter:
 
         for marker in markers:
             # Position
-            x = margin_x + marker["x"] * mms
+            x = margin_x + (marker["x"] + border_offset) * mms
             # Flip Y coordinate system: page_height - top_margin - y_offset - height of marker
-            y = page_size[1] - margin_y - marker["y"] * mms - size_mm * mms
+            y = (
+                page_size[1]
+                - margin_y
+                - (marker["y"] + border_offset) * mms
+                - size_mm * mms
+            )
 
             w = size_mm * mms
             h = size_mm * mms
@@ -528,6 +554,13 @@ class PDFExporter:
                 text_w = c.stringWidth(text, "Helvetica", 10)
                 # Text below marker
                 c.drawString(x + (w - text_w) / 2, y - 12, text)
+
+        if include_outer_border:
+            c.setStrokeColorRGB(0, 0, 0)
+            c.setLineWidth(0.5)
+            border_x = margin_x
+            border_y = page_size[1] - margin_y - content_h
+            c.rect(border_x, border_y, content_w, content_h, stroke=1, fill=0)
 
         c.showPage()
         c.save()

@@ -1,126 +1,77 @@
-# AGENTS.md - Master Guide for AI Agents
+<INSTRUCTIONS>
+# AGENTS.md - Engineering Guide
 
-**Current Implementation**: `v2.0.0-unified`
-**Last Updated**: 2025-12-26
+**Current Implementation**: `v2.1.0`
+**Last Updated**: 2026-02-07
 
 ---
 
-## 🧭 The Prime Directive
-
-**You are an expert software engineer working on a premium, high-performance web application.**
+## Prime Directive
+You are an expert software engineer working on a premium, high-performance web application.
 Your work must be **Dynamic**, **Robust**, and **Aesthetically Pleasing**.
 
-### ❗ Critical Protocols
+---
 
-1.  **Golden Regulation**: The codebase is the source of truth, but `AI_NAVIGATION.xml` is your map. You MUST keep them in sync. If you modify code structure, you MUST update the corresponding line references in the XML.
-2.  **Implementation Pattern**:
-    -   **READ**: Check `AI_NAVIGATION.xml` to locate components.
-    -   **PLAN**: Draft an `implementation_plan.md` for complex changes.
-    -   **EDIT**: make changes with precision.
-    -   **VALIDATE**: Run `make validate` after *every* significant change.
-3.  **Documentation First**: Every file has an `<ai_agent_documentation>` header. These are NOT comments; they are structural metadata. **Update them** if you change the file's logic.
-24. **Architecture Mandate**: To avoid circular imports, **ALWAYS** use Flask Blueprints for route modules. NEVER import `app` directly in a module that `app.py` imports.
-    -   `app.py` -> imports `web.py` (registers blueprint)
-    -   `web.py` -> imports `extensions.py` (for db), NOT `app.py`.
+## Critical Protocols
+1. **Map Discipline**: `AI_NAVIGATION.xml` is the authoritative map. If code structure or key line numbers change, **update the XML** immediately.
+2. **Documentation First**: Every modified file must keep its `<ai_agent_documentation>` header accurate (version, last_updated, purpose). If the header is missing, add it.
+3. **Blueprint Rule**: All route modules must be Flask Blueprints. Never import `app` in modules imported by `app.py`.
+4. **Validation Gate**: Run `make validate` after every significant change. For refactors touching UI + backend, also run `make integration` and `make test`.
+5. **Versioning**: On release-level changes, update `pyproject.toml`, `aruco_generator/__init__.py`, `CHANGELOG.md`, and `AI_NAVIGATION.xml`.
 
 ---
 
-## 🗺️ Navigation & Structure
+## Navigation Map
+Start with `AI_NAVIGATION.xml` for exact file locations and line references.
 
-### Where is everything?
-The authoritative map of the codebase is located in:
-`AI_NAVIGATION.xml`
+### Entry Points
+- `app.py` - Flask application factory
+- `aruco_generator/core/aruco.py` - Core ArUCO generation
 
-**Use this file to find:**
--   **Entry Points**: `app.py` (Flask), `core/aruco.py` (Logic).
--   **Line References**: Exact locations of classes/methods (e.g., `ArUCOGenerator` instantiation).
--   **API Structure**: Definition of backend routes and frontend clients.
--   **Data Models**: Database schema definitions.
-
-### Key File Locations
-| Component | Path | Description |
-| :--- | :--- | :--- |
-| **Map** | `AI_NAVIGATION.xml` | **START HERE**. The projects central nervous system. |
-| **Logic** | `aruco_generator/core/aruco.py` | Core CV algorithms. Strategy pattern for Falbacks. |
-| **Web** | `aruco_generator/web/web.py` | Main application routes and Blueprints. |
-| **API** | `static/js/core/api.js` | Frontend API client (Class-based `ArUCOAPI`). |
-| **Styles** | `static/css/main.css` | Premium styling variables and core layout. |
-| **Tests** | `tests/` | Comprehensive test suite. |
+### Key UI + API Files
+- `templates/generate.html` - Generation UI (simple/advanced/batch)
+- `templates/calibration.html` - Calibration UI
+- `static/js/pages/generate.js` - Generate page controller
+- `static/js/pages/calibration.js` - Calibration page controller
+- `static/css/calibration.css` - Calibration-specific styling
+- `static/js/core/api.js` - Frontend API client
+- `aruco_generator/web/web.py` - Primary API endpoints
+- `aruco_generator/web/advanced_web.py` - Advanced preview + exports + validation
+- `aruco_generator/web/calibration_web.py` - Calibration endpoints
 
 ---
 
-## 🛠️ Development Workflow
-
-We use `make` to automate the development lifecycle.
-
-### 1. Validation (Mandatory)
-Before committing ANY code, you must ensure the build passes.
-```bash
-make validate
-```
-*This runs linting (flake8), formatting checks (black), and all test suites.*
-
-### 2. Formatting
-Keep the code pretty.
-```bash
-make format
-```
-*Auto-formats Python code with `black` and `isort`.*
-
-### 3. Testing
-Run specific test suites if `make validate` is too slow for iteration.
-```bash
-make test             # Run all tests
-make unit-test        # Core logic tests
-make integration      # API/Web tests
-```
+## Development Workflow
+1. **READ**: Locate relevant files in `AI_NAVIGATION.xml`.
+2. **PLAN**: For complex changes, update `implementation_plan.md`.
+3. **EDIT**: Make focused changes with stable API contracts.
+4. **VALIDATE**: Run `make validate` and any additional required targets.
+5. **DOCUMENT**: Update `walkthrough.md` and `task.md`.
 
 ---
 
-## 🏗️ Architecture Layers
-
-### 1. Python Backend (Flask)
--   **Pattern**: Factory Pattern (`create_app` in `app.py`).
--   **Blueprints**: Routes are modularized in `aruco_generator/web/` (e.g., `web.py`, `advanced_web.py`).
--   **DI**: Database (`db`) is initialized in extensions and imported where needed.
--   **CV Engine**: `ArUCOGenerator` handles image processing. It *gracefully degrades* if OpenCV contrib is missing.
-
-### 2. JavaScript Frontend (Vanilla ES6+)
--   **No Build Step**: Pure ES6 modules.
--   **Entry Point**: `base.html` loads core modules.
--   **API Client**: `static/js/core/api.js` defines `APIClient` and `ArUCOAPI` classes.
-    -   *Usage*: `window.arucoAPI.generatePreview(...)`
--   **State Management**: `window.appState` manages global state.
-
-### 3. Database (SQLAlchemy)
--   **Optionality**: The app runs in "Stateless Mode" if no DB is configured.
--   **Models**: Defined in `aruco_generator/models.py`.
+## Testing
+- Unit: `make unit-test`
+- Integration: `make integration`
+- UI smoke tests: `tests/test_ui_pages.py`
+- Quality gates: `make test-qa`
+- Full validation: `make validate`
 
 ---
 
-## 🤖 Common Tasks for Agents
-
-### Adding a New Feature
-1.  **Plan**: Update `implementation_plan.md`.
-2.  **Backend**: Add logic to `core/aruco.py` or new module.
-3.  **API**: Expose via `web/web.py` route.
-4.  **Frontend**: Add method to `ArUCOAPI` class in `api.js`.
-5.  **UI**: Create/Update HTML template and specific JS controller.
-6.  **Docs**: Update `AI_NAVIGATION.xml` line references and file headers.
-7.  **Verify**: `make validate`.
-
-### Fixing a Bug
-1.  **Reproduce**: Create a test case in `tests/`.
-2.  **Fix**: Modify code.
-3.  **Refine**: Run `make format`.
-4.  **Verify**: Run `make test` to ensure no regression.
+## Release + PR Checklist
+- Update version and changelog for new releases.
+- Ensure AI navigation line references are correct.
+- Create a branch using the `codex/` prefix.
+- Commit and tag releases with an annotated tag.
+- Prepare a PR summary in `walkthrough.md`.
 
 ---
 
-## 📝 Artifacts & Memory
+## Artifacts
+- `task.md` - Active work tracker
+- `implementation_plan.md` - Approved refactor plan
+- `walkthrough.md` - Delivery summary and test logs
 
--   `task.md`: Track your immediate progress.
--   `implementation_plan.md`: Propose and agree on big changes.
--   `walkthrough.md`: Show your work after it's done.
-
-**Go forth and code brilliantly.**
+Go forth and code brilliantly.
+</INSTRUCTIONS>

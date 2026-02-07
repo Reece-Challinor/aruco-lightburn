@@ -44,6 +44,7 @@ integration:
 	@echo "Running integration tests..."
 	python3 -m pytest tests/test_api_endpoints.py -v
 	python3 -m pytest tests/test_api.py -v
+	python3 -m pytest tests/test_ui_pages.py -v
 
 # Run generation quality tests
 test-quality:

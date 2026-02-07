@@ -1,4 +1,16 @@
 {% extends "base.html" %}
+{#
+<ai_agent_documentation>
+  <file_meta>
+    <name>generate.html</name>
+    <version>2.4.0</version>
+    <type>template</type>
+    <purpose>Marker generation UI with simple, advanced, and batch workflows</purpose>
+    <last_updated>2026-02-07</last_updated>
+    <maintainer>ArUCO Generator Team</maintainer>
+  </file_meta>
+</ai_agent_documentation>
+#}
 
 {% block title %}Generate Markers - ArUCO Generator{% endblock %}
 
@@ -329,11 +341,29 @@
                 <!-- Advanced Preview -->
                 <div class="col-lg-8">
                     <div class="card h-100">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">
-                                <i class="bi bi-eye me-2"></i>Advanced Preview
-                            </h5>
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-eye me-2"></i>Advanced Preview
+                        </h5>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-success btn-sm dropdown-toggle" id="advancedExportBtn"
+                                data-bs-toggle="dropdown" disabled>
+                                <i class="bi bi-download me-2"></i>Export
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item advanced-export-option" href="#" data-format="lightburn"><i
+                                            class="bi bi-lightning me-2"></i>LightBurn (.lbrn2)</a></li>
+                                <li><a class="dropdown-item advanced-export-option" href="#" data-format="pdf"><i
+                                            class="bi bi-file-pdf me-2"></i>PDF</a></li>
+                                <li><a class="dropdown-item advanced-export-option" href="#" data-format="svg"><i
+                                            class="bi bi-image me-2"></i>SVG</a></li>
+                                <li><a class="dropdown-item advanced-export-option" href="#" data-format="dxf"><i
+                                            class="bi bi-vector-pen me-2"></i>DXF</a></li>
+                                <li><a class="dropdown-item advanced-export-option" href="#" data-format="stl"><i
+                                            class="bi bi-box-seam me-2"></i>STL</a></li>
+                            </ul>
                         </div>
+                    </div>
                         <div class="card-body">
                             <div id="advancedPreview" class="text-center py-5 text-muted">
                                 <i class="bi bi-gear display-2 mb-3"></i>

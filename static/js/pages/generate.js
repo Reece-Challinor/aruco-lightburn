@@ -1,11 +1,27 @@
 /**
+ * <!--
+ * <ai_agent_documentation>
+ *   <file_meta>
+ *     <name>generate.js</name>
+ *     <version>2.5.0</version>
+ *     <type>frontend_controller</type>
+ *     <purpose>Manage marker generation workflows across simple, advanced, and batch tabs</purpose>
+ *     <last_updated>2026-02-07</last_updated>
+ *     <maintainer>ArUCO Generator Team</maintainer>
+ *   </file_meta>
+ * </ai_agent_documentation>
+ * -->
+ *
  * Generate Page JavaScript
  * Handles marker generation with improved navigation and state management
  */
 
 class GenerateManager {
     constructor() {
-        this.currentResult = null;
+        this.simpleResult = null;
+        this.advancedResult = null;
+        this.lastSimpleParams = null;
+        this.lastAdvancedParams = null;
         this.dictionaries = {};
 
         this.init();
@@ -39,12 +55,21 @@ class GenerateManager {
             generateGridBtn.addEventListener('click', () => this.generateGrid());
         }
 
-        // Export options
+        // Export options (simple tab)
         document.querySelectorAll('.export-option').forEach(option => {
             option.addEventListener('click', (e) => {
                 e.preventDefault();
                 const format = e.currentTarget.dataset.format;
-                this.downloadWithFormat(format);
+                this.downloadSimpleWithFormat(format);
+            });
+        });
+
+        // Export options (advanced tab)
+        document.querySelectorAll('.advanced-export-option').forEach(option => {
+            option.addEventListener('click', (e) => {
+                e.preventDefault();
+                const format = e.currentTarget.dataset.format;
+                this.downloadAdvancedWithFormat(format);
             });
         });
 
@@ -72,6 +97,7 @@ class GenerateManager {
     setupAdvancedMode() {
         this.updateMaxMarkerInfo();
         this.toggleBorderWidth();
+        this.setAdvancedExportEnabled(false);
 
         // Form state management - disabled for now
         // const advancedForm = document.getElementById('advancedForm');
@@ -141,13 +167,13 @@ class GenerateManager {
             dictionary: formData.get('dictionary'),
             rows: parseInt(formData.get('rows')),
             cols: parseInt(formData.get('cols')),
-            size_mm: parseInt(formData.get('size_mm')),
-            spacing_mm: parseInt(formData.get('spacing_mm')),
+            size_mm: parseFloat(formData.get('size_mm')),
+            spacing_mm: parseFloat(formData.get('spacing_mm')),
             start_id: parseInt(formData.get('marker_id')),
             include_borders: formData.get('include_borders') === 'on',
             include_labels: formData.get('include_labels') === 'on',
             include_outer_border: formData.get('include_outer_border') === 'on',
-            border_width: parseInt(formData.get('border_width') || 2)
+            border_width: parseFloat(formData.get('border_width') || 2)
         };
 
         await this.generateAdvancedPreview(params);
@@ -158,7 +184,8 @@ class GenerateManager {
 
         try {
             const result = await window.arucoAPI.generatePreview(params);
-            this.currentResult = result;
+            this.simpleResult = result;
+            this.lastSimpleParams = params;
 
             // Store in state manager
             window.stateManager.set('generation.lastParams', params);
@@ -181,7 +208,9 @@ class GenerateManager {
 
         try {
             const result = await window.arucoAPI.generateAdvanced(params);
-            this.currentResult = result;
+            this.advancedResult = result;
+            this.lastAdvancedParams = params;
+            window.stateManager.set('generation.advancedParams', params);
 
             preview.innerHTML = `
                 <div class="text-center">
@@ -192,14 +221,13 @@ class GenerateManager {
                             Dimensions: ${result.dimensions.width}mm × ${result.dimensions.height}mm
                         </small>
                     </div>
-                    <div class="mt-3">
-                        <button class="btn btn-success" onclick="window.generateManager.downloadCurrent()">
-                            <i class="bi bi-download me-2"></i>Download
-                        </button>
+                    <div class="mt-3 text-muted small">
+                        Use the export menu above to download your advanced layout.
                     </div>
                 </div>
             `;
 
+            this.setAdvancedExportEnabled(true);
             window.notificationManager.showSuccess('Advanced markers generated');
         } catch (error) {
             preview.innerHTML = `
@@ -207,6 +235,7 @@ class GenerateManager {
                     <i class="bi bi-exclamation-triangle me-2"></i>${error.message}
                 </div>
             `;
+            this.setAdvancedExportEnabled(false);
         }
     }
 
@@ -237,13 +266,13 @@ class GenerateManager {
         document.getElementById('errorMessage').textContent = message;
     }
 
-    async downloadWithFormat(format) {
-        if (!this.currentResult) {
+    async downloadSimpleWithFormat(format) {
+        if (!this.simpleResult) {
             window.notificationManager.showWarning('Please generate markers first');
             return;
         }
 
-        const params = window.stateManager.get('generation.lastParams');
+        const params = this.lastSimpleParams || window.stateManager.get('generation.lastParams');
         if (!params) return;
 
         try {
@@ -276,12 +305,48 @@ class GenerateManager {
 
     downloadSVG() {
         // SVG download is handled through the API now
-        this.downloadWithFormat('svg');
+        this.downloadSimpleWithFormat('svg');
     }
 
     downloadCurrent() {
         // Default to SVG export
-        this.downloadWithFormat('svg');
+        this.downloadAdvancedWithFormat('svg');
+    }
+
+    async downloadAdvancedWithFormat(format) {
+        if (!this.advancedResult) {
+            window.notificationManager.showWarning('Please generate advanced markers first');
+            return;
+        }
+
+        const params = this.lastAdvancedParams || window.stateManager.get('generation.advancedParams');
+        if (!params) return;
+
+        try {
+            window.notificationManager.showInfo(`Exporting advanced layout as ${format.toUpperCase()}...`);
+
+            switch (format) {
+                case 'lightburn':
+                    await window.arucoAPI.exportLightBurn(params);
+                    break;
+                case 'pdf':
+                    await window.arucoAPI.exportPDF(params);
+                    break;
+                case 'svg':
+                    await window.arucoAPI.exportSVG(params);
+                    break;
+                case 'dxf':
+                    await window.arucoAPI.exportDXF(params);
+                    break;
+                case 'stl':
+                    await window.arucoAPI.exportSTL(params);
+                    break;
+            }
+
+            window.notificationManager.showSuccess(`Advanced export complete: ${format.toUpperCase()}`);
+        } catch (error) {
+            window.notificationManager.showError(`Advanced export failed: ${error.message}`);
+        }
     }
 
     updateMaxMarkerInfo() {
@@ -308,6 +373,13 @@ class GenerateManager {
 
         if (checkbox && borderGroup) {
             borderGroup.style.display = checkbox.checked ? 'block' : 'none';
+        }
+    }
+
+    setAdvancedExportEnabled(enabled) {
+        const advancedExportBtn = document.getElementById('advancedExportBtn');
+        if (advancedExportBtn) {
+            advancedExportBtn.disabled = !enabled;
         }
     }
 

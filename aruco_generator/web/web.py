@@ -3,10 +3,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>web.py</name>
-    <version>3.1.0</version>
+    <version>3.2.0</version>
     <type>flask_web_module</type>
     <purpose>Main Flask API endpoints for ArUCO marker generation and management</purpose>
-    <last_updated>2026-02-06</last_updated>
+    <last_updated>2026-02-07</last_updated>
     <maintainer>ArUCO Generator Team</maintainer>
   </file_meta>
 
@@ -407,55 +407,11 @@ def download_lightburn():
 @handle_api_errors
 def generate_advanced_preview():
     """Generate advanced preview with additional options"""
-    data = request.get_json()
-    # reuse basic validation but extract specific advanced flag manually if strictly needed,
-    # or rely on the dict returned. validate_generation_params passes through unknown keys?
-    # Actually validate_generation_params extracts specific keys.
-    # But advanced_preview uses 'include_borders' which we added to the utils return.
+    data = request.get_json() or {}
     params = validate_generation_params(data, list(aruco_gen.dictionaries.keys()))
+    from .advanced_web import build_advanced_preview
 
-    # Generate markers
-    markers = aruco_gen.generate_grid(
-        start_id=params["start_id"],
-        dict_name=params["dictionary"],
-        rows=params["rows"],
-        cols=params["cols"],
-        size_mm=params["size_mm"],
-        spacing_mm=params["spacing_mm"],
-    )
-
-    # Create drawing context and generate SVG with advanced options
-    ctx = DrawingContext()
-    ctx.add_marker_grid_preview(
-        markers=markers,
-        include_borders=params["include_borders"],
-        include_outer_border=params["include_outer_border"],
-        border_width=params["border_width"],
-    )
-
-    if params["include_labels"]:
-        for marker in markers:
-            ctx.add_text(
-                text=f"ID: {marker['id']}",
-                x=marker["x"] + params["size_mm"] / 2,
-                y=marker["y"] - 2,
-            )
-
-    svg_content = ctx.get_svg()
-    total_width, total_height = aruco_gen.calculate_total_size(
-        rows=params["rows"],
-        cols=params["cols"],
-        size_mm=params["size_mm"],
-        spacing_mm=params["spacing_mm"],
-    )
-
-    return jsonify(
-        {
-            "svg": svg_content,
-            "count": len(markers),
-            "dimensions": {"width": total_width, "height": total_height},
-        }
-    )
+    return jsonify(build_advanced_preview(params))
 
 
 @web_bp.route("/api/batch_generate", methods=["POST"])
@@ -586,6 +542,7 @@ def export_svg():
         markers,
         include_borders=params["include_borders"],
         include_outer_border=params["include_outer_border"],
+        border_width=params["border_width"],
     )
 
     if params["include_labels"]:
@@ -632,6 +589,8 @@ def export_pdf():
             markers=markers,
             size_mm=params["size_mm"],
             include_labels=params["include_labels"],
+            include_outer_border=params["include_outer_border"],
+            border_width=params["border_width"],
         )
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")

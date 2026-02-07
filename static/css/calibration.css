@@ -1,0 +1,43 @@
+/*
+ * <!--
+ * <ai_agent_documentation>
+ *   <file_meta>
+ *     <name>calibration.css</name>
+ *     <version>1.0.0</version>
+ *     <type>stylesheet</type>
+ *     <purpose>Calibration page styling for pattern selection and preview layout</purpose>
+ *     <last_updated>2026-02-07</last_updated>
+ *     <maintainer>ArUCO Generator Team</maintainer>
+ *   </file_meta>
+ * </ai_agent_documentation>
+ * -->
+ */
+
+.calibration-patterns .pattern-card {
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+}
+
+.calibration-patterns .pattern-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+}
+
+.calibration-patterns .pattern-card.is-selected {
+    border-color: var(--primary-gradient-start);
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.35);
+}
+
+.calibration-patterns .pattern-card:focus-visible {
+    outline: 2px solid var(--primary-gradient-end);
+    outline-offset: 2px;
+}
+
+.calibration-preview-image {
+    max-width: 100%;
+    max-height: 500px;
+    border: 1px solid var(--border-color);
+    background: #ffffff;
+}

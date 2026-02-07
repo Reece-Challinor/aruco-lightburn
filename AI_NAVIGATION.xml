@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ai_navigation version="2.0.0" xmlns="http://aruco-lightburn.ai/navigation">
+<ai_navigation version="2.1.0" xmlns="http://aruco-lightburn.ai/navigation">
     <metadata>
         <project>ArUCO Generator for LightBurn</project>
-        <version>2.0.0-unified</version>
+        <version>2.1.0</version>
         <description>Computer vision ArUCO marker generation with LightBurn laser cutting integration</description>
-        <last_updated>2026-02-06</last_updated>
+        <last_updated>2026-02-07</last_updated>
         <documentation_standard>Google/NumPy docstrings with ASCII diagrams</documentation_standard>
     </metadata>
 
@@ -109,11 +109,11 @@
                 <submodule name="advanced_web" file="web/advanced_web.py">
                     <description>Advanced API endpoints with 3D coordinates and validation</description>
                     <endpoints>
-                        <endpoint path="/api/advanced/generate_with_coordinates" method="POST" line="91">
+                    <endpoint path="/api/advanced/generate_with_coordinates" method="POST" line="163">
                             <description>Generate markers with full 3D coordinate system data</description>
                             <use_case>Professional calibration workflows</use_case>
                         </endpoint>
-                        <endpoint path="/api/validation/test_pattern" method="POST" line="258">
+                    <endpoint path="/api/validation/test_pattern" method="POST" line="340">
                             <description>Generate multi-scale test pattern for validation</description>
                             <use_case>Quality assurance testing</use_case>
                         </endpoint>
@@ -123,7 +123,7 @@
                 <submodule name="calibration" file="calibration/calibration.py">
                     <description>Camera calibration algorithms and ChArUco board generation</description>
                     <key_functions>
-                        <function name="generate_charuco_board" line="67" complexity="medium">
+                    <function name="generate_charuco_board" line="68" complexity="medium">
                             <description>Generate ChArUco board for camera calibration</description>
                             <parameters>squares_x, squares_y, square_length, marker_length</parameters>
                         </function>

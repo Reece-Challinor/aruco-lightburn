@@ -2,6 +2,7 @@
 {
   "file_type": "python_package_init",
   "purpose": "ArUCO generator package initialization",
+  "last_updated": "2026-02-07",
   "package_structure": {
     "core": "Core ArUCO marker generation and drawing",
     "export": "LightBurn and professional exports",
@@ -17,5 +18,5 @@
 }
 """
 
-__version__ = "2.0.0"
+__version__ = "2.1.0"
 __author__ = "ArUCO Generator Team"
