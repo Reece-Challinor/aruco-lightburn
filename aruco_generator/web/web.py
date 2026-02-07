@@ -3,7 +3,7 @@
 <ai_agent_documentation>
   <file_meta>
     <name>web.py</name>
-    <version>3.2.0</version>
+    <version>3.3.1</version>
     <type>flask_web_module</type>
     <purpose>Main Flask API endpoints for ArUCO marker generation and management</purpose>
     <last_updated>2026-02-07</last_updated>
@@ -62,7 +62,7 @@
       <route path="/api/batch_generate" method="POST" function="batch_generate" returns="JSON with multiple marker sets" description="Generate multiple sets of markers"/>
       <route path="/api/presets" method="GET" function="get_presets" returns="JSON preset configurations" description="Predefined marker configurations"/>
       <route path="/api/export/svg" method="POST" function="export_svg" returns="SVG file download" description="Export markers as SVG file"/>
-      <route path="/api/export/pdf" method="POST" function="export_pdf" returns="Error (not implemented)" description="PDF export placeholder"/>
+      <route path="/api/export/pdf" method="POST" function="export_pdf" returns="PDF file" description="Export marker grid as PDF with optional outer border"/>
       <route path="/api/quick-test" method="GET" function="quick_test" returns="JSON test results" description="API health check endpoint"/>
     </api_routes>
 
@@ -567,7 +567,7 @@ def export_svg():
 def export_pdf():
     """Export markers as PDF file"""
     try:
-        from .exporters import PDFExporter
+        from ..export.exporters import PDFExporter
 
         pdf_exporter = PDFExporter()
 

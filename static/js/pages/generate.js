@@ -3,7 +3,7 @@
  * <ai_agent_documentation>
  *   <file_meta>
  *     <name>generate.js</name>
- *     <version>2.5.0</version>
+ *     <version>2.6.0</version>
  *     <type>frontend_controller</type>
  *     <purpose>Manage marker generation workflows across simple, advanced, and batch tabs</purpose>
  *     <last_updated>2026-02-07</last_updated>
@@ -294,6 +294,12 @@ class GenerateManager {
                     break;
                 case 'json':
                     await window.arucoAPI.exportROS(params);
+                    break;
+                case 'dxf':
+                    await window.arucoAPI.exportDXF(params);
+                    break;
+                case 'stl':
+                    await window.arucoAPI.exportSTL(params);
                     break;
             }
 

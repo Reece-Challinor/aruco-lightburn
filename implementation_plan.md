@@ -56,6 +56,13 @@ Extend scope to refactor calibration and advanced generation workflows for expor
 - Add PDF outer-border rendering option for advanced exports.
 - Move calibration-specific styles to a dedicated stylesheet.
 
+### Phase 6: Continuous Testing + CI Hygiene
+- Expand UI smoke coverage and wire into CI and pre-commit hooks.
+- Update Makefile targets to align local + CI workflows.
+- Add deployment checklist and release hygiene updates.
+- Expand unit-test coverage for calibration, utility, and navigation suites.
+- Add API smoke pre-commit hook and XML coverage output for CI uploads.
+
 ## Documentation Deliverables
 - Update AI_NAVIGATION line references impacted by refactor.
 - Refresh file-level `<ai_agent_documentation>` headers for modified files.

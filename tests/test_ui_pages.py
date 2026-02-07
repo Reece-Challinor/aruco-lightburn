@@ -3,7 +3,7 @@
 <ai_agent_documentation>
   <file_meta>
     <name>test_ui_pages.py</name>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <type>ui_test</type>
     <purpose>Smoke-test rendered HTML for key UI affordances</purpose>
     <last_updated>2026-02-07</last_updated>
@@ -35,8 +35,10 @@ class TestUIPages(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         html = response.data.decode("utf-8")
         self.assertIn("advancedExportBtn", html)
-        self.assertIn('data-format="dxf"', html)
-        self.assertIn('data-format="stl"', html)
+        self.assertIn('export-option" href="#" data-format="dxf"', html)
+        self.assertIn('export-option" href="#" data-format="stl"', html)
+        self.assertIn('advanced-export-option" href="#" data-format="dxf"', html)
+        self.assertIn('advanced-export-option" href="#" data-format="stl"', html)
 
     def test_calibration_page_has_pattern_cards(self):
         response = self.client.get("/calibration")

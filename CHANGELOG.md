@@ -27,6 +27,23 @@ and this project adheres to Semantic Versioning.
 ### Removed
 - TBD
 
+## [2.2.0] - 2026-02-07
+### Added
+- Simple export menu options for DXF and STL.
+- Deployment checklist in `docs/deployment_checklist.md`.
+- UI smoke tests expanded for simple + advanced export menus.
+- PDF export test for outer-border rendering (skips if reportlab missing).
+
+### Changed
+- Makefile test targets reorganized and validation now includes format checks.
+- CI pipeline now runs `make validate` and `make coverage`.
+- Pre-commit hooks updated to include UI smoke checks on template/JS changes.
+- PDF export uses shared exporter module and supports outer-border rendering.
+- Unit-test target now covers core calibration, utility, and navigation suites.
+- Coverage output now includes XML for CI uploads.
+- Pre-commit hooks include API smoke tests for backend changes.
+- Fixed PDF export unit conversion (reportlab `mm`) to avoid 501 responses.
+
 ## [2.1.0] - 2026-02-07
 ### Added
 - Snapshot tests for SVG preview and LightBurn exports.

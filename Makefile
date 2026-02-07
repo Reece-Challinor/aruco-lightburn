@@ -1,7 +1,9 @@
 # ArUCO Generator Makefile
 # Automation for development, testing, and deployment
 
-.PHONY: help install test unit-test integration-test lint format clean run dev check-deps coverage
+.PHONY: help install install-dev format format-check lint test unit-test \
+	integration test-ui test-api test-export test-quality test-qa coverage \
+	clean run dev check-deps db-init pre-commit-install pre-commit validate ci
 
 # Default target
 help:
@@ -9,17 +11,25 @@ help:
 	@echo "================================"
 	@echo "make install       - Install all dependencies"
 	@echo "make install-dev   - Install development dependencies"
-	@echo "make test          - Run all tests"
-	@echo "make unit-test     - Run unit tests only"
-	@echo "make integration   - Run integration tests only"
-	@echo "make coverage      - Run tests with coverage report"
+	@echo "make format        - Format code with black + isort"
+	@echo "make format-check  - Check formatting (black + isort)"
 	@echo "make lint          - Check code style with flake8"
-	@echo "make format        - Format code with black"
+	@echo "make test          - Run unit + integration + UI tests"
+	@echo "make unit-test     - Run unit tests only"
+	@echo "make test-api      - Run API integration tests"
+	@echo "make test-ui       - Run UI smoke tests"
+	@echo "make integration   - Run API + UI integration tests"
+	@echo "make test-quality  - Run generation quality tests"
+	@echo "make test-export   - Run export format tests"
+	@echo "make test-qa       - Run all QA tests (quality + export)"
+	@echo "make coverage      - Run tests with coverage report"
 	@echo "make clean         - Remove cache and temporary files"
 	@echo "make run           - Start the production server"
 	@echo "make dev           - Start the development server"
 	@echo "make check-deps    - Check for outdated dependencies"
 	@echo "make db-init       - Initialize the database"
+	@echo "make validate      - Run full validation suite"
+	@echo "make ci            - CI pipeline simulation"
 
 # Install production dependencies
 install:
@@ -29,22 +39,36 @@ install:
 # Install development dependencies
 install-dev:
 	@echo "Installing development dependencies..."
-	pip install pytest pytest-cov pytest-flask black flake8 pre-commit bandit
+	pip install pytest pytest-cov pytest-flask black flake8 isort pre-commit bandit reportlab
 
 # Run all tests
-test: lint unit-test integration
+test: unit-test integration
 
 # Run unit tests
 unit-test:
 	@echo "Running unit tests..."
-	python3 -m pytest tests/test_aruco_generator.py -v
+	python3 -m pytest \
+		tests/test_aruco_generator.py \
+		tests/test_utils.py \
+		tests/test_batch_generator.py \
+		tests/test_calibration_logic.py \
+		tests/test_charuco.py \
+		tests/test_navigation.py \
+		-v
 
-# Run integration tests
-integration:
-	@echo "Running integration tests..."
+# Run API integration tests
+test-api:
+	@echo "Running API integration tests..."
 	python3 -m pytest tests/test_api_endpoints.py -v
 	python3 -m pytest tests/test_api.py -v
+
+# Run UI smoke tests
+test-ui:
+	@echo "Running UI smoke tests..."
 	python3 -m pytest tests/test_ui_pages.py -v
+
+# Run integration tests
+integration: test-api test-ui
 
 # Run generation quality tests
 test-quality:
@@ -64,17 +88,24 @@ test-qa: test-quality test-export
 # Run tests with coverage
 coverage:
 	@echo "Running tests with coverage..."
-	python3 -m pytest tests/ --cov=aruco_generator --cov=app --cov-report=html --cov-report=term
+	python3 -m pytest tests/ --cov=aruco_generator --cov=app --cov-report=html --cov-report=term --cov-report=xml
 
 # Lint code
 lint:
 	@echo "Checking code style..."
 	flake8 aruco_generator/ tests/ app.py --max-line-length=88 --exclude=__pycache__ --ignore=E501,W503,E203
 
-# Format code with black
+# Format code with black + isort
 format:
 	@echo "Formatting code..."
 	black aruco_generator/ tests/ app.py --line-length 88
+	isort aruco_generator/ tests/ app.py --profile black
+
+# Format check (black + isort)
+format-check:
+	@echo "Checking formatting..."
+	black --check aruco_generator/ tests/ app.py --line-length 88
+	isort --check-only aruco_generator/ tests/ app.py --profile black
 
 # Clean cache and temporary files
 clean:
@@ -120,11 +151,11 @@ pre-commit:
 	pre-commit run --all-files
 
 # Quick validation of setup
-validate: lint unit-test test-qa
+validate: format-check lint test test-qa
 	@echo "Validation complete! Code is clean and tests pass."
 
 # Full CI/CD simulation with quality checks
-ci: clean install-dev lint test test-qa coverage
+ci: clean install-dev format-check lint test test-qa coverage
 	@echo "CI pipeline simulation complete!"
 
 # Validate generation pipeline (no artifacts)

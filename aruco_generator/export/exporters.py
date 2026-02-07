@@ -5,7 +5,7 @@ Professional export formats for calibration and manufacturing.
 <ai_agent_documentation>
   <file_meta>
     <name>exporters.py</name>
-    <version>2.2.0</version>
+    <version>2.3.1</version>
     <type>export_module</type>
     <purpose>Provide export pipelines for calibration and manufacturing outputs</purpose>
     <last_updated>2026-02-07</last_updated>
@@ -488,7 +488,7 @@ class PDFExporter:
             raise ImportError("ReportLab is not installed")
 
         from reportlab.lib.pagesizes import A4
-        from reportlab.lib.units import mms
+        from reportlab.lib.units import mm
         from reportlab.pdfgen import canvas
 
         # Calculate grid bounds to center on page
@@ -505,12 +505,12 @@ class PDFExporter:
         # Center on A4 (or adjust page size if too big)
         page_w, page_h = A4
 
-        content_w = (max_x + 2 * border_offset) * mms
-        content_h = (max_y + 2 * border_offset) * mms
+        content_w = (max_x + 2 * border_offset) * mm
+        content_h = (max_y + 2 * border_offset) * mm
 
         if content_w > page_w or content_h > page_h:
             # Create custom pagesize
-            page_size = (content_w + 20 * mms, content_h + 20 * mms)
+            page_size = (content_w + 20 * mm, content_h + 20 * mm)
         else:
             page_size = A4
 
@@ -528,17 +528,17 @@ class PDFExporter:
 
         for marker in markers:
             # Position
-            x = margin_x + (marker["x"] + border_offset) * mms
+            x = margin_x + (marker["x"] + border_offset) * mm
             # Flip Y coordinate system: page_height - top_margin - y_offset - height of marker
             y = (
                 page_size[1]
                 - margin_y
-                - (marker["y"] + border_offset) * mms
-                - size_mm * mms
+                - (marker["y"] + border_offset) * mm
+                - size_mm * mm
             )
 
-            w = size_mm * mms
-            h = size_mm * mms
+            w = size_mm * mm
+            h = size_mm * mm
 
             # Draw Marker
             if "image" in marker and marker["image"] is not None:

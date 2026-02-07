@@ -1,4 +1,4 @@
-# Pre-commit configuration for ArUCO Generator v2.0.0
+# Pre-commit configuration for ArUCO Generator v2.2.0
 # Professional calibration pattern generator with coordinate systems
 
 repos:
@@ -76,3 +76,19 @@ repos:
         pass_filenames: false
         always_run: false
         files: ^aruco_generator/aruco\.py$
+
+      - id: check-ui-smoke
+        name: Check UI smoke tests
+        entry: python3 -m pytest tests/test_ui_pages.py -q
+        language: system
+        pass_filenames: false
+        always_run: false
+        files: ^(templates/|static/js/|static/css/)
+
+      - id: check-api-smoke
+        name: Check API smoke tests
+        entry: python3 -m pytest tests/test_api.py tests/test_api_endpoints.py -q
+        language: system
+        pass_filenames: false
+        always_run: false
+        files: ^(aruco_generator/web/|aruco_generator/export/|aruco_generator/core/|app\.py)

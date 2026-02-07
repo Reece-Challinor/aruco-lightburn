@@ -1,7 +1,7 @@
 <INSTRUCTIONS>
 # AGENTS.md - Engineering Guide
 
-**Current Implementation**: `v2.1.0`
+**Current Implementation**: `v2.2.0`
 **Last Updated**: 2026-02-07
 
 ---
@@ -18,6 +18,7 @@ Your work must be **Dynamic**, **Robust**, and **Aesthetically Pleasing**.
 3. **Blueprint Rule**: All route modules must be Flask Blueprints. Never import `app` in modules imported by `app.py`.
 4. **Validation Gate**: Run `make validate` after every significant change. For refactors touching UI + backend, also run `make integration` and `make test`.
 5. **Versioning**: On release-level changes, update `pyproject.toml`, `aruco_generator/__init__.py`, `CHANGELOG.md`, and `AI_NAVIGATION.xml`.
+6. **Deployment Checklist**: Follow `docs/deployment_checklist.md` before any release or deployment.
 
 ---
 
@@ -53,7 +54,8 @@ Start with `AI_NAVIGATION.xml` for exact file locations and line references.
 ## Testing
 - Unit: `make unit-test`
 - Integration: `make integration`
-- UI smoke tests: `tests/test_ui_pages.py`
+- UI smoke tests: `make test-ui`
+- API integration: `make test-api`
 - Quality gates: `make test-qa`
 - Full validation: `make validate`
 

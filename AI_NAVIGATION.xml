@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ai_navigation version="2.1.0" xmlns="http://aruco-lightburn.ai/navigation">
+<ai_navigation version="2.2.0" xmlns="http://aruco-lightburn.ai/navigation">
     <metadata>
         <project>ArUCO Generator for LightBurn</project>
-        <version>2.1.0</version>
+        <version>2.2.0</version>
         <description>Computer vision ArUCO marker generation with LightBurn laser cutting integration</description>
         <last_updated>2026-02-07</last_updated>
         <documentation_standard>Google/NumPy docstrings with ASCII diagrams</documentation_standard>
@@ -274,20 +274,28 @@
     <!-- Testing Infrastructure -->
     <testing>
         <test_files>
+            <test_file name="test_api_endpoints.py" purpose="API integration coverage" coverage="download + export endpoints"/>
             <test_file name="test_api.py" purpose="API endpoint testing" coverage="core endpoints"/>
             <test_file name="test_aruco_generator.py" purpose="Core generation logic" coverage="marker creation"/>
             <test_file name="test_batch_generator.py" purpose="Batch processing" coverage="zip generation, grid optimization"/>
+            <test_file name="test_calibration_logic.py" purpose="Calibration pipeline validation" coverage="synthetic calibration"/>
+            <test_file name="test_charuco.py" purpose="ChArUco generation helpers" coverage="board geometry"/>
             <test_file name="test_export_formats.py" purpose="Export format validation" coverage="LightBurn, SVG"/>
             <test_file name="test_export_snapshots.py" purpose="Snapshot export validation" coverage="SVG, LightBurn"/>
             <test_file name="test_generation_quality.py" purpose="Quality assurance" coverage="marker quality"/>
             <test_file name="test_navigation.py" purpose="Navigation and routing" coverage="frontend routes"/>
+            <test_file name="test_ui_pages.py" purpose="UI smoke tests" coverage="generate + calibration pages"/>
             <test_file name="test_utils.py" purpose="Utility functions" coverage="validation, error handling"/>
         </test_files>
         <test_commands>
-            <command>python -m pytest tests/ -v</command>
-            <command>python -m pytest tests/test_api.py::test_preview -v</command>
+            <command>make validate</command>
+            <command>make test</command>
+            <command>make test-api</command>
+            <command>make test-ui</command>
+            <command>make test-qa</command>
+            <command>make coverage</command>
         </test_commands>
-        <coverage_target>98% (currently 65/66 tests passing)</coverage_target>
+        <coverage_target>70%+ (current ~68% in latest coverage run)</coverage_target>
     </testing>
 
     <!-- Documentation Files -->
@@ -297,6 +305,7 @@
         <file name="AI_IMPROVEMENT_OBJECTIVES.md" purpose="AI development guidelines"/>
         <file name="IMPROVEMENT_PLAN.md" purpose="Implementation roadmap"/>
         <file name="README.md" purpose="Main project documentation"/>
+        <file name="docs/deployment_checklist.md" purpose="Release and deployment checklist"/>
         <file name="docs/GENERATION_QUALITY.md" purpose="Quality standards"/>
     </documentation>
 

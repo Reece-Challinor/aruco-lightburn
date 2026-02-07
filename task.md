@@ -2,7 +2,7 @@
 <ai_agent_documentation>
   <file_meta>
     <name>task.md</name>
-    <version>1.0.0</version>
+    <version>1.2.0</version>
     <type>task_tracker</type>
     <purpose>Track immediate engineering tasks for the active refactor</purpose>
     <last_updated>2026-02-07</last_updated>
@@ -16,14 +16,10 @@
 Status: Completed (2026-02-07)
 
 ## Completed
-- Persist AprilTag single patterns in DB for export parity.
-- Refactor calibration UI wiring to remove inline handlers and use managed controller.
-- Add advanced export controls with isolated state from simple generation.
-- Deduplicate advanced preview logic and validation.
-- Enable DXF/STL exports from advanced generation parameters.
-- Add PDF outer-border rendering option.
-- Extract calibration styles to `static/css/calibration.css`.
-- Add UI smoke tests and integrate them into CI.
-- Rewrite `AGENTS.md` to reflect current workflow and versioning.
-- Bump version to 2.1.0 and refresh release metadata.
-- Update AI navigation and documentation headers.
+- Wired DXF/STL into the simple export menu and validated UI affordances.
+- Expanded unit-test coverage across core, calibration, and navigation suites.
+- Added API smoke tests to pre-commit and kept UI smoke checks for templates/JS.
+- Fixed PDF export rendering units (reportlab `mm`) and enabled PDF tests in CI/dev installs.
+- Added XML coverage output and aligned CI/Makefile workflows.
+- Updated deployment checklist, AI navigation map, and release metadata.
+- Ran full make test suite plus local gunicorn smoke checks.

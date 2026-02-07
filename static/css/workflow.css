@@ -233,16 +233,16 @@ input.is-invalid {
         max-width: 90%;
         margin: 0 5%;
     }
-    
+
     .preset-card {
         margin-bottom: 10px;
     }
-    
+
     .workflow-tooltip-footer {
         flex-direction: column;
         gap: 10px;
     }
-    
+
     .step-counter {
         order: -1;
     }

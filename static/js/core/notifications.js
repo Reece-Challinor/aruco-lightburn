@@ -34,9 +34,9 @@ class NotificationManager {
             ${message}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         `;
-        
+
         this.container.appendChild(notification);
-        
+
         // Auto remove after duration
         if (duration > 0) {
             setTimeout(() => {
@@ -63,13 +63,13 @@ class NotificationManager {
 
     showLoading(message = 'Loading...') {
         const loadingId = 'loading-notification';
-        
+
         // Remove any existing loading notification
         const existing = document.getElementById(loadingId);
         if (existing) {
             existing.remove();
         }
-        
+
         const notification = document.createElement('div');
         notification.id = loadingId;
         notification.className = 'alert alert-info';
@@ -81,7 +81,7 @@ class NotificationManager {
                 ${message}
             </div>
         `;
-        
+
         this.container.appendChild(notification);
     }
 
