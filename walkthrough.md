@@ -2,10 +2,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>walkthrough.md</name>
-    <version>1.2.0</version>
+  <version>1.3.0</version>
     <type>delivery_report</type>
     <purpose>Summarize completed work, tests, and recommended commits</purpose>
-    <last_updated>2026-02-07</last_updated>
+  <last_updated>2026-02-07</last_updated>
     <maintainer>Codex (Senior CV Engineer)</maintainer>
   </file_meta>
 </ai_agent_documentation>
@@ -16,40 +16,21 @@
 Date: 2026-02-07
 
 ## Summary
-- Wired DXF/STL into the simple export menu and expanded UI/API coverage.
-- Hardened PDF export rendering (reportlab `mm` units) and produced XML coverage for CI uploads.
-- Expanded Makefile test targets, added API smoke pre-commit gates, and refreshed documentation/AI navigation.
+- Added request tracing, error-rate heuristics, and richer health endpoints for observability.
+- Improved API error payloads and frontend error handling with request IDs + client error logging.
+- Updated navigation map and docs to reflect new endpoints and diagnostics.
 
 ## Changes
-- `Makefile`: added reportlab to dev installs, expanded unit-test suite, and added XML coverage output.
-- `.pre-commit-config.yaml`: added API smoke hook; whitespace normalized in core templates/JS/CSS.
-- `aruco_generator/export/exporters.py`: fixed reportlab unit usage for PDF export outer borders.
-- `aruco_generator/web/web.py`: updated API metadata for PDF export route.
-- `templates/generate.html`, `static/js/pages/generate.js`: added DXF/STL to simple export flow.
-- `tests/test_api.py`, `tests/test_ui_pages.py`: expanded coverage for PDF export and export menus.
-- `AI_NAVIGATION.xml`: refreshed test/doc listings.
-- `docs/deployment_checklist.md`, `AGENTS.md`, `CHANGELOG.md`, `README.md`: updated release and workflow docs.
+- `aruco_generator/core/observability.py`: new request tracing + metrics tracking with error-rate warnings.
+- `aruco_generator/core/utils.py`: richer error payloads, request-safe logging, and validation fixes.
+- `aruco_generator/web/web.py`: added `/api/health` + `/api/healthz`, expanded debug status, and improved error logging.
+- `static/js/core/api.js`: explicit network/timeout errors, request IDs, and client error telemetry.
+- `static/js/pages/generate.js`: surfaced detailed generation and dictionary load errors.
+- `app.py`: wired observability configuration and request tracing.
+- `AI_NAVIGATION.xml`, `task.md`: updated navigation map and task tracking.
 
 ## Tests
-- `make clean`
-- `make install-dev`
-- `make format`
-- `make format-check`
-- `make lint`
-- `make unit-test`
-- `make test-api`
-- `make test-ui`
-- `make integration`
-- `make test-quality`
-- `make test-export`
-- `make test-qa`
-- `make test`
-- `make coverage`
-- `make validate` (ran multiple times; latest after metadata updates)
-- `make pre-commit`
-- `make check-deps`
-- `make ci`
-- Local smoke: `gunicorn` on `127.0.0.1:5050`, `curl /`, `/generate`, `/calibration`, `/api/dictionaries`
+- `make validate`
 
 ## Commit Plan
-- `Release 2.2.0: continuous testing + export menu expansion`
+- `Improve observability + error handling diagnostics`

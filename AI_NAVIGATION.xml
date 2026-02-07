@@ -1,4 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+<ai_agent_documentation>
+  <file_meta>
+    <name>AI_NAVIGATION.xml</name>
+    <version>2.2.0</version>
+    <type>navigation_map</type>
+    <purpose>Authoritative map of code structure, key line references, and architecture</purpose>
+    <last_updated>2026-02-07</last_updated>
+    <maintainer>ArUCO Generator Team</maintainer>
+  </file_meta>
+</ai_agent_documentation>
+-->
 <ai_navigation version="2.2.0" xmlns="http://aruco-lightburn.ai/navigation">
     <metadata>
         <project>ArUCO Generator for LightBurn</project>
@@ -11,7 +23,7 @@
     <!-- Core Application Structure -->
     <application_structure>
         <entry_points>
-            <entry_point type="web" file="app.py" line="209" description="Flask application factory"/>
+            <entry_point type="web" file="app.py" line="210" description="Flask application factory"/>
             <entry_point type="core_logic" file="aruco_generator/core/aruco.py" line="298" description="ArUCO generation engine"/>
         </entry_points>
 
@@ -90,20 +102,33 @@
                 <submodule name="web" file="web/web.py">
                     <description>Main Flask API endpoints for marker generation</description>
                     <endpoints>
-                        <endpoint path="/api/preview" method="POST" line="275">
+                        <endpoint path="/api/preview" method="POST" line="293">
                             <description>Generate SVG preview of markers</description>
                             <validation>dictionary, size_mm, rows, cols</validation>
                             <error_handling>specific validation messages</error_handling>
                         </endpoint>
-                        <endpoint path="/api/download" method="POST" line="347">
+                        <endpoint path="/api/download" method="POST" line="365">
                             <description>Generate and download LightBurn file</description>
                             <output_format>.lbrn2</output_format>
                         </endpoint>
-                        <endpoint path="/api/dictionaries" method="GET" line="269">
+                        <endpoint path="/api/dictionaries" method="GET" line="287">
                             <description>Get available ArUCO dictionaries</description>
                             <performance>O(1) - cached dictionary info</performance>
                         </endpoint>
+                        <endpoint path="/api/health" method="GET" line="695">
+                            <description>Comprehensive health and dependency status</description>
+                            <performance>O(1) - lightweight checks</performance>
+                        </endpoint>
+                        <endpoint path="/api/healthz" method="GET" line="753">
+                            <description>Lightweight health probe</description>
+                            <performance>O(1)</performance>
+                        </endpoint>
                     </endpoints>
+                </submodule>
+
+                <submodule name="observability" file="core/observability.py">
+                    <description>Request tracing, error heuristics, and health metrics aggregation</description>
+                    <key_features>Request ID propagation, error-rate warning, latency tracking</key_features>
                 </submodule>
 
                 <submodule name="advanced_web" file="web/advanced_web.py">
@@ -324,7 +349,7 @@
 
         <common_line_references>
             <line_ref description="ArUCO class initialization" file="aruco_generator/core/aruco.py" line="298"/>
-            <line_ref description="Main preview endpoint" file="aruco_generator/web/web.py" line="275"/>
+            <line_ref description="Main preview endpoint" file="aruco_generator/web/web.py" line="293"/>
             <line_ref description="Dictionary info method" file="aruco_generator/core/aruco.py" line="366"/>
             <line_ref description="Marker generation method" file="aruco_generator/core/aruco.py" line="443"/>
             <line_ref description="SVG drawing context" file="aruco_generator/core/drawing.py" line="28"/>

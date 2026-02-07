@@ -3,7 +3,7 @@
 <ai_agent_documentation>
   <file_meta>
     <name>web.py</name>
-    <version>3.3.1</version>
+    <version>3.4.0</version>
     <type>flask_web_module</type>
     <purpose>Main Flask API endpoints for ArUCO marker generation and management</purpose>
     <last_updated>2026-02-07</last_updated>
@@ -64,6 +64,8 @@
       <route path="/api/export/svg" method="POST" function="export_svg" returns="SVG file download" description="Export markers as SVG file"/>
       <route path="/api/export/pdf" method="POST" function="export_pdf" returns="PDF file" description="Export marker grid as PDF with optional outer border"/>
       <route path="/api/quick-test" method="GET" function="quick_test" returns="JSON test results" description="API health check endpoint"/>
+      <route path="/api/health" method="GET" function="health_check" returns="JSON system health" description="Comprehensive health and readiness report"/>
+      <route path="/api/healthz" method="GET" function="healthz" returns="JSON status" description="Lightweight health probe"/>
     </api_routes>
 
     <debug_routes>
@@ -137,8 +139,9 @@
       <alert name="invalid_dictionary_spike" condition="invalid_dict_requests > 5/min" action="Log info"/>
     </alert_conditions>
     <monitoring_endpoints>
-      <endpoint path="/api/debug/status" metrics="opencv_version, dictionary_count, timestamp"/>
+      <endpoint path="/api/debug/status" metrics="opencv_version, dictionary_count, timestamp, request_metrics"/>
       <endpoint path="/api/quick-test" metrics="generation_success, performance_timing"/>
+      <endpoint path="/api/health" metrics="db_status, dependency_versions, request_metrics"/>
     </monitoring_endpoints>
   </logging_and_alerts>
 
@@ -219,14 +222,29 @@ Key API Patterns:
 
 import io
 import logging
+import platform
+import sys
+import time
 from datetime import datetime
 
-from flask import Blueprint, jsonify, render_template, request, send_file
+from flask import (
+    Blueprint,
+    current_app,
+    g,
+    jsonify,
+    render_template,
+    request,
+    send_file,
+)
+from sqlalchemy import text
 
+from .. import __version__
 from ..core.aruco import ArUCOGenerator
 from ..core.drawing import DrawingContext
+from ..core.observability import get_metrics_snapshot
 from ..core.utils import handle_api_errors, validate_generation_params
 from ..export.lightburn import LightBurnExporter
+from ..extensions import db
 
 # Create Blueprint
 web_bp = Blueprint("web", __name__)
@@ -630,12 +648,118 @@ def quick_test():
                     test_marker.shape if hasattr(test_marker, "shape") else "Generated"
                 ),
                 "available_dictionaries": len(aruco_gen.dictionaries),
+                "request_id": getattr(g, "request_id", None),
                 "timestamp": datetime.now().isoformat(),
             }
         )
     except Exception as e:
         logger.error(f"Quick test failed: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
+
+
+def _get_dependency_status():
+    opencv_status = {"available": False, "version": None}
+    numpy_status = {"available": False, "version": None}
+
+    try:
+        import cv2  # pylint: disable=import-error
+
+        opencv_status = {"available": True, "version": cv2.__version__}
+    except Exception as e:
+        opencv_status = {"available": False, "version": None, "error": str(e)}
+
+    try:
+        import numpy as np  # pylint: disable=import-error
+
+        numpy_status = {"available": True, "version": np.__version__}
+    except Exception as e:
+        numpy_status = {"available": False, "version": None, "error": str(e)}
+
+    return {"opencv": opencv_status, "numpy": numpy_status}
+
+
+def _get_database_status():
+    if not current_app.config.get("USE_DB", False):
+        return {"enabled": False, "status": "disabled"}
+
+    try:
+        start = time.monotonic()
+        with db.engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        latency_ms = (time.monotonic() - start) * 1000
+        return {"enabled": True, "status": "ok", "latency_ms": round(latency_ms, 2)}
+    except Exception as e:
+        return {"enabled": True, "status": "error", "error": str(e)}
+
+
+@web_bp.route("/api/health")
+def health_check():
+    """Comprehensive health check with dependency and request metrics."""
+    start = time.monotonic()
+    metrics = get_metrics_snapshot(current_app)
+    dependencies = _get_dependency_status()
+    database = _get_database_status()
+
+    status = "ok"
+    issues = []
+
+    if database.get("status") == "error":
+        status = "degraded"
+        issues.append("database_unavailable")
+
+    if not dependencies["opencv"].get("available", False):
+        status = "degraded"
+        issues.append("opencv_unavailable")
+
+    error_rate_threshold = current_app.config.get("ERROR_RATE_WARN_THRESHOLD", 0.1)
+    min_requests = current_app.config.get("ERROR_RATE_MIN_REQUESTS", 20)
+    if (
+        metrics["total_requests"] >= min_requests
+        and metrics["error_rate_5xx"] >= error_rate_threshold
+    ):
+        status = "degraded"
+        issues.append("high_error_rate")
+
+    slow_threshold = current_app.config.get("SLOW_REQUEST_MS", 2000)
+    if metrics["slow_requests"] > 0 and metrics["p95_ms"] >= slow_threshold:
+        status = "degraded"
+        issues.append("elevated_latency")
+
+    uptime_seconds = 0.0
+    app_start = current_app.config.get("APP_START_TIME")
+    if app_start:
+        uptime_seconds = round(time.time() - app_start, 2)
+
+    payload = {
+        "status": status,
+        "issues": issues,
+        "version": __version__,
+        "environment": "debug" if current_app.debug else "production",
+        "python": sys.version.split(" ")[0],
+        "platform": platform.platform(),
+        "timestamp": datetime.now().isoformat(),
+        "uptime_seconds": uptime_seconds,
+        "request_id": getattr(g, "request_id", None),
+        "dependencies": dependencies,
+        "database": database,
+        "metrics": metrics,
+        "dictionary_count": len(aruco_gen.dictionaries),
+        "health_check_ms": round((time.monotonic() - start) * 1000, 2),
+    }
+
+    return jsonify(payload)
+
+
+@web_bp.route("/api/healthz")
+def healthz():
+    """Lightweight health probe."""
+    return jsonify(
+        {
+            "status": "ok",
+            "timestamp": datetime.now().isoformat(),
+            "request_id": getattr(g, "request_id", None),
+        }
+    )
 
 
 # Debug endpoints (can be removed in production)
@@ -649,11 +773,15 @@ def debug_status():
     except Exception:
         opencv_version = "Not available"
 
+    metrics = get_metrics_snapshot(current_app)
+
     return jsonify(
         {
             "status": "operational",
             "opencv": opencv_version,
             "dictionaries": len(aruco_gen.dictionaries),
+            "metrics": metrics,
+            "request_id": getattr(g, "request_id", None),
             "timestamp": datetime.now().isoformat(),
         }
     )
@@ -663,9 +791,21 @@ def debug_status():
 def log_error():
     """Log frontend errors"""
     try:
-        error_data = request.get_json()
-        logger.error(f"Frontend error: {error_data}")
-        return jsonify({"status": "logged"}), 200
+        error_data = request.get_json(silent=True) or {}
+        if not isinstance(error_data, dict):
+            return jsonify({"status": "failed", "error": "Invalid error payload"}), 400
+
+        logger.error(
+            "Frontend error | request_id=%s page=%s message=%s payload=%s",
+            error_data.get("request_id"),
+            error_data.get("page"),
+            error_data.get("message"),
+            error_data,
+        )
+        return (
+            jsonify({"status": "logged", "request_id": error_data.get("request_id")}),
+            200,
+        )
     except Exception as e:
         logger.error(f"Failed to log frontend error: {e}")
         return jsonify({"status": "failed"}), 500

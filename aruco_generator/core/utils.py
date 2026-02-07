@@ -1,13 +1,26 @@
 """
+<!--
+<ai_agent_documentation>
+  <file_meta>
+    <name>utils.py</name>
+    <version>1.1.0</version>
+    <type>core_utility_module</type>
+    <purpose>Shared validation, error handling helpers, and API response shaping</purpose>
+    <last_updated>2026-02-07</last_updated>
+    <maintainer>ArUCO Generator Team</maintainer>
+  </file_meta>
+</ai_agent_documentation>
+-->
 Utility functions for ArUCO Generator.
 Contains shared validation logic and error handling decorators.
 """
 
 import functools
 import logging
-from typing import Any, Dict
+from datetime import datetime, timezone
+from typing import Any, Dict, Optional
 
-from flask import jsonify
+from flask import current_app, g, has_request_context, jsonify, request
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +41,9 @@ def validate_generation_params(
     Raises:
         ValueError: If validation fails
     """
+    if not isinstance(data, dict):
+        raise ValueError("Request body must be a JSON object")
+
     dictionary = data.get("dictionary")
     if not dictionary or dictionary not in available_dictionaries:
         # Provide a helpful error message with a few suggestions
@@ -88,14 +104,66 @@ def handle_api_errors(f):
         try:
             return f(*args, **kwargs)
         except ValueError as e:
-            return jsonify({"error": str(e)}), 400
+            path = request.path if has_request_context() else "unknown"
+            logger.warning(
+                "API validation error in %s | request_id=%s path=%s message=%s",
+                f.__name__,
+                getattr(g, "request_id", "unknown"),
+                path,
+                str(e),
+            )
+            return jsonify(_build_error_payload(str(e), 400, "validation_error")), 400
         except Exception as e:
-            logger.error(f"API Error in {f.__name__}: {str(e)}", exc_info=True)
+            path = request.path if has_request_context() else "unknown"
+            logger.error(
+                "API Error in %s | request_id=%s path=%s",
+                f.__name__,
+                getattr(g, "request_id", "unknown"),
+                path,
+                exc_info=True,
+            )
+            details = str(e) if _include_error_details() else None
             return (
                 jsonify(
-                    {"error": "Internal server error. Please check your parameters."}
+                    _build_error_payload(
+                        "Internal server error. Please check your parameters.",
+                        500,
+                        "internal_error",
+                        details=details,
+                    )
                 ),
                 500,
             )
 
     return wrapper
+
+
+def _build_error_payload(
+    message: str,
+    status: int,
+    error_type: str,
+    details: Optional[str] = None,
+) -> Dict[str, Any]:
+    path = request.path if has_request_context() else None
+    method = request.method if has_request_context() else None
+    payload = {
+        "error": message,
+        "type": error_type,
+        "status": status,
+        "request_id": getattr(g, "request_id", None),
+        "path": path,
+        "method": method,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+    if details:
+        payload["details"] = details
+    return payload
+
+
+def _include_error_details() -> bool:
+    try:
+        if current_app.debug:
+            return True
+        return current_app.config.get("INCLUDE_ERROR_DETAILS", False)
+    except Exception:
+        return False

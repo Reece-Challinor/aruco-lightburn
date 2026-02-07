@@ -3,10 +3,10 @@
  * <ai_agent_documentation>
  *   <file_meta>
  *     <name>api.js</name>
- *     <version>3.0.0</version>
+ *     <version>3.1.0</version>
  *     <type>frontend_api_client</type>
  *     <purpose>Centralized API communication layer with comprehensive error handling and loading states</purpose>
- *     <last_updated>2025-01-15</last_updated>
+ *     <last_updated>2026-02-07</last_updated>
  *     <maintainer>ArUCO Generator Team</maintainer>
  *   </file_meta>
  *
@@ -265,25 +265,37 @@
  * - Server errors → Show user-friendly message with support info
  * - File errors → Handle download failures gracefully
  *
- * Version: 3.0.0
+ * Version: 3.1.0
  */
 
 class APIClient {
     constructor() {
         this.baseURL = '/api';
+        this.timeoutMs = 15000;
         this.defaultHeaders = {
             'Content-Type': 'application/json'
         };
+        this._loggingEnabled = true;
+        this._logInFlight = false;
     }
 
     async request(endpoint, options = {}) {
-        const url = `${this.baseURL}${endpoint}`;
+        const url = this.buildURL(endpoint);
+        const requestId = this.generateRequestId();
+        const isFormData = options.body instanceof FormData;
+        const headers = {
+            ...(isFormData ? {} : this.defaultHeaders),
+            ...options.headers,
+            'X-Request-Id': requestId
+        };
+
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
+
         const config = {
             ...options,
-            headers: {
-                ...this.defaultHeaders,
-                ...options.headers
-            }
+            headers,
+            signal: controller.signal
         };
 
         try {
@@ -291,17 +303,38 @@ class APIClient {
             this.showLoading(true);
 
             const response = await fetch(url, config);
-            const data = await response.json();
+            const responseId = response.headers.get('X-Request-Id') || requestId;
+            const data = await this.safeParseResponse(response);
 
             if (!response.ok) {
-                throw new Error(data.error || `HTTP error! status: ${response.status}`);
+                const message = data?.error || data?.message || response.statusText || 'Request failed';
+                const error = new Error(this.buildErrorMessage(message, response.status, responseId));
+                error.status = response.status;
+                error.requestId = responseId;
+                error.details = data?.details || data?.raw;
+                error.type = data?.type || 'http_error';
+                this.logClientError(error, {
+                    endpoint,
+                    url,
+                    method: config.method || 'GET',
+                    status: response.status,
+                    response: data
+                });
+                throw error;
             }
 
             return data;
         } catch (error) {
-            this.handleError(error);
-            throw error;
+            const normalized = this.normalizeError(error, {
+                endpoint,
+                url,
+                method: config.method || 'GET',
+                requestId
+            });
+            this.handleError(normalized);
+            throw normalized;
         } finally {
+            clearTimeout(timeout);
             this.showLoading(false);
         }
     }
@@ -347,10 +380,19 @@ class APIClient {
 
             // Use correct API path
             const fullURL = endpoint.startsWith('/api/') ? endpoint : `/api${endpoint}`;
+            const requestId = this.generateRequestId();
+            const timeoutSignal = (typeof AbortSignal !== 'undefined' && AbortSignal.timeout)
+                ? AbortSignal.timeout(this.timeoutMs)
+                : undefined;
+
             const response = await fetch(fullURL, {
                 method: 'POST',
-                headers: this.defaultHeaders,
-                body: JSON.stringify(params)
+                body: JSON.stringify(params),
+                signal: timeoutSignal,
+                headers: {
+                    ...this.defaultHeaders,
+                    'X-Request-Id': requestId
+                }
             });
 
             if (!response.ok) {
@@ -358,9 +400,20 @@ class APIClient {
                 const contentType = response.headers.get('content-type');
                 if (contentType && contentType.includes('application/json')) {
                     const error = await response.json();
-                    throw new Error(error.error || `HTTP error! status: ${response.status}`);
+                    const requestHeaderId = response.headers.get('X-Request-Id') || requestId;
+                    const err = new Error(this.buildErrorMessage(error.error || `HTTP error! status: ${response.status}`, response.status, requestHeaderId));
+                    err.status = response.status;
+                    err.requestId = requestHeaderId;
+                    err.details = error.details;
+                    err.type = error.type || 'http_error';
+                    throw err;
                 }
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const requestHeaderId = response.headers.get('X-Request-Id') || requestId;
+                const err = new Error(this.buildErrorMessage(`HTTP error! status: ${response.status}`, response.status, requestHeaderId));
+                err.status = response.status;
+                err.requestId = requestHeaderId;
+                err.type = 'http_error';
+                throw err;
             }
 
             const blob = await response.blob();
@@ -379,7 +432,13 @@ class APIClient {
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
         } catch (error) {
-            this.handleError(error);
+            const normalized = this.normalizeError(error, {
+                endpoint,
+                url: endpoint,
+                method: 'POST',
+                requestId: error.requestId
+            });
+            this.handleError(normalized);
         } finally {
             this.showLoading(false);
         }
@@ -400,6 +459,145 @@ class APIClient {
         if (window.notificationManager) {
             window.notificationManager.showError(error.message || 'An error occurred');
         }
+    }
+
+    buildURL(endpoint) {
+        if (endpoint.startsWith('http')) {
+            return endpoint;
+        }
+        return `${this.baseURL}${endpoint}`;
+    }
+
+    generateRequestId() {
+        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+            return crypto.randomUUID();
+        }
+        return `req_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+    }
+
+    buildErrorMessage(message, status, requestId) {
+        const base = status ? `API error (${status}): ${message}` : message;
+        if (requestId) {
+            return `${base} (request id: ${requestId})`;
+        }
+        return base;
+    }
+
+    normalizeError(error, context = {}) {
+        if (!error) {
+            return new Error('Unknown error occurred');
+        }
+
+        if (error.name === 'AbortError') {
+            const timeoutMessage = `Request timed out after ${Math.round(this.timeoutMs / 1000)}s`;
+            const err = new Error(this.buildErrorMessage(timeoutMessage, null, context.requestId));
+            err.type = 'timeout';
+            return err;
+        }
+
+        if (error instanceof TypeError && !error.status) {
+            const offlineHint = navigator.onLine === false ? ' (offline)' : '';
+            const message = `Network error: Unable to reach API at ${context.url || this.baseURL}${offlineHint}`;
+            const err = new Error(this.buildErrorMessage(message, null, context.requestId));
+            err.type = 'network_error';
+            return err;
+        }
+
+        return error;
+    }
+
+    async safeParseResponse(response) {
+        if (response.status === 204) {
+            return {};
+        }
+
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+            try {
+                return await response.json();
+            } catch (parseError) {
+                return { raw: 'Invalid JSON response' };
+            }
+        }
+
+        try {
+            const text = await response.text();
+            return text ? { raw: text } : {};
+        } catch (readError) {
+            return { raw: 'Unable to read response body' };
+        }
+    }
+
+    logClientError(error, context = {}) {
+        if (!this._loggingEnabled || this._logInFlight) {
+            return;
+        }
+
+        if (context?.endpoint === '/log-error' || context?.endpoint === '/api/log-error') {
+            return;
+        }
+
+        const payload = {
+            request_id: error.requestId || context.requestId,
+            message: error.message,
+            type: error.type || 'client_error',
+            status: error.status,
+            details: error.details,
+            endpoint: context.endpoint,
+            url: context.url,
+            method: context.method,
+            page: window.location.href,
+            user_agent: navigator.userAgent,
+            online: navigator.onLine,
+            timestamp: new Date().toISOString()
+        };
+
+        this._logInFlight = true;
+        try {
+            const data = JSON.stringify(payload);
+            if (navigator.sendBeacon) {
+                const blob = new Blob([data], { type: 'application/json' });
+                navigator.sendBeacon('/api/log-error', blob);
+            } else {
+                fetch('/api/log-error', {
+                    method: 'POST',
+                    headers: this.defaultHeaders,
+                    body: data,
+                    keepalive: true
+                }).catch(() => {});
+            }
+        } catch (logError) {
+            console.warn('Failed to log client error', logError);
+        } finally {
+            this._logInFlight = false;
+        }
+    }
+
+    registerGlobalErrorHandlers() {
+        if (window.__arucoGlobalErrorHandlers) {
+            return;
+        }
+        window.__arucoGlobalErrorHandlers = true;
+
+        window.addEventListener('error', (event) => {
+            const error = event.error || new Error(event.message || 'Unhandled error');
+            error.type = error.type || 'unhandled_error';
+            this.logClientError(error, {
+                endpoint: 'window.error',
+                url: window.location.href,
+                method: 'GET'
+            });
+        });
+
+        window.addEventListener('unhandledrejection', (event) => {
+            const error = event.reason instanceof Error ? event.reason : new Error(String(event.reason));
+            error.type = error.type || 'unhandled_rejection';
+            this.logClientError(error, {
+                endpoint: 'window.unhandledrejection',
+                url: window.location.href,
+                method: 'GET'
+            });
+        });
     }
 }
 
@@ -503,4 +701,5 @@ class ArUCOAPI extends APIClient {
 document.addEventListener('DOMContentLoaded', () => {
     window.apiClient = new APIClient();
     window.arucoAPI = new ArUCOAPI();
+    window.apiClient.registerGlobalErrorHandlers();
 });

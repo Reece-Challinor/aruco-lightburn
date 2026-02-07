@@ -3,10 +3,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>app.py</name>
-    <version>3.2.0</version>
+    <version>3.2.1</version>
     <type>flask_application_factory</type>
     <purpose>Main Flask application factory with database integration and route registration</purpose>
-    <last_updated>2026-02-06</last_updated>
+    <last_updated>2026-02-07</last_updated>
     <maintainer>ArUCO Generator Team</maintainer>
   </file_meta>
 
@@ -192,10 +192,12 @@ Version: 1.0.0
 
 import logging
 import os
+import time
 
 from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
 
+from aruco_generator.core.observability import init_observability
 from aruco_generator.extensions import db
 
 # Simple logging setup
@@ -209,9 +211,18 @@ def create_app() -> Flask:
     """Create and configure the Flask application."""
     app = Flask(__name__)
     app.secret_key = os.environ.get("SESSION_SECRET")
+    app.config["APP_START_TIME"] = time.time()
 
     # Proxy fix for HTTPS
     app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+
+    # Observability tuning
+    app.config.setdefault("METRICS_WINDOW_SECONDS", 300)
+    app.config.setdefault("ERROR_RATE_WARN_THRESHOLD", 0.1)
+    app.config.setdefault("ERROR_RATE_MIN_REQUESTS", 20)
+    app.config.setdefault("ERROR_RATE_WARN_COOLDOWN", 60)
+    app.config.setdefault("SLOW_REQUEST_MS", 2000)
+    app.config.setdefault("INCLUDE_ERROR_DETAILS", False)
 
     # Database configuration
     db_url = os.environ.get("DATABASE_URL")
@@ -235,6 +246,9 @@ def create_app() -> Flask:
         "pool_recycle": 300,
         "pool_pre_ping": True,
     }
+
+    # Attach request tracing and metrics
+    init_observability(app)
 
     # Initialize database extension only if we intend to use it, or always init with safe fallback
     db.init_app(app)

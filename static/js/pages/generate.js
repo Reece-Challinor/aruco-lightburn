@@ -3,7 +3,7 @@
  * <ai_agent_documentation>
  *   <file_meta>
  *     <name>generate.js</name>
- *     <version>2.6.0</version>
+ *     <version>2.6.1</version>
  *     <type>frontend_controller</type>
  *     <purpose>Manage marker generation workflows across simple, advanced, and batch tabs</purpose>
  *     <last_updated>2026-02-07</last_updated>
@@ -39,6 +39,9 @@ class GenerateManager {
             this.dictionaries = await window.arucoAPI.getDictionaries();
         } catch (error) {
             console.error('Failed to load dictionaries:', error);
+            const message = error?.message || 'Unable to load dictionaries';
+            window.notificationManager.showError(`Failed to load dictionaries. ${message}`);
+            this.showError(message);
         }
     }
 
@@ -198,7 +201,7 @@ class GenerateManager {
             document.getElementById('downloadBtn').disabled = false;
         } catch (error) {
             this.showError(error.message);
-            window.notificationManager.showError('Failed to generate markers');
+            window.notificationManager.showError(`Failed to generate markers: ${error.message}`);
         }
     }
 
@@ -236,6 +239,7 @@ class GenerateManager {
                 </div>
             `;
             this.setAdvancedExportEnabled(false);
+            window.notificationManager.showError(`Advanced generation failed: ${error.message}`);
         }
     }
 
