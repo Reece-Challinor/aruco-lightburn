@@ -5,7 +5,7 @@ Advanced web routes for coordinate systems, professional exports, and validation
 <ai_agent_documentation>
   <file_meta>
     <name>advanced_web.py</name>
-    <version>2.4.0</version>
+    <version>2.6.0</version>
     <type>flask_blueprint</type>
     <purpose>Advanced previews, calibration exports, and validation utilities</purpose>
     <last_updated>2026-02-08</last_updated>
@@ -18,6 +18,7 @@ Advanced web routes for coordinate systems, professional exports, and validation
     <route path="/api/export/dxf" method="POST" purpose="DXF export"/>
     <route path="/api/export/stl" method="POST" purpose="STL export"/>
     <route path="/api/validation/detect" method="POST" purpose="Detect markers in uploaded image"/>
+    <route path="/api/validation/metrics" method="GET" purpose="Fetch recent validation metrics"/>
   </route_summary>
 </ai_agent_documentation>
 -->
@@ -26,12 +27,26 @@ Advanced web routes for coordinate systems, professional exports, and validation
 import base64
 from io import BytesIO
 
-import cv2
-import numpy as np
-from flask import Blueprint, current_app, jsonify, request, send_file
+try:
+    import cv2
+    import numpy as np
+
+    OPENCV_AVAILABLE = True
+except ImportError:
+    cv2 = None  # type: ignore
+    import numpy as np
+
+    OPENCV_AVAILABLE = False
+from flask import Blueprint, current_app, request, send_file
 
 from ..core.aruco import ArUCOGenerator
-from ..core.utils import handle_api_errors, validate_generation_params
+from ..core.utils import (
+    APIServiceUnavailableError,
+    APIValidationError,
+    api_success,
+    handle_api_errors,
+    validate_generation_params,
+)
 from ..db.extensions import db
 from ..db.models import DetectionMetric
 from ..export.exporters import ProfessionalExporter
@@ -47,42 +62,93 @@ validator = DetectionValidator()
 
 
 def _get_request_json():
-    return request.get_json(silent=True) or {}
+    payload = request.get_json(silent=True) or {}
+    if not isinstance(payload, dict):
+        raise APIValidationError("Request body must be a JSON object")
+    return payload
 
 
 def _validate_dictionary(dictionary: str):
+    if not validator.aruco_dicts:
+        raise APIServiceUnavailableError("OpenCV required for dictionary lookup")
     if dictionary not in validator.aruco_dicts:
         available = ", ".join(sorted(validator.aruco_dicts.keys()))
-        raise ValueError(
-            f'Unknown ArUCO dictionary "{dictionary}". Available: {available}'
+        raise APIValidationError(
+            f'Unknown ArUCO dictionary "{dictionary}". Available: {available}',
+            fields={"dictionary": "Select a valid dictionary"},
+            suggestions=sorted(validator.aruco_dicts.keys())[:5],
+        )
+
+
+def _validate_image_dimensions(image):
+    max_pixels = current_app.config.get("MAX_IMAGE_PIXELS", 20_000_000)
+    max_dimension = current_app.config.get("MAX_IMAGE_DIMENSION", 8000)
+    height, width = image.shape[:2]
+    if width > max_dimension or height > max_dimension:
+        raise APIValidationError(
+            "Image dimensions exceed allowed limits",
+            fields={"file": f"Max dimension is {max_dimension}px"},
+        )
+    if (width * height) > max_pixels:
+        raise APIValidationError(
+            "Image exceeds maximum pixel count",
+            fields={"file": f"Max pixels is {max_pixels}"},
         )
 
 
 def _extract_upload_image():
+    if not OPENCV_AVAILABLE or cv2 is None:
+        raise APIServiceUnavailableError("OpenCV required for image decoding")
     file = request.files.get("file") or request.files.get("image")
     if not file:
-        raise ValueError("No image provided")
+        raise APIValidationError("No image provided", fields={"file": "Required"})
+    if file.mimetype and not file.mimetype.startswith("image/"):
+        raise APIValidationError(
+            "Unsupported image format", fields={"file": "Upload a valid image"}
+        )
     image_bytes = file.read()
     if not image_bytes:
-        raise ValueError("Uploaded image is empty")
+        raise APIValidationError(
+            "Uploaded image is empty", fields={"file": "Empty upload"}
+        )
+    max_bytes = current_app.config.get("MAX_UPLOAD_IMAGE_BYTES", 10 * 1024 * 1024)
+    if len(image_bytes) > max_bytes:
+        raise APIValidationError(
+            f"Image exceeds {max_bytes // (1024 * 1024)}MB limit",
+            fields={"file": "File too large"},
+        )
     nparr = np.frombuffer(image_bytes, np.uint8)
     image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     if image is None:
-        raise ValueError("Unable to decode image file")
+        raise APIValidationError(
+            "Unable to decode image file", fields={"file": "Invalid image"}
+        )
+    _validate_image_dimensions(image)
     return image
 
 
 def _decode_base64_image(image_base64: str):
+    if not OPENCV_AVAILABLE or cv2 is None:
+        raise APIServiceUnavailableError("OpenCV required for image decoding")
     if not image_base64:
-        raise ValueError("Image payload is empty")
+        raise APIValidationError(
+            "Image payload is empty", fields={"image_base64": "Required"}
+        )
     try:
         payload = base64.b64decode(image_base64)
     except Exception as exc:
-        raise ValueError("Invalid base64 image payload") from exc
+        raise APIValidationError("Invalid base64 image payload") from exc
+    max_bytes = current_app.config.get("MAX_UPLOAD_IMAGE_BYTES", 10 * 1024 * 1024)
+    if len(payload) > max_bytes:
+        raise APIValidationError(
+            f"Image exceeds {max_bytes // (1024 * 1024)}MB limit",
+            fields={"image_base64": "Payload too large"},
+        )
     nparr = np.frombuffer(payload, np.uint8)
     image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     if image is None:
-        raise ValueError("Unable to decode base64 image")
+        raise APIValidationError("Unable to decode base64 image")
+    _validate_image_dimensions(image)
     return image
 
 
@@ -197,186 +263,180 @@ def build_calibration_data_from_generation(params):
 @handle_api_errors
 def advanced_preview():
     """Generate advanced preview with additional features."""
-    data = request.get_json() or {}
+    data = _get_request_json()
     params = validate_generation_params(data, list(aruco_gen.dictionaries.keys()))
-    return jsonify(build_advanced_preview(params))
+    return api_success(build_advanced_preview(params))
 
 
 @advanced_bp.route("/api/advanced/generate_with_coordinates", methods=["POST"])
+@handle_api_errors
 def generate_with_coordinates():
     """Generate markers with full 3D coordinate system data."""
-    try:
-        data = request.get_json()
+    data = _get_request_json()
 
-        # Build marker configuration
-        marker_config = {
-            "dictionary": data.get("dictionary", "4X4_50"),
-            "marker_ids": data.get("marker_ids", [0, 1, 2, 3]),
-            "size_mm": float(data.get("size_mm", 50.0)),
-            "positions": data.get("positions", []),
-            "orientations": data.get("orientations", []),
-            "reference_frame": data.get("reference_frame", "world"),
-        }
-
-        # Generate markers with coordinates
-        result = aruco_gen.generate_with_coordinates(marker_config)
-
-        # Convert images to base64 for response
-        for marker in result["markers"]:
-            if "image" in marker:
-                _, buffer = cv2.imencode(".png", marker["image"])
-                marker["image_base64"] = base64.b64encode(buffer).decode("utf-8")
-                del marker["image"]  # Remove numpy array from response
-
-        return jsonify(
-            {
-                "success": True,
-                "markers": result["markers"],
-                "calibration_data": result["calibration_data"],
-                "coordinate_frame": result["coordinate_frame"],
-            }
+    # Build marker configuration
+    marker_config = {
+        "dictionary": data.get("dictionary", "4X4_50"),
+        "marker_ids": data.get("marker_ids", [0, 1, 2, 3]),
+        "size_mm": float(data.get("size_mm", 50.0)),
+        "positions": data.get("positions", []),
+        "orientations": data.get("orientations", []),
+        "reference_frame": data.get("reference_frame", "world"),
+    }
+    _validate_dictionary(marker_config["dictionary"])
+    if marker_config["size_mm"] <= 0:
+        raise APIValidationError(
+            "Marker size must be positive", fields={"size_mm": "Must be > 0"}
         )
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    # Generate markers with coordinates
+    result = aruco_gen.generate_with_coordinates(marker_config)
+
+    # Convert images to base64 for response
+    for marker in result["markers"]:
+        if "image" in marker:
+            if not OPENCV_AVAILABLE or cv2 is None:
+                raise APIServiceUnavailableError("OpenCV required for image encoding")
+            _, buffer = cv2.imencode(".png", marker["image"])
+            marker["image_base64"] = base64.b64encode(buffer).decode("utf-8")
+            del marker["image"]  # Remove numpy array from response
+
+    return api_success(
+        {
+            "markers": result["markers"],
+            "calibration_data": result["calibration_data"],
+            "coordinate_frame": result["coordinate_frame"],
+        }
+    )
 
 
 @advanced_bp.route("/api/advanced/pose_estimation_board", methods=["POST"])
+@handle_api_errors
 def generate_pose_board():
     """Generate board optimized for pose estimation."""
-    try:
-        data = request.get_json()
+    data = _get_request_json()
 
-        board_config = {
-            "rows": int(data.get("rows", 3)),
-            "cols": int(data.get("cols", 3)),
-            "marker_size_mm": float(data.get("marker_size_mm", 50.0)),
-            "spacing_mm": float(data.get("spacing_mm", 10.0)),
-            "dictionary": data.get("dictionary", "4X4_50"),
-            "start_id": int(data.get("start_id", 0)),
-        }
-
-        # Generate pose estimation board
-        result = aruco_gen.generate_pose_estimation_board(board_config)
-
-        # Convert marker images to base64
-        for marker in result["markers"]:
-            if "image" in marker:
-                _, buffer = cv2.imencode(".png", marker["image"])
-                marker["image_base64"] = base64.b64encode(buffer).decode("utf-8")
-                del marker["image"]
-
-        return jsonify(
-            {
-                "success": True,
-                "board_config": result["board_config"],
-                "calibration_data": result["calibration_data"],
-                "coordinate_frame": result["coordinate_frame"],
-                "markers": result["markers"][:10],  # Limit response size
-            }
+    board_config = {
+        "rows": int(data.get("rows", 3)),
+        "cols": int(data.get("cols", 3)),
+        "marker_size_mm": float(data.get("marker_size_mm", 50.0)),
+        "spacing_mm": float(data.get("spacing_mm", 10.0)),
+        "dictionary": data.get("dictionary", "4X4_50"),
+        "start_id": int(data.get("start_id", 0)),
+    }
+    _validate_dictionary(board_config["dictionary"])
+    if board_config["rows"] <= 0 or board_config["cols"] <= 0:
+        raise APIValidationError(
+            "Rows and columns must be positive", fields={"rows": "Must be > 0"}
+        )
+    if board_config["marker_size_mm"] <= 0:
+        raise APIValidationError(
+            "Marker size must be positive", fields={"marker_size_mm": "Must be > 0"}
         )
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    # Generate pose estimation board
+    result = aruco_gen.generate_pose_estimation_board(board_config)
+
+    # Convert marker images to base64
+    for marker in result["markers"]:
+        if "image" in marker:
+            if not OPENCV_AVAILABLE or cv2 is None:
+                raise APIServiceUnavailableError("OpenCV required for image encoding")
+            _, buffer = cv2.imencode(".png", marker["image"])
+            marker["image_base64"] = base64.b64encode(buffer).decode("utf-8")
+            del marker["image"]
+
+    return api_success(
+        {
+            "board_config": result["board_config"],
+            "calibration_data": result["calibration_data"],
+            "coordinate_frame": result["coordinate_frame"],
+            "markers": result["markers"][:10],
+        }
+    )
 
 
 @advanced_bp.route("/api/export/opencv_yaml", methods=["POST"])
+@handle_api_errors
 def export_opencv_yaml():
     """Export calibration data in OpenCV YAML format."""
-    try:
-        data = request.get_json()
-        calibration_data = data.get("calibration_data", {})
-        camera_params = data.get("camera_params", None)
+    data = _get_request_json()
+    calibration_data = data.get("calibration_data", {})
+    camera_params = data.get("camera_params", None)
 
-        yaml_content = exporter.export_opencv_yaml(calibration_data, camera_params)
+    yaml_content = exporter.export_opencv_yaml(calibration_data, camera_params)
 
-        buffer = BytesIO(yaml_content.encode("utf-8"))
-        buffer.seek(0)
+    buffer = BytesIO(yaml_content.encode("utf-8"))
+    buffer.seek(0)
 
-        return send_file(
-            buffer,
-            mimetype="text/yaml",
-            as_attachment=True,
-            download_name="opencv_calibration.yaml",
-        )
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return send_file(
+        buffer,
+        mimetype="text/yaml",
+        as_attachment=True,
+        download_name="opencv_calibration.yaml",
+    )
 
 
 @advanced_bp.route("/api/export/ros", methods=["POST"])
+@handle_api_errors
 def export_ros():
     """Export calibration data in ROS format."""
-    try:
-        data = request.get_json()
-        calibration_data = data.get("calibration_data", {})
-        frame_id = data.get("frame_id", "camera_optical_frame")
+    data = _get_request_json()
+    calibration_data = data.get("calibration_data", {})
+    frame_id = data.get("frame_id", "camera_optical_frame")
 
-        ros_json = exporter.export_ros_format(calibration_data, frame_id)
+    ros_json = exporter.export_ros_format(calibration_data, frame_id)
 
-        buffer = BytesIO(ros_json.encode("utf-8"))
-        buffer.seek(0)
+    buffer = BytesIO(ros_json.encode("utf-8"))
+    buffer.seek(0)
 
-        return send_file(
-            buffer,
-            mimetype="application/json",
-            as_attachment=True,
-            download_name="ros_calibration.json",
-        )
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return send_file(
+        buffer,
+        mimetype="application/json",
+        as_attachment=True,
+        download_name="ros_calibration.json",
+    )
 
 
 @advanced_bp.route("/api/export/dxf", methods=["POST"])
+@handle_api_errors
 def export_dxf():
     """Export pattern as DXF for CNC/laser cutting."""
-    try:
-        data = request.get_json() or {}
-        calibration_data = data.get("calibration_data")
-        if not calibration_data:
-            params = validate_generation_params(
-                data, list(aruco_gen.dictionaries.keys())
-            )
-            calibration_data = build_calibration_data_from_generation(params)
+    data = _get_request_json()
+    calibration_data = data.get("calibration_data")
+    if not calibration_data:
+        params = validate_generation_params(data, list(aruco_gen.dictionaries.keys()))
+        calibration_data = build_calibration_data_from_generation(params)
 
-        dxf_buffer = exporter.export_dxf(calibration_data)
+    dxf_buffer = exporter.export_dxf(calibration_data)
 
-        return send_file(
-            dxf_buffer,
-            mimetype="application/dxf",
-            as_attachment=True,
-            download_name="aruco_pattern.dxf",
-        )
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return send_file(
+        dxf_buffer,
+        mimetype="application/dxf",
+        as_attachment=True,
+        download_name="aruco_pattern.dxf",
+    )
 
 
 @advanced_bp.route("/api/export/stl", methods=["POST"])
+@handle_api_errors
 def export_stl():
     """Export pattern as STL for 3D printing."""
-    try:
-        data = request.get_json() or {}
-        calibration_data = data.get("calibration_data")
-        if not calibration_data:
-            params = validate_generation_params(
-                data, list(aruco_gen.dictionaries.keys())
-            )
-            calibration_data = build_calibration_data_from_generation(params)
-        thickness_mm = float(data.get("thickness_mm", 3.0))
+    data = _get_request_json()
+    calibration_data = data.get("calibration_data")
+    if not calibration_data:
+        params = validate_generation_params(data, list(aruco_gen.dictionaries.keys()))
+        calibration_data = build_calibration_data_from_generation(params)
+    thickness_mm = float(data.get("thickness_mm", 3.0))
 
-        stl_buffer = exporter.export_stl_3d(calibration_data, thickness_mm)
+    stl_buffer = exporter.export_stl_3d(calibration_data, thickness_mm)
 
-        return send_file(
-            stl_buffer,
-            mimetype="application/sla",
-            as_attachment=True,
-            download_name="landing_pad.stl",
-        )
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return send_file(
+        stl_buffer,
+        mimetype="application/sla",
+        as_attachment=True,
+        download_name="landing_pad.stl",
+    )
 
 
 @advanced_bp.route("/api/validation/test_pattern", methods=["POST"])
@@ -388,25 +448,67 @@ def generate_test_pattern():
     dictionary = data.get("dictionary", "4X4_50")
     _validate_dictionary(dictionary)
 
+    scales = data.get("scales", [10, 20, 50, 100])
+    if not isinstance(scales, list) or not scales:
+        raise APIValidationError(
+            "Scales must be a non-empty list", fields={"scales": "Required"}
+        )
+    try:
+        scales = [float(x) for x in scales]
+    except (TypeError, ValueError):
+        raise APIValidationError(
+            "Scales must be numeric values", fields={"scales": "Numeric values only"}
+        )
+    if any(scale <= 0 for scale in scales):
+        raise APIValidationError(
+            "Scales must be positive", fields={"scales": "Must be > 0"}
+        )
+
+    marker_ids = data.get("marker_ids") or list(range(len(scales)))
+    if not isinstance(marker_ids, list):
+        raise APIValidationError(
+            "Marker IDs must be a list", fields={"marker_ids": "Must be a list"}
+        )
+    if len(marker_ids) > len(scales):
+        raise APIValidationError(
+            "Marker IDs list cannot exceed scales length",
+            fields={"marker_ids": "Too many IDs"},
+        )
+    if len(marker_ids) < len(scales):
+        marker_ids = marker_ids + list(range(len(marker_ids), len(scales)))
+
+    canvas_size = data.get("canvas_size_mm", [300, 200])
+    if not isinstance(canvas_size, (list, tuple)) or len(canvas_size) != 2:
+        raise APIValidationError(
+            "Canvas size must be [width, height]",
+            fields={"canvas_size_mm": "Invalid size"},
+        )
+    canvas_size_mm = (float(canvas_size[0]), float(canvas_size[1]))
+    if canvas_size_mm[0] <= 0 or canvas_size_mm[1] <= 0:
+        raise APIValidationError(
+            "Canvas size must be positive", fields={"canvas_size_mm": "Must be > 0"}
+        )
+
     pattern_config = {
         "dictionary": dictionary,
-        "scales": data.get("scales", [10, 20, 50, 100]),
-        "marker_ids": data.get("marker_ids", [0, 1, 2, 3]),
-        "canvas_size_mm": tuple(data.get("canvas_size_mm", [300, 200])),
-        "include_distortions": data.get("include_distortions", False),
-        "include_occlusions": data.get("include_occlusions", False),
+        "scales": scales,
+        "marker_ids": marker_ids,
+        "canvas_size_mm": canvas_size_mm,
+        "include_distortions": bool(data.get("include_distortions", False)),
+        "include_occlusions": bool(data.get("include_occlusions", False)),
     }
 
     # Generate test pattern
     result = validator.generate_test_pattern(pattern_config)
 
     # Convert image to base64
+    if not OPENCV_AVAILABLE or cv2 is None:
+        raise APIServiceUnavailableError("OpenCV required for image encoding")
     _, buffer = cv2.imencode(".png", result["image"])
     image_base64 = base64.b64encode(buffer).decode("utf-8")
 
-    return jsonify(
+    return api_success(
         {
-            "success": True,
             "image_base64": image_base64,
             "metadata": result["metadata"],
             "test_markers": result["test_markers"],
@@ -426,7 +528,7 @@ def verify_marker_quality():
     # Verify quality
     quality_report = validator.verify_marker_quality(image, expected_id, dictionary)
 
-    return jsonify({"success": True, "quality_report": quality_report})
+    return api_success({"quality_report": quality_report})
 
 
 @advanced_bp.route("/api/validation/detect", methods=["POST"])
@@ -437,13 +539,60 @@ def detect_markers():
     dictionary = request.form.get("dictionary", "4X4_50")
     expected_markers = request.form.get("expected_markers")
     expected_count = int(expected_markers) if expected_markers else None
+    if expected_count is not None and expected_count < 0:
+        raise APIValidationError(
+            "Expected markers must be non-negative",
+            fields={"expected_markers": "Must be >= 0"},
+        )
     _validate_dictionary(dictionary)
 
     detection = validator.detect_markers(
         image, dictionary=dictionary, expected_count=expected_count
     )
 
-    return jsonify({"success": True, "detection": detection})
+    return api_success({"detection": detection})
+
+
+@advanced_bp.route("/api/validation/metrics", methods=["GET"])
+@handle_api_errors
+def validation_metrics():
+    """Return recent validation metrics and summary statistics."""
+    if not current_app.config.get("USE_DB"):
+        return api_success(
+            {"summary": None, "recent": [], "total": 0},
+            warnings=[
+                {
+                    "code": "db_disabled",
+                    "message": "Database disabled - metrics unavailable",
+                }
+            ],
+        )
+
+    metrics = (
+        DetectionMetric.query.order_by(DetectionMetric.test_timestamp.desc())
+        .limit(5)
+        .all()
+    )
+
+    rates = [m.detection_rate for m in metrics if m.detection_rate is not None]
+    pose_errors = [m.avg_pose_error for m in metrics if m.avg_pose_error is not None]
+    times = [m.avg_detection_time for m in metrics if m.avg_detection_time is not None]
+
+    summary = {
+        "avg_detection_rate": round(sum(rates) / len(rates), 4) if rates else None,
+        "avg_pose_error_mm": (
+            round(sum(pose_errors) / len(pose_errors), 3) if pose_errors else None
+        ),
+        "avg_detection_time_ms": round(sum(times) / len(times), 2) if times else None,
+    }
+
+    return api_success(
+        {
+            "summary": summary,
+            "recent": [m.to_dict() for m in metrics],
+            "total": len(metrics),
+        }
+    )
 
 
 @advanced_bp.route("/api/validation/hamming_distance", methods=["POST"])
@@ -459,7 +608,7 @@ def calculate_hamming():
 
     distance = validator.calculate_hamming_distance(id1, id2, dictionary)
     if distance < 0:
-        raise ValueError("Marker IDs out of range for selected dictionary")
+        raise APIValidationError("Marker IDs out of range for selected dictionary")
 
     # Determine safety level
     safety_level = "Safe"
@@ -468,9 +617,8 @@ def calculate_hamming():
     elif distance < 5:
         safety_level = "Warning - Moderate confusion risk"
 
-    return jsonify(
+    return api_success(
         {
-            "success": True,
             "id1": id1,
             "id2": id2,
             "hamming_distance": distance,
@@ -495,56 +643,68 @@ def generate_report():
     # Save metrics to database if pattern_id provided
     if "pattern_id" in data:
         if current_app.config.get("USE_DB"):
-            # Calculate summary metrics from report/test results
-            summary = report.get("summary", {})
-            total_tests = summary.get("total_tests", len(test_results))
-            successful = summary.get(
-                "successful_detections",
-                sum(1 for r in test_results if r.get("detected")),
-            )
+            try:
+                # Calculate summary metrics from report/test results
+                summary = report.get("summary", {})
+                total_tests = summary.get("total_tests", len(test_results))
+                successful = summary.get(
+                    "successful_detections",
+                    sum(1 for r in test_results if r.get("detected")),
+                )
 
-            pose_errors = [
-                r.get("pose_error_mm")
-                for r in test_results
-                if r.get("pose_error_mm") is not None
-            ]
-            avg_pose_error = (
-                sum(pose_errors) / len(pose_errors) if pose_errors else None
-            )
+                pose_errors = [
+                    r.get("pose_error_mm")
+                    for r in test_results
+                    if r.get("pose_error_mm") is not None
+                ]
+                avg_pose_error = (
+                    sum(pose_errors) / len(pose_errors) if pose_errors else None
+                )
 
-            corner_errors = [
-                r.get("corner_error")
-                for r in test_results
-                if r.get("corner_error") is not None
-            ]
-            avg_corner_error = (
-                sum(corner_errors) / len(corner_errors) if corner_errors else None
-            )
+                corner_errors = [
+                    r.get("corner_error")
+                    for r in test_results
+                    if r.get("corner_error") is not None
+                ]
+                avg_corner_error = (
+                    sum(corner_errors) / len(corner_errors) if corner_errors else None
+                )
 
-            perf = report.get("performance", {})
-            avg_detection_time = perf.get("avg_detection_time")
+                perf = report.get("performance", {})
+                avg_detection_time = perf.get("avg_detection_time")
 
-            metric = DetectionMetric(
-                pattern_id=data["pattern_id"],
-                detected_markers=successful,
-                expected_markers=total_tests,
-                detection_rate=summary.get("detection_rate"),
-                avg_corner_error=avg_corner_error,
-                avg_pose_error=avg_pose_error,
-                avg_detection_time=avg_detection_time,
-                lighting_condition=data.get("lighting_conditions", "unknown"),
-                distance_mm=data.get("distance_mm"),
-                viewing_angle=data.get("viewing_angle"),
-            )
-            db.session.add(metric)
-            db.session.commit()
+                metric = DetectionMetric(
+                    pattern_id=data["pattern_id"],
+                    detected_markers=successful,
+                    expected_markers=total_tests,
+                    detection_rate=summary.get("detection_rate"),
+                    avg_corner_error=avg_corner_error,
+                    avg_pose_error=avg_pose_error,
+                    avg_detection_time=avg_detection_time,
+                    lighting_condition=data.get("lighting_conditions", "unknown"),
+                    distance_mm=data.get("distance_mm"),
+                    viewing_angle=data.get("viewing_angle"),
+                )
+                db.session.add(metric)
+                db.session.commit()
 
-            report["metric_id"] = metric.id
+                report["metric_id"] = metric.id
+            except Exception:
+                db.session.rollback()
+                report["metric_id"] = None
+                report["metric_message"] = (
+                    "Metrics not persisted - database unavailable"
+                )
         else:
             report["metric_id"] = None
             report["metric_message"] = "Database disabled - metrics not persisted"
 
-    return jsonify({"success": True, "report": report})
+    warnings = []
+    if report.get("metric_message"):
+        warnings.append({"code": "db_disabled", "message": report["metric_message"]})
+        report.pop("metric_message", None)
+
+    return api_success({"report": report}, warnings=warnings)
 
 
 @advanced_bp.route("/api/validation/batch_test", methods=["POST"])
@@ -578,7 +738,7 @@ def batch_validation_test():
                 "expected_markers": detection["expected_markers"],
                 "detection_rate": detection["detection_rate"],
                 "confidence": detection["avg_confidence"],
-                "processing_time_ms": detection["detection_time_ms"],
+                "detection_time_ms": detection["detection_time_ms"],
             }
         )
 
@@ -591,6 +751,4 @@ def batch_validation_test():
 
     report = validator.generate_detection_report(results, pattern_metadata)
 
-    return jsonify(
-        {"success": True, "batch_results": results, "overall_report": report}
-    )
+    return api_success({"batch_results": results, "overall_report": report})

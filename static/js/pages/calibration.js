@@ -3,7 +3,7 @@
  * <ai_agent_documentation>
  *   <file_meta>
  *     <name>calibration.js</name>
- *     <version>2.4.0</version>
+ *     <version>2.6.0</version>
  *     <type>frontend_controller</type>
  *     <purpose>Manage calibration pattern selection, generation, and exports</purpose>
  *     <last_updated>2026-02-08</last_updated>
@@ -107,6 +107,7 @@ class CalibrationManager {
         this.currentPattern = type;
         this.currentPatternData = null;
         this.currentPatternId = null;
+        this.clearFieldErrors();
         this.showPatternConfig(type, element);
         this.clearPreview();
     }
@@ -155,6 +156,7 @@ class CalibrationManager {
         const emptyPreview = document.getElementById('emptyPreview');
         const previewImage = document.getElementById('previewImage');
         const patternInfo = document.getElementById('patternInfo');
+        const requestMeta = document.getElementById('requestMeta');
 
         if (emptyPreview) {
             emptyPreview.style.display = 'block';
@@ -164,6 +166,9 @@ class CalibrationManager {
         }
         if (patternInfo) {
             patternInfo.style.display = 'none';
+        }
+        if (requestMeta) {
+            requestMeta.style.display = 'none';
         }
 
         this.setExportEnabled(false);
@@ -238,6 +243,7 @@ class CalibrationManager {
                     payload: {
                         grid_x: parseInt(document.getElementById('aprilgrid_x').value),
                         grid_y: parseInt(document.getElementById('aprilgrid_y').value),
+                        first_tag_id: parseInt(document.getElementById('aprilgrid_first_id').value),
                         tag_size_mm: parseFloat(document.getElementById('aprilgrid_size').value),
                         spacing_mm: parseFloat(document.getElementById('aprilgrid_spacing').value),
                         tag_family: document.getElementById('aprilgrid_family').value,
@@ -256,11 +262,12 @@ class CalibrationManager {
         if (!requestConfig) return;
 
         try {
+            this.clearFieldErrors();
             window.notificationManager.showLoading('Generating calibration pattern...');
             const result = await requestConfig.apiCall(requestConfig.payload);
 
-            if (!result || !result.success) {
-                throw new Error(result?.error || 'Unable to generate calibration pattern');
+            if (!result || result.success !== true) {
+                throw new Error(result?.error?.message || result?.error || 'Unable to generate calibration pattern');
             }
 
             this.currentPatternData = result;
@@ -268,12 +275,15 @@ class CalibrationManager {
             this.renderPreview(result);
             this.setExportEnabled(true);
 
-            if (result.persisted === false && result.persistence_message) {
-                window.notificationManager.showWarning(result.persistence_message);
+            if (Array.isArray(result.warnings) && result.warnings.length) {
+                result.warnings.forEach(warning => {
+                    window.notificationManager.showWarning(warning.message || 'Warning');
+                });
             }
 
             window.notificationManager.showSuccess('Calibration pattern generated');
         } catch (error) {
+            this.applyFieldErrors(error.fields);
             window.notificationManager.showError(error.message || 'Failed to generate pattern');
         } finally {
             window.notificationManager.hideLoading();
@@ -284,6 +294,7 @@ class CalibrationManager {
         const emptyPreview = document.getElementById('emptyPreview');
         const previewImage = document.getElementById('previewImage');
         const patternInfo = document.getElementById('patternInfo');
+        const requestMeta = document.getElementById('requestMeta');
 
         if (emptyPreview) {
             emptyPreview.style.display = 'none';
@@ -298,9 +309,13 @@ class CalibrationManager {
         if (info && patternInfo) {
             const infoContent = document.getElementById('infoContent');
             let infoHtml = `
-                <p><strong>Dimensions:</strong> ${result.dimensions_mm[0].toFixed(1)} x ${result.dimensions_mm[1].toFixed(1)} mm</p>
                 <p><strong>Pattern Type:</strong> ${info.pattern_type || this.currentPattern}</p>
             `;
+            if (Array.isArray(result.dimensions_mm) && result.dimensions_mm.length >= 2) {
+                infoHtml = `
+                    <p><strong>Dimensions:</strong> ${result.dimensions_mm[0].toFixed(1)} x ${result.dimensions_mm[1].toFixed(1)} mm</p>
+                ` + infoHtml;
+            }
 
             if (info.total_markers || info.total_tags) {
                 infoHtml += `<p><strong>Total Markers:</strong> ${info.total_markers || info.total_tags}</p>`;
@@ -319,6 +334,15 @@ class CalibrationManager {
                 infoContent.innerHTML = infoHtml;
             }
             patternInfo.style.display = 'block';
+        }
+
+        if (requestMeta) {
+            if (result.request_id) {
+                requestMeta.textContent = `Request ID: ${result.request_id}`;
+                requestMeta.style.display = 'block';
+            } else {
+                requestMeta.style.display = 'none';
+            }
         }
     }
 
@@ -345,13 +369,14 @@ class CalibrationManager {
         if (!file) return;
 
         try {
+            this.clearFieldErrors();
             window.notificationManager.showLoading('Importing calibration data...');
             const result = await window.arucoAPI.importCalibrationPattern(file, {
                 save_to_db: true
             });
 
-            if (!result || !result.success) {
-                throw new Error(result?.error || 'Unable to import calibration data');
+            if (!result || result.success !== true) {
+                throw new Error(result?.error?.message || result?.error || 'Unable to import calibration data');
             }
 
             const patternType = result.calibration_data?.pattern_type;
@@ -367,12 +392,15 @@ class CalibrationManager {
             this.renderPreview(result);
             this.setExportEnabled(true);
 
-            if (result.persisted === false && result.persistence_message) {
-                window.notificationManager.showWarning(result.persistence_message);
+            if (Array.isArray(result.warnings) && result.warnings.length) {
+                result.warnings.forEach(warning => {
+                    window.notificationManager.showWarning(warning.message || 'Warning');
+                });
             }
 
             window.notificationManager.showSuccess('Calibration data imported');
         } catch (error) {
+            this.applyFieldErrors(error.fields);
             window.notificationManager.showError(error.message || 'Failed to import calibration data');
         } finally {
             window.notificationManager.hideLoading();
@@ -441,6 +469,60 @@ class CalibrationManager {
         }
 
         window.location.href = `/api/calibration/export/${this.currentPatternId}/bundle`;
+    }
+
+    clearFieldErrors() {
+        document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        document.querySelectorAll('.field-error').forEach(el => el.remove());
+    }
+
+    applyFieldErrors(fields) {
+        if (!fields || typeof fields !== 'object') return;
+
+        const fieldMapByPattern = {
+            charuco: {
+                squares_x: 'charuco_squares_x',
+                squares_y: 'charuco_squares_y',
+                square_size_mm: 'charuco_square_size',
+                marker_size_mm: 'charuco_marker_size',
+                dictionary: 'charuco_dictionary'
+            },
+            aruco_board: {
+                markers_x: 'board_markers_x',
+                markers_y: 'board_markers_y',
+                marker_size_mm: 'board_marker_size',
+                separation_mm: 'board_separation',
+                first_marker_id: 'board_first_id',
+                dictionary: 'board_dictionary'
+            },
+            apriltag: {
+                tag_family: 'apriltag_family',
+                tag_id: 'apriltag_id',
+                tag_size_mm: 'apriltag_size'
+            },
+            apriltag_grid: {
+                grid_size: 'aprilgrid_x',
+                grid_x: 'aprilgrid_x',
+                grid_y: 'aprilgrid_y',
+                first_tag_id: 'aprilgrid_first_id',
+                tag_size_mm: 'aprilgrid_size',
+                spacing_mm: 'aprilgrid_spacing',
+                tag_family: 'aprilgrid_family'
+            }
+        };
+
+        const fieldMap = fieldMapByPattern[this.currentPattern] || {};
+        Object.keys(fields).forEach(field => {
+            const targetId = fieldMap[field] || fieldMap[field.replace('_mm', '')];
+            if (!targetId) return;
+            const input = document.getElementById(targetId);
+            if (!input) return;
+            input.classList.add('is-invalid');
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'invalid-feedback field-error';
+            errorDiv.textContent = fields[field];
+            input.insertAdjacentElement('afterend', errorDiv);
+        });
     }
 }
 

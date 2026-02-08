@@ -3,10 +3,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>utils.py</name>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
     <type>core_utility_module</type>
     <purpose>Shared validation, error handling helpers, and API response shaping</purpose>
-    <last_updated>2026-02-07</last_updated>
+    <last_updated>2026-02-08</last_updated>
     <maintainer>ArUCO Generator Team</maintainer>
   </file_meta>
 </ai_agent_documentation>
@@ -18,11 +18,39 @@ Contains shared validation logic and error handling decorators.
 import functools
 import logging
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from flask import current_app, g, has_request_context, jsonify, request
+from werkzeug.exceptions import HTTPException
 
 logger = logging.getLogger(__name__)
+
+
+class APIValidationError(ValueError):
+    """Validation error with optional field-level details."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        fields: Optional[Dict[str, str]] = None,
+        suggestions: Optional[List[str]] = None,
+        status: int = 400,
+    ) -> None:
+        super().__init__(message)
+        self.message = message
+        self.fields = fields or {}
+        self.suggestions = suggestions or []
+        self.status = status
+
+
+class APIServiceUnavailableError(RuntimeError):
+    """Service unavailable error (e.g., missing OpenCV)."""
+
+    def __init__(self, message: str, *, status: int = 503) -> None:
+        super().__init__(message)
+        self.message = message
+        self.status = status
 
 
 def validate_generation_params(
@@ -42,33 +70,52 @@ def validate_generation_params(
         ValueError: If validation fails
     """
     if not isinstance(data, dict):
-        raise ValueError("Request body must be a JSON object")
+        raise APIValidationError("Request body must be a JSON object")
 
     dictionary = data.get("dictionary")
     if not dictionary or dictionary not in available_dictionaries:
         # Provide a helpful error message with a few suggestions
-        suggestions = ", ".join(available_dictionaries[:5])
-        if len(available_dictionaries) > 5:
-            suggestions += "..."
-        raise ValueError(f'Invalid dictionary "{dictionary}". Available: {suggestions}')
+        suggestions = available_dictionaries[:5]
+        hint = ", ".join(suggestions) + (
+            "..." if len(available_dictionaries) > 5 else ""
+        )
+        raise APIValidationError(
+            f'Invalid dictionary "{dictionary}". Available: {hint}',
+            fields={"dictionary": "Select a valid dictionary name"},
+            suggestions=suggestions,
+        )
 
     try:
         start_id = int(data.get("start_id", 0))
         if start_id < 0:
-            raise ValueError("Start ID must be non-negative")
+            raise APIValidationError(
+                "Start ID must be non-negative", fields={"start_id": "Must be >= 0"}
+            )
 
         rows = int(data.get("rows", 1))
         cols = int(data.get("cols", 1))
-        if rows <= 0 or cols <= 0:
-            raise ValueError("Rows and columns must be positive integers")
+        if rows <= 0:
+            raise APIValidationError(
+                "Rows must be a positive integer", fields={"rows": "Must be >= 1"}
+            )
+        if cols <= 0:
+            raise APIValidationError(
+                "Columns must be a positive integer", fields={"cols": "Must be >= 1"}
+            )
 
         size_mm = float(data.get("size_mm", 20))
         if size_mm <= 0:
-            raise ValueError("Marker size must be positive (in millimeters)")
+            raise APIValidationError(
+                "Marker size must be positive (in millimeters)",
+                fields={"size_mm": "Must be > 0"},
+            )
 
         spacing_mm = float(data.get("spacing_mm", 5))
         if spacing_mm < 0:
-            raise ValueError("Spacing must be non-negative (in millimeters)")
+            raise APIValidationError(
+                "Spacing must be non-negative (in millimeters)",
+                fields={"spacing_mm": "Must be >= 0"},
+            )
 
         border_bits = int(data.get("border_bits", 1))
 
@@ -89,11 +136,13 @@ def validate_generation_params(
             "include_rulers": data.get("include_rulers", False),
         }
 
+    except APIValidationError:
+        raise
     except (TypeError, ValueError) as e:
         # Catch basic casting errors if not caught above
         if "invalid literal" in str(e):
-            raise ValueError("Invalid number format for one of the parameters")
-        raise e
+            raise APIValidationError("Invalid number format for one of the parameters")
+        raise APIValidationError(str(e))
 
 
 def handle_api_errors(f):
@@ -103,6 +152,27 @@ def handle_api_errors(f):
     def wrapper(*args, **kwargs):
         try:
             return f(*args, **kwargs)
+        except APIValidationError as e:
+            path = request.path if has_request_context() else "unknown"
+            logger.warning(
+                "API validation error in %s | request_id=%s path=%s message=%s",
+                f.__name__,
+                getattr(g, "request_id", "unknown"),
+                path,
+                e.message,
+            )
+            return (
+                jsonify(
+                    _build_error_payload(
+                        e.message,
+                        e.status,
+                        "validation_error",
+                        fields=e.fields,
+                        suggestions=e.suggestions,
+                    )
+                ),
+                e.status,
+            )
         except ValueError as e:
             path = request.path if has_request_context() else "unknown"
             logger.warning(
@@ -112,7 +182,78 @@ def handle_api_errors(f):
                 path,
                 str(e),
             )
-            return jsonify(_build_error_payload(str(e), 400, "validation_error")), 400
+            return (
+                jsonify(_build_error_payload(str(e), 400, "validation_error")),
+                400,
+            )
+        except APIServiceUnavailableError as e:
+            path = request.path if has_request_context() else "unknown"
+            logger.warning(
+                "API service unavailable in %s | request_id=%s path=%s message=%s",
+                f.__name__,
+                getattr(g, "request_id", "unknown"),
+                path,
+                e.message,
+            )
+            return (
+                jsonify(
+                    _build_error_payload(
+                        e.message,
+                        e.status,
+                        "service_unavailable",
+                        suggestions=["Install OpenCV to enable this feature"],
+                    )
+                ),
+                e.status,
+            )
+        except RuntimeError as e:
+            if "OpenCV required" in str(e):
+                return (
+                    jsonify(
+                        _build_error_payload(
+                            "OpenCV is required for this operation.",
+                            503,
+                            "service_unavailable",
+                            suggestions=["Install OpenCV to enable this feature"],
+                        )
+                    ),
+                    503,
+                )
+            path = request.path if has_request_context() else "unknown"
+            logger.error(
+                "API Runtime error in %s | request_id=%s path=%s",
+                f.__name__,
+                getattr(g, "request_id", "unknown"),
+                path,
+                exc_info=True,
+            )
+            details = str(e) if _include_error_details() else None
+            return (
+                jsonify(
+                    _build_error_payload(
+                        "Internal server error. Please check your parameters.",
+                        500,
+                        "internal_error",
+                        details=details,
+                    )
+                ),
+                500,
+            )
+        except HTTPException as e:
+            status_code = e.code or 404
+            error_type = "payload_too_large" if status_code == 413 else "http_error"
+            fields = {"file": "File too large"} if status_code == 413 else None
+            return (
+                jsonify(
+                    _build_error_payload(
+                        e.description or "Resource not found",
+                        status_code,
+                        error_type,
+                        fields=fields,
+                    )
+                ),
+                status_code,
+            )
         except Exception as e:
             path = request.path if has_request_context() else "unknown"
             logger.error(
@@ -143,21 +284,76 @@ def _build_error_payload(
     status: int,
     error_type: str,
     details: Optional[str] = None,
+    fields: Optional[Dict[str, str]] = None,
+    suggestions: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     path = request.path if has_request_context() else None
     method = request.method if has_request_context() else None
-    payload = {
-        "error": message,
+    error_payload: Dict[str, Any] = {
+        "message": message,
         "type": error_type,
         "status": status,
+    }
+    if fields:
+        error_payload["fields"] = fields
+    if suggestions:
+        error_payload["suggestions"] = suggestions
+    if details:
+        error_payload["details"] = details
+
+    return {
+        "success": False,
+        "error": error_payload,
         "request_id": getattr(g, "request_id", None),
         "path": path,
         "method": method,
         "timestamp": datetime.now(timezone.utc).isoformat(),
+        "version": _get_app_version(),
     }
-    if details:
-        payload["details"] = details
-    return payload
+
+
+def build_error_payload(
+    message: str,
+    status: int,
+    error_type: str,
+    *,
+    details: Optional[str] = None,
+    fields: Optional[Dict[str, str]] = None,
+    suggestions: Optional[List[str]] = None,
+) -> Dict[str, Any]:
+    """Public wrapper for standardized error payloads."""
+    return _build_error_payload(
+        message,
+        status,
+        error_type,
+        details=details,
+        fields=fields,
+        suggestions=suggestions,
+    )
+
+
+def api_success(
+    data: Optional[Dict[str, Any]] = None,
+    *,
+    warnings: Optional[List[Dict[str, str]]] = None,
+    status: int = 200,
+) -> tuple:
+    payload = {
+        "success": True,
+        "data": data or {},
+        "warnings": warnings or [],
+        "request_id": getattr(g, "request_id", None),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "version": _get_app_version(),
+    }
+    return jsonify(payload), status
+
+
+def _get_app_version() -> Optional[str]:
+    try:
+        return current_app.config.get("APP_VERSION")
+    except Exception:
+        return None
 
 
 def _include_error_details() -> bool:

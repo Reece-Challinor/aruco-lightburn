@@ -3,10 +3,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>test_ui_pages.py</name>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
     <type>ui_test</type>
     <purpose>Smoke-test rendered HTML for key UI affordances</purpose>
-    <last_updated>2026-02-07</last_updated>
+    <last_updated>2026-02-08</last_updated>
     <maintainer>ArUCO Generator Team</maintainer>
   </file_meta>
 </ai_agent_documentation>
@@ -49,3 +49,12 @@ class TestUIPages(unittest.TestCase):
         self.assertIn('data-pattern="apriltag"', html)
         self.assertIn('data-pattern="apriltag_grid"', html)
         self.assertNotIn('onclick="selectPattern', html)
+
+    def test_validation_page_has_metrics_placeholders(self):
+        response = self.client.get("/validation")
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode("utf-8")
+        self.assertIn('id="avgDetectionRate"', html)
+        self.assertIn('id="avgPoseError"', html)
+        self.assertIn('id="avgProcessingTime"', html)
+        self.assertIn('id="recentTestsList"', html)

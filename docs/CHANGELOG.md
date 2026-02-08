@@ -2,7 +2,7 @@
 <ai_agent_documentation>
   <file_meta>
     <name>CHANGELOG.md</name>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <type>changelog</type>
     <purpose>Track user-facing changes and releases</purpose>
     <last_updated>2026-02-08</last_updated>
@@ -26,6 +26,21 @@ and this project adheres to Semantic Versioning.
 
 ### Removed
 - TBD
+
+## [2.4.0] - 2026-02-08
+### Added
+- Unified API response envelope for calibration and validation endpoints with request IDs.
+- Upload and import safeguards (size, MIME, and image dimension limits).
+- Validation-specific stylesheet and request metadata display in UI.
+- DB resilience warnings for calibration/validation persistence.
+
+### Changed
+- Calibration and validation endpoints now return consistent error payloads with field-level details.
+- Test-pattern generator supports deterministic distortions and occlusions.
+- Detection report metrics now use consistent `*_ms` timing keys.
+
+### Removed
+- Inline validation CSS in `templates/validation.html` (moved to stylesheet).
 
 ## [2.3.0] - 2026-02-08
 ### Added

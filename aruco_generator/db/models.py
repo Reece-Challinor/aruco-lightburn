@@ -5,7 +5,7 @@ Simplified database models for ArUCO Generator
 <ai_agent_documentation>
   <file_meta>
     <name>models.py</name>
-    <version>3.2.0</version>
+    <version>3.3.0</version>
     <type>sqlalchemy_models</type>
     <purpose>Database schema definitions for calibration patterns and metrics</purpose>
     <last_updated>2026-02-08</last_updated>
@@ -57,6 +57,11 @@ class CalibrationPattern(db.Model):
     """Store generated calibration patterns and ArUCO markers"""
 
     __tablename__ = "calibration_patterns"
+    __table_args__ = (
+        db.Index("ix_calibration_patterns_created_at", "created_at"),
+        db.Index("ix_calibration_patterns_type", "pattern_type"),
+        db.Index("ix_calibration_patterns_dictionary", "dictionary_type"),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     pattern_type = db.Column(
@@ -101,6 +106,8 @@ class CalibrationPattern(db.Model):
             "grid_size": [self.grid_size_x, self.grid_size_y],
             "dictionary_type": self.dictionary_type,
             "total_markers": self.total_markers,
+            "first_marker_id": self.first_marker_id,
+            "image_checksum": self.image_checksum,
             "calibration_data": self.calibration_data,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
@@ -110,6 +117,10 @@ class DetectionMetric(db.Model):
     """Store detection quality metrics for validation"""
 
     __tablename__ = "detection_metrics"
+    __table_args__ = (
+        db.Index("ix_detection_metrics_pattern_id", "pattern_id"),
+        db.Index("ix_detection_metrics_timestamp", "test_timestamp"),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     pattern_id = db.Column(db.Integer, db.ForeignKey("calibration_patterns.id"))
@@ -157,4 +168,5 @@ class DetectionMetric(db.Model):
             "test_timestamp": (
                 self.test_timestamp.isoformat() if self.test_timestamp else None
             ),
+            "notes": self.notes,
         }

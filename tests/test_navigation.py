@@ -1,4 +1,16 @@
 """
+<!--
+<ai_agent_documentation>
+  <file_meta>
+    <name>test_navigation.py</name>
+    <version>1.1.0</version>
+    <type>integration_test</type>
+    <purpose>Validate navigation routes and rendered UI affordances</purpose>
+    <last_updated>2026-02-08</last_updated>
+    <maintainer>ArUCO Generator Team</maintainer>
+  </file_meta>
+</ai_agent_documentation>
+-->
 Test suite for navigation and routing improvements
 """
 
@@ -114,7 +126,7 @@ def test_api_calibration_charuco(client):
     assert response.status_code == 200
     data = response.get_json()
     assert data["success"] is True
-    assert "image_base64" in data
+    assert "image_base64" in data["data"]
 
 
 def test_api_validation_hamming(client):
@@ -126,8 +138,8 @@ def test_api_validation_hamming(client):
     assert response.status_code == 200
     data = response.get_json()
     assert data["success"] is True
-    assert "hamming_distance" in data
-    assert "safety_level" in data
+    assert "hamming_distance" in data["data"]
+    assert "safety_level" in data["data"]
 
 
 def test_breadcrumb_navigation(client):

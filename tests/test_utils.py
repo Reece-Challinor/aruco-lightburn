@@ -1,5 +1,17 @@
 """
-Unit tests for Utility functions
+<!--
+<ai_agent_documentation>
+  <file_meta>
+    <name>test_utils.py</name>
+    <version>1.1.0</version>
+    <type>unit_test</type>
+    <purpose>Validate core utility helpers and error handling</purpose>
+    <last_updated>2026-02-08</last_updated>
+    <maintainer>ArUCO Generator Team</maintainer>
+  </file_meta>
+</ai_agent_documentation>
+-->
+Unit tests for utility functions
 """
 
 import os
@@ -74,12 +86,12 @@ class TestUtils(unittest.TestCase):
             # Test ValueError (400)
             resp, code = value_error_func()
             self.assertEqual(code, 400)
-            self.assertIn("Bad input", resp.get_json()["error"])
+            self.assertIn("Bad input", resp.get_json()["error"]["message"])
 
             # Test Generic Exception (500)
             resp, code = data_error_func()
             self.assertEqual(code, 500)
-            self.assertIn("Internal server error", resp.get_json()["error"])
+            self.assertIn("Internal server error", resp.get_json()["error"]["message"])
 
 
 if __name__ == "__main__":

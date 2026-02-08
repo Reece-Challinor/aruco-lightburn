@@ -3,7 +3,7 @@
 <ai_agent_documentation>
   <file_meta>
     <name>app.py</name>
-    <version>3.3.0</version>
+    <version>3.5.0</version>
     <type>flask_application_factory</type>
     <purpose>Main Flask application factory with database integration and route registration</purpose>
     <last_updated>2026-02-08</last_updated>
@@ -194,10 +194,13 @@ import logging
 import os
 import time
 
-from flask import Flask
+from flask import Flask, request
+from werkzeug.exceptions import BadRequest, RequestEntityTooLarge
 from werkzeug.middleware.proxy_fix import ProxyFix
 
+from aruco_generator import __version__ as app_version
 from aruco_generator.core.observability import init_observability
+from aruco_generator.core.utils import build_error_payload
 from aruco_generator.extensions import db
 
 # Simple logging setup
@@ -212,6 +215,7 @@ def create_app() -> Flask:
     app = Flask(__name__)
     app.secret_key = os.environ.get("SESSION_SECRET")
     app.config["APP_START_TIME"] = time.time()
+    app.config["APP_VERSION"] = app_version
 
     # Proxy fix for HTTPS
     app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
@@ -223,6 +227,11 @@ def create_app() -> Flask:
     app.config.setdefault("ERROR_RATE_WARN_COOLDOWN", 60)
     app.config.setdefault("SLOW_REQUEST_MS", 2000)
     app.config.setdefault("INCLUDE_ERROR_DETAILS", False)
+    app.config.setdefault("MAX_CONTENT_LENGTH", 12 * 1024 * 1024)
+    app.config.setdefault("MAX_UPLOAD_IMAGE_BYTES", 10 * 1024 * 1024)
+    app.config.setdefault("MAX_IMPORT_BYTES", 2 * 1024 * 1024)
+    app.config.setdefault("MAX_IMAGE_PIXELS", 20_000_000)
+    app.config.setdefault("MAX_IMAGE_DIMENSION", 8000)
 
     # Database configuration
     db_url = os.environ.get("DATABASE_URL")
@@ -249,6 +258,29 @@ def create_app() -> Flask:
 
     # Attach request tracing and metrics
     init_observability(app)
+
+    @app.errorhandler(RequestEntityTooLarge)
+    def handle_large_request(error):  # type: ignore[override]
+        if request.path.startswith("/api/"):
+            payload = build_error_payload(
+                "Upload exceeds maximum allowed size.",
+                413,
+                "payload_too_large",
+                fields={"file": "File too large"},
+            )
+            return payload, 413
+        return error
+
+    @app.errorhandler(BadRequest)
+    def handle_bad_request(error):  # type: ignore[override]
+        if request.path.startswith("/api/"):
+            payload = build_error_payload(
+                "Malformed request payload.",
+                400,
+                "bad_request",
+            )
+            return payload, 400
+        return error
 
     # Initialize database extension only if we intend to use it, or always init with safe fallback
     db.init_app(app)
