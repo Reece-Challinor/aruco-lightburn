@@ -2,7 +2,7 @@
 <ai_agent_documentation>
   <file_meta>
     <name>walkthrough.md</name>
-    <version>1.8.0</version>
+    <version>1.8.1</version>
     <type>delivery_report</type>
     <purpose>Summarize completed work, tests, and recommended commits</purpose>
     <last_updated>2026-02-08</last_updated>
@@ -22,6 +22,7 @@ Date: 2026-02-08
 - Added deterministic distortions/occlusions and normalized detection timing keys.
 - Expanded tests for error schema, upload limits, and detection report metrics.
 - Updated AI navigation line references and added agent headers to navigation/util tests.
+- Adjusted Vercel config to remove deprecated `name` and resolve routing/header conflicts.
 
 ## Changes
 - `/Users/reecechallinor/Development/Projects/aruco/aruco-lightburn/aruco_generator/core/utils.py`: standardized success/error envelopes, HTTPException mapping.
@@ -36,6 +37,7 @@ Date: 2026-02-08
 - `/Users/reecechallinor/Development/Projects/aruco/aruco-lightburn/AI_NAVIGATION.xml`: corrected validation endpoint line references.
 - `/Users/reecechallinor/Development/Projects/aruco/aruco-lightburn/tests/test_navigation.py`: added ai-agent documentation header.
 - `/Users/reecechallinor/Development/Projects/aruco/aruco-lightburn/tests/test_utils.py`: added ai-agent documentation header.
+- `/Users/reecechallinor/Development/Projects/aruco/aruco-lightburn/vercel.json`: moved static cache header into legacy routes and removed deprecated `name`.
 
 ## Tests
 - `make validate`
@@ -46,6 +48,7 @@ Date: 2026-02-08
 - `make test-health`
 - `make test`
 - `make test-qa`
+- `make validate` (rerun for Vercel config)
 
 Warnings:
 - `pytest_asyncio` deprecation warning about unset `asyncio_default_fixture_loop_scope` (from pytest runs).

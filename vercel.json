@@ -18,24 +18,15 @@
     "FLASK_ENV": "production",
     "PYTHONUNBUFFERED": "1"
   },
-  "headers": [
-    {
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ],
-      "source": "/static/(.*)"
-    }
-  ],
-  "name": "aruco-generator",
   "regions": [
     "iad1"
   ],
   "routes": [
     {
       "dest": "/static/$1",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      },
       "src": "/static/(.*)"
     },
     {

@@ -2,7 +2,7 @@
 <ai_agent_documentation>
   <file_meta>
     <name>task.md</name>
-    <version>1.8.0</version>
+    <version>1.8.1</version>
     <type>task_tracker</type>
     <purpose>Track immediate engineering tasks for the active refactor</purpose>
     <last_updated>2026-02-08</last_updated>
@@ -26,3 +26,4 @@ Status: Complete (2026-02-08)
 - Moved validation inline CSS to `static/css/validation.css`.
 - Standardized detection timing keys and report aggregation.
 - Added new tests for error schema, metrics endpoint, and upload edge cases.
+- Updated `vercel.json` to remove deprecated `name` and avoid mixing routing props.
