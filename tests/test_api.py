@@ -3,7 +3,7 @@
 <ai_agent_documentation>
   <file_meta>
     <name>test_api.py</name>
-    <version>1.3.0</version>
+    <version>1.4.0</version>
     <type>integration_test</type>
     <purpose>Verify API endpoints and export routes</purpose>
     <last_updated>2026-02-08</last_updated>
@@ -53,10 +53,11 @@ def test_generate_preview(client):
 
     assert response.status_code == 200
     data = response.get_json()
-    assert "svg" in data
-    assert "dimensions" in data
-    assert data["dimensions"]["width"] > 0
-    assert data["dimensions"]["height"] > 0
+    payload = data.get("data", data)
+    assert "svg" in payload
+    assert "dimensions" in payload
+    assert payload["dimensions"]["width"] > 0
+    assert payload["dimensions"]["height"] > 0
 
 
 def test_advanced_preview(client):
@@ -82,8 +83,8 @@ def test_advanced_preview(client):
 
     assert response.status_code == 200
     data = response.get_json()
-    assert "svg" in data
-    assert "dimensions" in data
+    assert "svg" in data["data"]
+    assert "dimensions" in data["data"]
 
 
 def test_batch_generation(client):
@@ -162,8 +163,9 @@ def test_validation_endpoints(client):
     )
     assert response.status_code == 200
     data = response.get_json()
-    assert "hamming_distance" in data
-    assert data["hamming_distance"] >= 0
+    assert data["success"] is True
+    assert "hamming_distance" in data["data"]
+    assert data["data"]["hamming_distance"] >= 0
 
     # Test test pattern generation
     test_params = {
@@ -178,6 +180,61 @@ def test_validation_endpoints(client):
         content_type="application/json",
     )
     assert response.status_code == 200
+
+
+def test_validation_error_schema(client):
+    """Test validation error schema for invalid dictionary."""
+    response = client.post(
+        "/api/validation/hamming_distance",
+        data=json.dumps({"dictionary": "INVALID", "id1": 0, "id2": 1}),
+        content_type="application/json",
+    )
+    assert response.status_code == 400
+    data = response.get_json()
+    assert data["success"] is False
+    assert "error" in data
+    assert "message" in data["error"]
+    assert data["error"]["type"] == "validation_error"
+
+
+def test_validation_metrics_endpoint(client):
+    """Test validation metrics endpoint returns warning when DB disabled."""
+    response = client.get("/api/validation/metrics")
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["success"] is True
+    assert "summary" in data["data"]
+
+
+def test_upload_invalid_image(client):
+    """Test invalid image upload returns validation error."""
+    response = client.post(
+        "/api/validation/detect",
+        data={"file": (io.BytesIO(b"not-an-image"), "bad.txt")},
+        content_type="multipart/form-data",
+    )
+    assert response.status_code == 400
+    data = response.get_json()
+    assert data["success"] is False
+    assert "error" in data
+
+
+def test_upload_too_large(client):
+    """Test oversized upload returns 413 payload."""
+    original_max = client.application.config.get("MAX_CONTENT_LENGTH")
+    client.application.config["MAX_CONTENT_LENGTH"] = 1024
+    try:
+        response = client.post(
+            "/api/validation/detect",
+            data={"file": (io.BytesIO(b"a" * 2048), "big.png")},
+            content_type="multipart/form-data",
+        )
+        assert response.status_code == 413
+        data = response.get_json()
+        assert data["success"] is False
+        assert data["error"]["type"] == "payload_too_large"
+    finally:
+        client.application.config["MAX_CONTENT_LENGTH"] = original_max
 
 
 def test_advanced_export_endpoints(client):
@@ -346,7 +403,7 @@ def test_calibration_import_endpoint(client):
     assert response.status_code == 200
     data = response.get_json()
     assert data["success"] is True
-    assert data["calibration_data"]["pattern_type"] == "charuco"
+    assert data["data"]["calibration_data"]["pattern_type"] == "charuco"
 
 
 def test_detection_endpoint(client):
@@ -375,4 +432,4 @@ def test_detection_endpoint(client):
     assert response.status_code == 200
     data = response.get_json()
     assert data["success"] is True
-    assert data["detection"]["detected_markers"] >= 1
+    assert data["data"]["detection"]["detected_markers"] >= 1

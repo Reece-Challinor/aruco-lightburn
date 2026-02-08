@@ -2,7 +2,7 @@
 <ai_agent_documentation>
   <file_meta>
     <name>task.md</name>
-    <version>1.6.0</version>
+    <version>1.8.0</version>
     <type>task_tracker</type>
     <purpose>Track immediate engineering tasks for the active refactor</purpose>
     <last_updated>2026-02-08</last_updated>
@@ -15,24 +15,14 @@
 
 Status: Complete (2026-02-08)
 
-## In Progress
-- None (awaiting next directive).
-
 ## Completed
-- Fixed ChArUco corner positions + marker ID metadata using board-derived data.
-- Replaced simulated detection with real detection service and UI wiring.
-- Added calibration import workflow with preview and persistence handling.
-- Added consolidated calibration export bundle (image + YAML/JSON/ROS/OpenCV).
-- Added DB schema guardrails with legacy column backfill.
-- Expanded validation dictionary coverage and error handling consistency.
-- Wired DXF/STL into the simple export menu and validated UI affordances.
-- Expanded unit-test coverage across core, calibration, and navigation suites.
-- Added API smoke tests to pre-commit and kept UI smoke checks for templates/JS.
-- Fixed PDF export rendering units (reportlab `mm`) and enabled PDF tests in CI/dev installs.
-- Added XML coverage output and aligned CI/Makefile workflows.
-- Updated deployment checklist, AI navigation map, and release metadata.
-- Ran full make test suite plus local gunicorn smoke checks.
-- Added request tracing, health endpoints, and error-rate heuristics for observability.
-- Improved API/JS error messaging with request IDs and frontend error logging.
-- Updated AGENTS guide, AI navigation docs, and Makefile health checks.
-- Added health endpoint coverage in API endpoint tests.
+- Tag release and merge branch after tests pass.
+- Ran full Makefile test suite (`make validate`, `make integration`, `make test`, `make test-api`, `make test-ui`, `make test-qa`, `make test-health`, `make unit-test`).
+- Updated `docs/ai/walkthrough.md` with final summary + test logs.
+- Unified calibration + validation API response envelope with request IDs and warnings.
+- Added OpenCV availability checks and upload/import safety limits.
+- Added validation metrics endpoint and wired live performance metrics in the UI.
+- Added calibration form field-level error surfacing and request metadata display.
+- Moved validation inline CSS to `static/css/validation.css`.
+- Standardized detection timing keys and report aggregation.
+- Added new tests for error schema, metrics endpoint, and upload edge cases.

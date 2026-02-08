@@ -3,7 +3,7 @@
 <ai_agent_documentation>
   <file_meta>
     <name>AI_NAVIGATION.xml</name>
-    <version>2.3.0</version>
+    <version>2.4.0</version>
     <type>navigation_map</type>
     <purpose>Authoritative map of code structure, key line references, and architecture</purpose>
     <last_updated>2026-02-08</last_updated>
@@ -11,10 +11,10 @@
   </file_meta>
 </ai_agent_documentation>
 -->
-<ai_navigation version="2.3.0" xmlns="http://aruco-lightburn.ai/navigation">
+<ai_navigation version="2.4.0" xmlns="http://aruco-lightburn.ai/navigation">
     <metadata>
         <project>ArUCO Generator for LightBurn</project>
-        <version>2.2.0</version>
+        <version>2.4.0</version>
         <description>Computer vision ArUCO marker generation with LightBurn laser cutting integration</description>
         <last_updated>2026-02-08</last_updated>
         <documentation_standard>Google/NumPy docstrings with ASCII diagrams</documentation_standard>
@@ -23,7 +23,7 @@
     <!-- Core Application Structure -->
     <application_structure>
         <entry_points>
-            <entry_point type="web" file="app.py" line="210" description="Flask application factory"/>
+            <entry_point type="web" file="app.py" line="213" description="Flask application factory"/>
             <entry_point type="core_logic" file="aruco_generator/core/aruco.py" line="298" description="ArUCO generation engine"/>
         </entry_points>
 
@@ -138,17 +138,21 @@
                 <submodule name="advanced_web" file="web/advanced_web.py">
                     <description>Advanced API endpoints with 3D coordinates and validation</description>
                     <endpoints>
-                    <endpoint path="/api/advanced/generate_with_coordinates" method="POST" line="205">
+                    <endpoint path="/api/advanced/generate_with_coordinates" method="POST" line="273">
                             <description>Generate markers with full 3D coordinate system data</description>
                             <use_case>Professional calibration workflows</use_case>
                         </endpoint>
-                    <endpoint path="/api/validation/test_pattern" method="POST" line="382">
+                    <endpoint path="/api/validation/test_pattern" method="POST" line="444">
                             <description>Generate multi-scale test pattern for validation</description>
                             <use_case>Quality assurance testing</use_case>
                         </endpoint>
-                    <endpoint path="/api/validation/detect" method="POST" line="432">
+                    <endpoint path="/api/validation/detect" method="POST" line="536">
                             <description>Detect markers from uploaded images</description>
                             <use_case>Real-world detection validation</use_case>
+                        </endpoint>
+                    <endpoint path="/api/validation/metrics" method="GET" line="558">
+                            <description>Fetch recent validation metrics and summary statistics</description>
+                            <use_case>Validation dashboard insights</use_case>
                         </endpoint>
                     </endpoints>
                 </submodule>
@@ -156,7 +160,7 @@
                 <submodule name="calibration" file="calibration/calibration.py">
                     <description>Camera calibration algorithms and ChArUco board generation</description>
                     <key_functions>
-                    <function name="generate_charuco_board" line="113" complexity="medium">
+                    <function name="generate_charuco_board" line="116" complexity="medium">
                             <description>Generate ChArUco board for camera calibration</description>
                             <parameters>squares_x, squares_y, square_size_mm, marker_size_mm</parameters>
                         </function>
@@ -181,10 +185,10 @@
                     <file name="api.js">
                         <description>API communication layer with error handling</description>
                         <key_functions>
-                            <function name="APIClient" line="273">
+                            <function name="APIClient" line="274">
                                 <description>Base API client class</description>
                             </function>
-                            <function name="ArUCOAPI" line="607">
+                            <function name="ArUCOAPI" line="644">
                                 <description>ArUCO-specific API methods</description>
                             </function>
                         </key_functions>
@@ -200,8 +204,22 @@
                     <file name="generate.js">
                         <description>Marker generation page logic</description>
                     </file>
+                    <file name="calibration.js">
+                        <description>Calibration page controller</description>
+                    </file>
                     <file name="validation.js">
                         <description>Validation page interactions</description>
+                    </file>
+                </directory>
+                <directory name="css">
+                    <file name="main.css">
+                        <description>Global theme and layout styles</description>
+                    </file>
+                    <file name="calibration.css">
+                        <description>Calibration page styling</description>
+                    </file>
+                    <file name="validation.css">
+                        <description>Validation page styling</description>
                     </file>
                 </directory>
             </structure>
@@ -228,7 +246,7 @@
                         <field name="image_checksum" type="String" description="Image checksum"/>
                     </fields>
                 </model>
-                <model name="DetectionMetric" line="109">
+                <model name="DetectionMetric" line="116">
                     <description>Stores detection performance metrics</description>
                     <fields>
                         <field name="detected_markers" type="Integer" description="Detected markers"/>

@@ -3,7 +3,7 @@
  * <ai_agent_documentation>
  *   <file_meta>
  *     <name>validation.js</name>
- *     <version>2.2.0</version>
+ *     <version>2.4.0</version>
  *     <type>frontend_controller</type>
  *     <purpose>Validation page controller for marker detection and quality reporting</purpose>
  *     <last_updated>2026-02-08</last_updated>
@@ -29,6 +29,7 @@ class ValidationManager {
         this.setupUploadZone();
         this.setupHammingCalculator();
         this.setupTestPatternGenerator();
+        this.loadMetrics();
     }
 
     setupUploadZone() {
@@ -93,6 +94,7 @@ class ValidationManager {
             });
 
             this.displayDetection(result);
+            this.showWarnings(result);
 
             window.notificationManager.hideLoading();
             window.notificationManager.showSuccess('Image processed successfully');
@@ -149,6 +151,7 @@ class ValidationManager {
         }
 
         this.testResults.style.display = 'block';
+        this.updateRequestMeta('detectionRequestMeta', result?.request_id);
     }
 
     setupHammingCalculator() {
@@ -176,6 +179,7 @@ class ValidationManager {
             });
 
             this.displayHammingResult(result);
+            this.showWarnings(result);
         } catch (error) {
             window.notificationManager.showError('Failed to calculate Hamming distance');
         }
@@ -201,6 +205,7 @@ class ValidationManager {
         }
 
         resultDiv.style.display = 'block';
+        this.updateRequestMeta('hammingRequestMeta', result?.request_id);
     }
 
     setupTestPatternGenerator() {
@@ -228,6 +233,7 @@ class ValidationManager {
             });
 
             this.displayTestPattern(result);
+            this.showWarnings(result);
 
             window.notificationManager.hideLoading();
             window.notificationManager.showSuccess('Test pattern generated');
@@ -264,6 +270,69 @@ class ValidationManager {
                 downloadBtn.addEventListener('click', () => this.downloadTestPattern());
             }
         }
+        this.updateRequestMeta('testPatternRequestMeta', result?.request_id);
+    }
+
+    async loadMetrics() {
+        try {
+            const result = await window.arucoAPI.getValidationMetrics();
+            this.renderMetrics(result);
+            this.showWarnings(result);
+        } catch (error) {
+            window.notificationManager.showWarning('Unable to load validation metrics');
+        }
+    }
+
+    renderMetrics(result) {
+        const summary = result?.summary;
+        const avgDetectionRate = document.getElementById('avgDetectionRate');
+        const avgPoseError = document.getElementById('avgPoseError');
+        const avgProcessingTime = document.getElementById('avgProcessingTime');
+        const recentList = document.getElementById('recentTestsList');
+
+        if (summary) {
+            if (avgDetectionRate) {
+                const rate = summary.avg_detection_rate;
+                avgDetectionRate.textContent = rate !== null && rate !== undefined
+                    ? `${(rate * 100).toFixed(1)}%`
+                    : '-';
+            }
+            if (avgPoseError) {
+                const pose = summary.avg_pose_error_mm;
+                avgPoseError.textContent = pose !== null && pose !== undefined ? `${pose}mm` : '-';
+            }
+            if (avgProcessingTime) {
+                const time = summary.avg_detection_time_ms;
+                avgProcessingTime.textContent = time !== null && time !== undefined ? `${time}ms` : '-';
+            }
+        }
+
+        if (recentList) {
+            recentList.innerHTML = '';
+            const recent = result?.recent || [];
+            if (!recent.length) {
+                const emptyItem = document.createElement('div');
+                emptyItem.className = 'list-group-item bg-transparent text-muted';
+                emptyItem.textContent = 'No recent validation runs.';
+                recentList.appendChild(emptyItem);
+                return;
+            }
+
+            recent.forEach(metric => {
+                const rate = metric.detection_rate;
+                const ratePct = rate !== null && rate !== undefined ? `${Math.round(rate * 100)}%` : 'n/a';
+                const badgeClass = rate !== null && rate >= 0.95 ? 'bg-success' : (rate !== null && rate >= 0.8 ? 'bg-warning' : 'bg-danger');
+                const item = document.createElement('div');
+                item.className = 'list-group-item bg-transparent';
+                item.innerHTML = `
+                    <div class="d-flex justify-content-between">
+                        <span>Pattern ${metric.pattern_id || 'Unlinked'}</span>
+                        <span class="badge ${badgeClass}">${ratePct} detected</span>
+                    </div>
+                `;
+                recentList.appendChild(item);
+            });
+        }
     }
 
     downloadTestPattern() {
@@ -273,6 +342,24 @@ class ValidationManager {
         link.href = 'data:image/png;base64,' + window.currentTestPattern;
         link.download = 'test_pattern.png';
         link.click();
+    }
+
+    showWarnings(result) {
+        if (!result || !Array.isArray(result.warnings)) return;
+        result.warnings.forEach(warning => {
+            window.notificationManager.showWarning(warning.message || 'Warning');
+        });
+    }
+
+    updateRequestMeta(elementId, requestId) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        if (requestId) {
+            el.textContent = `Request ID: ${requestId}`;
+            el.style.display = 'block';
+        } else {
+            el.style.display = 'none';
+        }
     }
 }
 

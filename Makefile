@@ -3,10 +3,10 @@
 # <ai_agent_documentation>
 #   <file_meta>
 #     <name>Makefile</name>
-#     <version>1.1.0</version>
+#     <version>1.2.0</version>
 #     <type>build_automation</type>
 #     <purpose>Development, testing, and deployment automation targets</purpose>
-#     <last_updated>2026-02-07</last_updated>
+#     <last_updated>2026-02-08</last_updated>
 #     <maintainer>ArUCO Generator Team</maintainer>
 #   </file_meta>
 # </ai_agent_documentation>
@@ -68,6 +68,7 @@ unit-test:
 		tests/test_batch_generator.py \
 		tests/test_calibration_logic.py \
 		tests/test_charuco.py \
+		tests/test_validation_metrics.py \
 		tests/test_navigation.py \
 		-v
 

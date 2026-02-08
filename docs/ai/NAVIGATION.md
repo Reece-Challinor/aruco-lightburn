@@ -2,10 +2,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>NAVIGATION.md</name>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <type>navigation_map</type>
     <purpose>High-level directory map and entrypoints</purpose>
-    <last_updated>2026-02-07</last_updated>
+    <last_updated>2026-02-08</last_updated>
   </file_meta>
 </ai_agent_documentation>
 -->
@@ -27,6 +27,8 @@
 - `static/js/core/api.js` (API client)
 - `static/js/pages/` (page controllers)
 - `static/css/main.css` (styles)
+- `static/css/calibration.css` (calibration page styles)
+- `static/css/validation.css` (validation page styles)
 - `templates/` (Jinja templates)
 
 ## Tests

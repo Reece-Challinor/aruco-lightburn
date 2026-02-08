@@ -2,7 +2,7 @@
 <ai_agent_documentation>
   <file_meta>
     <name>validation.html</name>
-    <version>2.2.0</version>
+    <version>2.4.0</version>
     <type>template</type>
     <purpose>Validation UI for marker detection and quality testing</purpose>
     <last_updated>2026-02-08</last_updated>
@@ -19,39 +19,7 @@
 {% endblock %}
 
 {% block extra_css %}
-<style>
-    .validation-card {
-        height: 100%;
-        transition: all 0.3s ease;
-    }
-
-    .validation-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-    }
-
-    .upload-zone {
-        border: 2px dashed var(--primary-gradient-start);
-        border-radius: 0.5rem;
-        padding: 3rem;
-        text-align: center;
-        transition: all 0.3s ease;
-        cursor: pointer;
-    }
-
-    .upload-zone:hover,
-    .upload-zone.drag-over {
-        background: rgba(102, 126, 234, 0.1);
-        border-color: var(--primary-gradient-end);
-    }
-
-    .metric-card {
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
-        border-left: 4px solid var(--primary-gradient-start);
-        padding: 1rem;
-        margin-bottom: 1rem;
-    }
-</style>
+<link href="{{ url_for('static', filename='css/validation.css') }}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -118,6 +86,7 @@
                             </div>
                         </div>
                         <div id="detectionDetails"></div>
+                        <div id="detectionRequestMeta" class="validation-request-meta" style="display: none;"></div>
                     </div>
                 </div>
             </div>
@@ -176,6 +145,7 @@
                                 <li>Distance < 3: <span class="text-danger">Critical - High confusion risk</span></li>
                             </ul>
                         </div>
+                        <div id="hammingRequestMeta" class="validation-request-meta" style="display: none;"></div>
                     </div>
                 </div>
             </div>
@@ -227,6 +197,7 @@
                     </button>
 
                     <div id="testPatternPreview" class="mt-4"></div>
+                    <div id="testPatternRequestMeta" class="validation-request-meta" style="display: none;"></div>
                 </div>
             </div>
         </div>
@@ -247,41 +218,22 @@
                         <div class="row mt-3">
                             <div class="col-4 text-center">
                                 <small class="text-muted d-block">Avg Detection Rate</small>
-                                <h5 class="gradient-text">95.2%</h5>
+                                <h5 class="gradient-text" id="avgDetectionRate">-</h5>
                             </div>
                             <div class="col-4 text-center">
                                 <small class="text-muted d-block">Avg Pose Error</small>
-                                <h5 class="text-warning">2.3mm</h5>
+                                <h5 class="text-warning" id="avgPoseError">-</h5>
                             </div>
                             <div class="col-4 text-center">
                                 <small class="text-muted d-block">Processing Time</small>
-                                <h5 class="text-success">15ms</h5>
+                                <h5 class="text-success" id="avgProcessingTime">-</h5>
                             </div>
                         </div>
                     </div>
 
                     <div class="metric-card">
                         <h6 class="text-primary">Recent Tests</h6>
-                        <div class="list-group list-group-flush mt-3">
-                            <div class="list-group-item bg-transparent">
-                                <div class="d-flex justify-content-between">
-                                    <span>ChArUco 8x6</span>
-                                    <span class="badge bg-success">100% detected</span>
-                                </div>
-                            </div>
-                            <div class="list-group-item bg-transparent">
-                                <div class="d-flex justify-content-between">
-                                    <span>AprilTag Grid 3x3</span>
-                                    <span class="badge bg-success">100% detected</span>
-                                </div>
-                            </div>
-                            <div class="list-group-item bg-transparent">
-                                <div class="d-flex justify-content-between">
-                                    <span>ArUco Board 4x3</span>
-                                    <span class="badge bg-warning">92% detected</span>
-                                </div>
-                            </div>
-                        </div>
+                        <div class="list-group list-group-flush mt-3" id="recentTestsList"></div>
                     </div>
 
                     <button class="btn btn-outline-primary mt-3 w-100">

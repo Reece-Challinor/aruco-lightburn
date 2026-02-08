@@ -2,7 +2,7 @@
 <ai_agent_documentation>
   <file_meta>
     <name>implementation_plan.md</name>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
     <type>plan_document</type>
     <purpose>Approved refactor execution plan and validation gates</purpose>
     <last_updated>2026-02-08</last_updated>
@@ -13,7 +13,7 @@
 
 # Implementation Plan - ArUCO Generator Refactor
 
-Status: Updated on 2026-02-07 for calibration + advanced UX refactor
+Status: Updated on 2026-02-08 for calibration + validation hardening plan
 
 ## Scope
 Implement phases 0-4 from the audit plan while preserving working behavior, with compatibility shims where needed.
@@ -68,6 +68,36 @@ Extend scope to refactor calibration and advanced generation workflows for expor
 - Add calibration data import workflow with preview + persistence support.
 - Provide consolidated calibration export bundles (image + YAML/JSON/ROS).
 - Add lightweight DB schema guardrails for legacy columns.
+
+### Phase 8: Calibration + Validation Production Hardening
+- Unify API response envelope for calibration + validation endpoints (`success`, `data`, `errors`, `warnings`, `request_id`, `timestamp`, `version`).
+- Standardize error handling for all advanced/validation endpoints (use shared decorator, preserve HTTPException codes).
+- Add explicit OpenCV availability checks and return 503 with actionable guidance.
+- Enforce request validation with per-field error feedback and consistent unit handling.
+- Introduce file upload limits, MIME/type validation, and image dimension safeguards.
+- Normalize detection/quality metrics schema (rate vs percent, time units, consistent keys across report + batch).
+- Implement or remove unused request flags (`include_distortions`, `include_occlusions`) to keep API honest.
+- Improve DB resilience: add indexes, constraints, and persistence status messaging for stateless mode.
+- Add request/response tracing metadata in JSON responses to mirror header request IDs.
+- Build API warnings for partial persistence (DB disabled) and export limitations.
+
+### Phase 9: Validation + Calibration UX Upgrade
+- Move validation inline CSS into a dedicated stylesheet with shared tokens.
+- Add per-field error display and inline validation hints on calibration form.
+- Surface API warnings and request IDs in UI for supportability.
+- Render real metrics from API instead of static placeholders.
+- Add export states and guidance when DB persistence is disabled.
+
+### Phase 10: Test + QA Expansion
+- Add API tests for error schema, 404 handling, and file upload limits.
+- Add unit tests for detection report aggregation and metric normalization.
+- Add UI smoke tests for new validation controls and error surfacing.
+- Add integration tests for upload error paths (invalid images, oversized files).
+
+### Phase 11: Documentation + Release Hygiene
+- Update `docs/ai/ERROR_HANDLING.md` with the new API error schema and examples.
+- Refresh `docs/ai/NAVIGATION.md` and AI_NAVIGATION references if endpoints shift.
+- Update `docs/ai/walkthrough.md` with summaries and test logs after implementation.
 
 ## Documentation Deliverables
 - Update AI_NAVIGATION line references impacted by refactor.

@@ -5,7 +5,7 @@ Calibration pattern generator for computer vision.
 <ai_agent_documentation>
   <file_meta>
     <name>calibration.py</name>
-    <version>2.4.0</version>
+    <version>2.5.0</version>
     <type>calibration_engine</type>
     <purpose>Generate calibration patterns and export metadata for ChArUco, ARUCO boards, and AprilTags</purpose>
     <last_updated>2026-02-08</last_updated>
@@ -53,8 +53,11 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import yaml
 
+from aruco_generator import __version__ as app_version
+
 DEFAULT_PIXELS_PER_MM = 10
 DEFAULT_BORDER_MM = 10
+CALIBRATION_SCHEMA_VERSION = "1.1"
 
 
 class CalibrationPatternGenerator:
@@ -108,7 +111,7 @@ class CalibrationPatternGenerator:
 
     @staticmethod
     def _checksum_image(image) -> str:
-        return hashlib.md5(image.tobytes()).hexdigest()  # nosec
+        return hashlib.sha256(image.tobytes()).hexdigest()
 
     def generate_charuco_board(
         self,
@@ -183,6 +186,8 @@ class CalibrationPatternGenerator:
         # Generate calibration metadata
         calibration_data = {
             "pattern_type": "charuco",
+            "schema_version": CALIBRATION_SCHEMA_VERSION,
+            "api_version": app_version,
             "board_size": [squares_x, squares_y],
             "square_size_mm": square_size_mm,
             "marker_size_mm": marker_size_mm,
@@ -194,6 +199,8 @@ class CalibrationPatternGenerator:
             "corner_positions": corner_positions,
             "marker_ids": marker_ids,
             "generation_date": datetime.now().isoformat(),
+            "pixels_per_mm": pixels_per_mm,
+            "border_mm": self.border_mm,
             "checksum": self._checksum_image(bordered_image),
         }
 
@@ -295,6 +302,8 @@ class CalibrationPatternGenerator:
         # Calibration metadata
         calibration_data = {
             "pattern_type": "aruco_board",
+            "schema_version": CALIBRATION_SCHEMA_VERSION,
+            "api_version": app_version,
             "grid_size": [markers_x, markers_y],
             "marker_size_mm": marker_size_mm,
             "separation_mm": separation_mm,
@@ -306,6 +315,8 @@ class CalibrationPatternGenerator:
             "first_marker_id": first_marker_id,
             "marker_corners_3d": marker_corners,
             "generation_date": datetime.now().isoformat(),
+            "pixels_per_mm": pixels_per_mm,
+            "border_mm": self.border_mm,
             "checksum": self._checksum_image(bordered_image),
         }
 
@@ -386,6 +397,8 @@ class CalibrationPatternGenerator:
         # Generate metadata
         metadata = {
             "pattern_type": "apriltag",
+            "schema_version": CALIBRATION_SCHEMA_VERSION,
+            "api_version": app_version,
             "tag_family": tag_family,
             "tag_id": tag_id,
             "tag_size_mm": tag_size_mm,
@@ -401,6 +414,8 @@ class CalibrationPatternGenerator:
                 [0, tag_size_mm, 0],
             ],
             "generation_date": datetime.now().isoformat(),
+            "pixels_per_mm": pixels_per_mm,
+            "border_mm": self.border_mm,
             "checksum": self._checksum_image(bordered_image),
         }
 
@@ -485,6 +500,8 @@ class CalibrationPatternGenerator:
 
         metadata = {
             "pattern_type": "apriltag_grid",
+            "schema_version": CALIBRATION_SCHEMA_VERSION,
+            "api_version": app_version,
             "tag_family": tag_family,
             "grid_size": [grid_x, grid_y],
             "tag_size_mm": tag_size_mm,
@@ -495,6 +512,8 @@ class CalibrationPatternGenerator:
             "first_tag_id": first_tag_id,
             "tag_positions": tag_positions,
             "generation_date": datetime.now().isoformat(),
+            "pixels_per_mm": pixels_per_mm,
+            "border_mm": self.border_mm,
             "checksum": self._checksum_image(canvas),
         }
 
@@ -602,6 +621,10 @@ class CalibrationPatternGenerator:
     ) -> str:
         """Export calibration data as YAML (OpenCV format)."""
         yaml_data = {
+            "schema_version": calibration_data.get(
+                "schema_version", CALIBRATION_SCHEMA_VERSION
+            ),
+            "api_version": calibration_data.get("api_version", app_version),
             "calibration_time": calibration_data.get(
                 "generation_date", datetime.now().isoformat()
             ),

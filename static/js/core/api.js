@@ -3,7 +3,7 @@
  * <ai_agent_documentation>
  *   <file_meta>
  *     <name>api.js</name>
- *     <version>3.2.0</version>
+ *     <version>3.4.0</version>
  *     <type>frontend_api_client</type>
  *     <purpose>Centralized API communication layer with comprehensive error handling and loading states</purpose>
  *     <last_updated>2026-02-08</last_updated>
@@ -91,6 +91,7 @@
  *           <method name="calculateHammingDistance" endpoint="/validation/hamming_distance" parameters="hamming_params"/>
  *           <method name="verifyQuality" endpoint="/validation/verify_quality" parameters="image_file, metadata"/>
  *           <method name="detectMarkers" endpoint="/validation/detect" parameters="image_file, metadata"/>
+ *           <method name="getValidationMetrics" endpoint="/validation/metrics" parameters="none"/>
  *         </category>
  *         <category name="export_methods">
  *           <method name="exportLightBurn" endpoint="/download" file_type=".lbrn2"/>
@@ -309,12 +310,14 @@ class APIClient {
             const data = await this.safeParseResponse(response);
 
             if (!response.ok) {
-                const message = data?.error || data?.message || response.statusText || 'Request failed';
+                const message = data?.error?.message || data?.error || data?.message || response.statusText || 'Request failed';
                 const error = new Error(this.buildErrorMessage(message, response.status, responseId));
                 error.status = response.status;
                 error.requestId = responseId;
-                error.details = data?.details || data?.raw;
-                error.type = data?.type || 'http_error';
+                error.details = data?.error?.details || data?.details || data?.raw;
+                error.type = data?.error?.type || data?.type || 'http_error';
+                error.fields = data?.error?.fields;
+                error.suggestions = data?.error?.suggestions;
                 this.logClientError(error, {
                     endpoint,
                     url,
@@ -325,7 +328,19 @@ class APIClient {
                 throw error;
             }
 
-            return data;
+            if (data && data.success === false) {
+                const message = data?.error?.message || data?.error || 'Request failed';
+                const error = new Error(this.buildErrorMessage(message, response.status, data.request_id || responseId));
+                error.status = response.status;
+                error.requestId = data.request_id || responseId;
+                error.details = data?.error?.details;
+                error.type = data?.error?.type || 'api_error';
+                error.fields = data?.error?.fields;
+                error.suggestions = data?.error?.suggestions;
+                throw error;
+            }
+
+            return this.normalizeSuccessResponse(data);
         } catch (error) {
             const normalized = this.normalizeError(error, {
                 endpoint,
@@ -403,11 +418,14 @@ class APIClient {
                 if (contentType && contentType.includes('application/json')) {
                     const error = await response.json();
                     const requestHeaderId = response.headers.get('X-Request-Id') || requestId;
-                    const err = new Error(this.buildErrorMessage(error.error || `HTTP error! status: ${response.status}`, response.status, requestHeaderId));
+                    const message = error?.error?.message || error?.error || `HTTP error! status: ${response.status}`;
+                    const err = new Error(this.buildErrorMessage(message, response.status, requestHeaderId));
                     err.status = response.status;
                     err.requestId = requestHeaderId;
-                    err.details = error.details;
-                    err.type = error.type || 'http_error';
+                    err.details = error?.error?.details || error.details;
+                    err.type = error?.error?.type || error.type || 'http_error';
+                    err.fields = error?.error?.fields;
+                    err.suggestions = error?.error?.suggestions;
                     throw err;
                 }
                 const requestHeaderId = response.headers.get('X-Request-Id') || requestId;
@@ -508,6 +526,23 @@ class APIClient {
         return error;
     }
 
+    normalizeSuccessResponse(data) {
+        if (!data || typeof data !== 'object') {
+            return data;
+        }
+        if (data.success === true && data.data && typeof data.data === 'object') {
+            return {
+                ...data.data,
+                success: true,
+                warnings: data.warnings || [],
+                request_id: data.request_id,
+                timestamp: data.timestamp,
+                version: data.version
+            };
+        }
+        return data;
+    }
+
     async safeParseResponse(response) {
         if (response.status === 204) {
             return {};
@@ -545,6 +580,8 @@ class APIClient {
             type: error.type || 'client_error',
             status: error.status,
             details: error.details,
+            fields: error.fields,
+            suggestions: error.suggestions,
             endpoint: context.endpoint,
             url: context.url,
             method: context.method,
@@ -672,6 +709,10 @@ class ArUCOAPI extends APIClient {
 
     async generateDetectionReport(params) {
         return this.post('/validation/detection_report', params);
+    }
+
+    async getValidationMetrics() {
+        return this.get('/validation/metrics');
     }
 
     async importCalibrationPattern(file, params = {}) {

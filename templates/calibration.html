@@ -3,7 +3,7 @@
 <ai_agent_documentation>
   <file_meta>
     <name>calibration.html</name>
-    <version>2.3.0</version>
+    <version>2.5.0</version>
     <type>template</type>
     <purpose>Calibration pattern selection and preview UI</purpose>
     <last_updated>2026-02-08</last_updated>
@@ -205,6 +205,10 @@
                             <input type="number" class="form-control" id="aprilgrid_y" value="3" min="1" max="10">
                         </div>
                         <div class="mb-3">
+                            <label class="form-label">First Tag ID</label>
+                            <input type="number" class="form-control" id="aprilgrid_first_id" value="0" min="0" max="1000">
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label">Tag Size (mm)</label>
                             <input type="number" class="form-control" id="aprilgrid_size" value="40" min="10" max="100">
                         </div>
@@ -276,6 +280,7 @@
                         <div class="alert alert-info">
                             <h6>Pattern Information</h6>
                             <div id="infoContent"></div>
+                            <div id="requestMeta" class="text-muted small mt-2" style="display: none;"></div>
                         </div>
                     </div>
                 </div>

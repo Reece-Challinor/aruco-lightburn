@@ -5,7 +5,7 @@ Simplified detection validation and quality assurance tools for ArUCO markers.
 <ai_agent_documentation>
   <file_meta>
     <name>validation.py</name>
-    <version>2.2.0</version>
+    <version>2.3.0</version>
     <type>validation_module</type>
     <purpose>Detection validation helpers, quality scoring, and marker analysis utilities</purpose>
     <last_updated>2026-02-08</last_updated>
@@ -19,14 +19,28 @@ import time
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
-import cv2
-import numpy as np
+try:
+    import cv2
+    import numpy as np
+
+    OPENCV_AVAILABLE = True
+except ImportError:
+    cv2 = None  # type: ignore
+    import numpy as np
+
+    OPENCV_AVAILABLE = False
+
+VALIDATION_SCHEMA_VERSION = "1.1"
 
 
 class DetectionValidator:
     """Simplified validation tools for ArUCO marker detection quality."""
 
     def __init__(self):
+        if not OPENCV_AVAILABLE or cv2 is None:
+            self.aruco_dicts = {}
+            return
+
         self.aruco_dicts = {
             "4X4_50": cv2.aruco.DICT_4X4_50,
             "4X4_100": cv2.aruco.DICT_4X4_100,
@@ -48,11 +62,24 @@ class DetectionValidator:
 
     def generate_test_pattern(self, pattern_config: Dict[str, Any]) -> Dict[str, Any]:
         """Generate multi-scale test pattern for detection validation."""
+        if not OPENCV_AVAILABLE or cv2 is None:
+            raise RuntimeError("OpenCV required for validation pattern generation")
         # Extract configuration
         dictionary = pattern_config.get("dictionary", "4X4_50")
         scales = pattern_config.get("scales", [10, 20, 50, 100])
         marker_ids = pattern_config.get("marker_ids", list(range(len(scales))))
         canvas_size_mm = pattern_config.get("canvas_size_mm", (300, 200))
+        include_distortions = bool(pattern_config.get("include_distortions", False))
+        include_occlusions = bool(pattern_config.get("include_occlusions", False))
+
+        if dictionary not in self.aruco_dicts:
+            available = ", ".join(sorted(self.aruco_dicts.keys()))
+            raise ValueError(
+                f'Unknown ArUCO dictionary "{dictionary}". Available: {available}'
+            )
+
+        if not scales:
+            raise ValueError("Scales list must not be empty")
 
         # Create canvas
         canvas = self._create_canvas(canvas_size_mm)
@@ -62,12 +89,24 @@ class DetectionValidator:
 
         # Place markers on canvas
         test_markers = self._place_markers_on_canvas(
-            canvas, aruco_dict, scales, marker_ids, canvas_size_mm
+            canvas,
+            aruco_dict,
+            scales,
+            marker_ids,
+            canvas_size_mm,
+            include_distortions=include_distortions,
+            include_occlusions=include_occlusions,
         )
 
         # Create metadata
         metadata = self._create_pattern_metadata(
-            dictionary, scales, canvas_size_mm, canvas.shape, test_markers
+            dictionary,
+            scales,
+            canvas_size_mm,
+            canvas.shape,
+            test_markers,
+            include_distortions=include_distortions,
+            include_occlusions=include_occlusions,
         )
 
         return {"image": canvas, "metadata": metadata, "test_markers": test_markers}
@@ -76,6 +115,8 @@ class DetectionValidator:
         self, marker_image: np.ndarray, expected_id: int, dictionary: str = "4X4_50"
     ) -> Dict[str, Any]:
         """Verify quality of a printed/displayed marker."""
+        if not OPENCV_AVAILABLE or cv2 is None:
+            raise RuntimeError("OpenCV required for marker quality verification")
         if marker_image is None:
             raise ValueError("Marker image is required")
         if marker_image.ndim == 3:
@@ -109,6 +150,8 @@ class DetectionValidator:
         expected_count: Optional[int] = None,
     ) -> Dict[str, Any]:
         """Detect ArUCO markers in an image and return detection metrics."""
+        if not OPENCV_AVAILABLE or cv2 is None:
+            raise RuntimeError("OpenCV required for marker detection")
         if image is None:
             raise ValueError("Image data is required for detection")
         if dictionary not in self.aruco_dicts:
@@ -177,6 +220,13 @@ class DetectionValidator:
         self, id1: int, id2: int, dictionary: str = "4X4_50"
     ) -> int:
         """Calculate Hamming distance between two marker IDs."""
+        if not OPENCV_AVAILABLE or cv2 is None:
+            raise RuntimeError("OpenCV required for hamming distance calculations")
+        if dictionary not in self.aruco_dicts:
+            available = ", ".join(sorted(self.aruco_dicts.keys()))
+            raise ValueError(
+                f'Unknown ArUCO dictionary "{dictionary}". Available: {available}'
+            )
         aruco_dict = cv2.aruco.getPredefinedDictionary(self.aruco_dicts[dictionary])
 
         # Validate IDs
@@ -202,6 +252,7 @@ class DetectionValidator:
                 "successful_detections": successful,
                 "detection_rate": successful / total_tests if total_tests > 0 else 0,
                 "pattern_type": pattern_metadata.get("pattern_type", "unknown"),
+                "schema_version": VALIDATION_SCHEMA_VERSION,
                 "timestamp": datetime.now().isoformat(),
             },
             "results": test_results,
@@ -224,7 +275,15 @@ class DetectionValidator:
         return np.ones((canvas_height, canvas_width), dtype=np.uint8) * 255
 
     def _place_markers_on_canvas(
-        self, canvas, aruco_dict, scales, marker_ids, canvas_size_mm
+        self,
+        canvas,
+        aruco_dict,
+        scales,
+        marker_ids,
+        canvas_size_mm,
+        *,
+        include_distortions: bool = False,
+        include_occlusions: bool = False,
     ):
         """Place markers on canvas at different scales."""
         test_markers = []
@@ -241,6 +300,12 @@ class DetectionValidator:
             marker_size_px = int(scale * pixels_per_mm)
             marker_img = cv2.aruco.generateImageMarker(
                 aruco_dict, marker_id, marker_size_px
+            )
+            marker_img = self._maybe_apply_distortion(
+                marker_img, marker_id, include_distortions
+            )
+            marker_img = self._maybe_apply_occlusion(
+                marker_img, marker_id, include_occlusions
             )
 
             # Check if marker fits
@@ -267,6 +332,8 @@ class DetectionValidator:
                         "position_mm": (current_x, current_y),
                         "position_px": (x_px, y_px),
                         "size_px": marker_size_px,
+                        "distorted": include_distortions,
+                        "occluded": include_occlusions and marker_id % 2 == 0,
                     }
                 )
 
@@ -275,17 +342,28 @@ class DetectionValidator:
         return test_markers
 
     def _create_pattern_metadata(
-        self, dictionary, scales, canvas_size_mm, canvas_shape, test_markers
+        self,
+        dictionary,
+        scales,
+        canvas_size_mm,
+        canvas_shape,
+        test_markers,
+        *,
+        include_distortions: bool = False,
+        include_occlusions: bool = False,
     ):
         """Create metadata for test pattern."""
         return {
             "pattern_type": "multi_scale_test",
+            "schema_version": VALIDATION_SCHEMA_VERSION,
             "dictionary": dictionary,
             "scales_mm": scales,
             "canvas_size_mm": canvas_size_mm,
             "canvas_size_px": (canvas_shape[1], canvas_shape[0]),
             "test_markers": test_markers,
             "pixels_per_mm": 10,
+            "include_distortions": include_distortions,
+            "include_occlusions": include_occlusions,
             "generation_timestamp": datetime.now().isoformat(),
         }
 
@@ -494,7 +572,9 @@ class DetectionValidator:
     def _calculate_performance_metrics(self, test_results):
         """Calculate performance metrics from test results."""
         detection_times = [
-            r.get("detection_time", 0) for r in test_results if "detection_time" in r
+            r.get("detection_time_ms", r.get("detection_time", 0))
+            for r in test_results
+            if "detection_time_ms" in r or "detection_time" in r
         ]
 
         metrics = {
@@ -511,3 +591,29 @@ class DetectionValidator:
             metrics["min_detection_time"] = min(detection_times)
 
         return metrics
+
+    @staticmethod
+    def _maybe_apply_distortion(
+        image: np.ndarray, marker_id: int, enabled: bool
+    ) -> np.ndarray:
+        if not enabled or image.size == 0:
+            return image
+        angle = (marker_id * 7) % 21 - 10
+        center = (image.shape[1] / 2, image.shape[0] / 2)
+        matrix = cv2.getRotationMatrix2D(center, angle, 1.0)
+        return cv2.warpAffine(
+            image, matrix, (image.shape[1], image.shape[0]), borderValue=255
+        )
+
+    @staticmethod
+    def _maybe_apply_occlusion(
+        image: np.ndarray, marker_id: int, enabled: bool
+    ) -> np.ndarray:
+        if not enabled or image.size == 0:
+            return image
+        if marker_id % 2 != 0:
+            return image
+        occlusion_size = max(2, int(min(image.shape[:2]) * 0.12))
+        image_copy = image.copy()
+        image_copy[0:occlusion_size, 0:occlusion_size] = 255
+        return image_copy

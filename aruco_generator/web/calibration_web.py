@@ -5,7 +5,7 @@ Web routes for calibration pattern generation.
 <ai_agent_documentation>
   <file_meta>
     <name>calibration_web.py</name>
-    <version>2.3.0</version>
+    <version>2.5.0</version>
     <type>flask_blueprint</type>
     <purpose>Calibration pattern routes for ChArUco, ARUCO boards, and AprilTags</purpose>
     <last_updated>2026-02-08</last_updated>
@@ -31,12 +31,25 @@ import zipfile
 from datetime import datetime
 from io import BytesIO
 
-import cv2
+try:
+    import cv2
+
+    OPENCV_AVAILABLE = True
+except ImportError:
+    cv2 = None  # type: ignore
+    OPENCV_AVAILABLE = False
+
 import yaml
-from flask import Blueprint, current_app, jsonify, render_template, request, send_file
+from flask import Blueprint, current_app, render_template, request, send_file
+from werkzeug.exceptions import NotFound
 
 from ..calibration.calibration import CalibrationPatternGenerator
-from ..core.utils import handle_api_errors
+from ..core.utils import (
+    APIServiceUnavailableError,
+    APIValidationError,
+    api_success,
+    handle_api_errors,
+)
 from ..db.extensions import db
 from ..db.models import CalibrationPattern, DetectionMetric
 from ..export.exporters import ProfessionalExporter
@@ -53,31 +66,67 @@ def _get_json_payload():
     return request.get_json(silent=True) or {}
 
 
-def _parse_int(data, key, default, label=None, min_value=None, max_value=None):
+def _parse_int(
+    data,
+    key,
+    default,
+    label=None,
+    min_value=None,
+    max_value=None,
+    required=False,
+):
     label = label or key.replace("_", " ").title()
     raw_value = data.get(key, default)
+    if raw_value in (None, "") and default is None and not required:
+        return None
     try:
         value = int(raw_value)
     except (TypeError, ValueError):
-        raise ValueError(f"{label} must be an integer")
+        raise APIValidationError(
+            f"{label} must be an integer", fields={key: "Must be an integer"}
+        )
     if min_value is not None and value < min_value:
-        raise ValueError(f"{label} must be at least {min_value}")
+        raise APIValidationError(
+            f"{label} must be at least {min_value}",
+            fields={key: f"Must be >= {min_value}"},
+        )
     if max_value is not None and value > max_value:
-        raise ValueError(f"{label} must be at most {max_value}")
+        raise APIValidationError(
+            f"{label} must be at most {max_value}",
+            fields={key: f"Must be <= {max_value}"},
+        )
     return value
 
 
-def _parse_float(data, key, default, label=None, min_value=None, max_value=None):
+def _parse_float(
+    data,
+    key,
+    default,
+    label=None,
+    min_value=None,
+    max_value=None,
+    required=False,
+):
     label = label or key.replace("_", " ").title()
     raw_value = data.get(key, default)
+    if raw_value in (None, "") and default is None and not required:
+        return None
     try:
         value = float(raw_value)
     except (TypeError, ValueError):
-        raise ValueError(f"{label} must be a number")
+        raise APIValidationError(
+            f"{label} must be a number", fields={key: "Must be a number"}
+        )
     if min_value is not None and value < min_value:
-        raise ValueError(f"{label} must be at least {min_value}")
+        raise APIValidationError(
+            f"{label} must be at least {min_value}",
+            fields={key: f"Must be >= {min_value}"},
+        )
     if max_value is not None and value > max_value:
-        raise ValueError(f"{label} must be at most {max_value}")
+        raise APIValidationError(
+            f"{label} must be at most {max_value}",
+            fields={key: f"Must be <= {max_value}"},
+        )
     return value
 
 
@@ -90,29 +139,104 @@ def _parse_bool(data, key, default=False):
     return bool(raw_value)
 
 
+def _validate_aruco_dictionary(dictionary, field="dictionary"):
+    if not hasattr(calibration_gen, "aruco_dicts") or not calibration_gen.aruco_dicts:
+        raise APIServiceUnavailableError("OpenCV required for ArUco dictionary access")
+    if not dictionary or dictionary not in calibration_gen.aruco_dicts:
+        available = ", ".join(sorted(calibration_gen.aruco_dicts.keys()))
+        raise APIValidationError(
+            f'Unknown ArUco dictionary "{dictionary}". Available: {available}',
+            fields={field: "Select a valid dictionary"},
+            suggestions=sorted(calibration_gen.aruco_dicts.keys())[:5],
+        )
+
+
+def _validate_apriltag_family(tag_family, field="tag_family"):
+    if not hasattr(calibration_gen, "apriltag_families"):
+        raise APIServiceUnavailableError("OpenCV required for AprilTag access")
+    if not tag_family:
+        raise APIValidationError(
+            "AprilTag family is required", fields={field: "Required"}
+        )
+    if tag_family not in calibration_gen.apriltag_families:
+        available = ", ".join(sorted(calibration_gen.apriltag_families.keys()))
+        raise APIValidationError(
+            f'Unknown AprilTag family "{tag_family}". Available: {available}',
+            fields={field: "Select a valid tag family"},
+            suggestions=sorted(calibration_gen.apriltag_families.keys())[:5],
+        )
+
+
+def _read_import_file(file):
+    if not file or not getattr(file, "filename", ""):
+        raise APIValidationError(
+            "No calibration file provided", fields={"file": "Required"}
+        )
+
+    filename = file.filename or ""
+    lower_name = filename.lower()
+    if not (
+        lower_name.endswith(".json")
+        or lower_name.endswith(".yaml")
+        or lower_name.endswith(".yml")
+    ):
+        raise APIValidationError(
+            "Unsupported calibration file format",
+            fields={"file": "Use .json, .yaml, or .yml"},
+        )
+
+    max_bytes = current_app.config.get("MAX_IMPORT_BYTES", 2 * 1024 * 1024)
+    file_bytes = file.read()
+    if not file_bytes:
+        raise APIValidationError(
+            "Import file is empty", fields={"file": "File is empty"}
+        )
+    if len(file_bytes) > max_bytes:
+        raise APIValidationError(
+            f"Import file exceeds {max_bytes // (1024 * 1024)}MB limit",
+            fields={"file": "File too large"},
+        )
+    return file_bytes, filename
+
+
 def _encode_image_base64(image):
+    if not OPENCV_AVAILABLE or cv2 is None:
+        raise APIServiceUnavailableError("OpenCV required for image encoding")
     success, buffer = cv2.imencode(".png", image)
     if not success:
-        raise ValueError("Unable to encode preview image")
+        raise APIValidationError("Unable to encode preview image")
     return base64.b64encode(buffer).decode("utf-8")
 
 
 def _persist_pattern(pattern):
     if not current_app.config.get("USE_DB", False):
-        return None, False, "Database disabled - pattern not persisted"
+        return (
+            None,
+            False,
+            {
+                "code": "db_disabled",
+                "message": "Database disabled - pattern not persisted",
+            },
+        )
     try:
         db.session.add(pattern)
         db.session.commit()
         return pattern.id, True, None
     except Exception:
         db.session.rollback()
-        return None, False, "Pattern not persisted - database unavailable"
+        return (
+            None,
+            False,
+            {
+                "code": "db_unavailable",
+                "message": "Pattern not persisted - database unavailable",
+            },
+        )
 
 
-def _build_preview_response(result, pattern_id=None, persisted=False, message=None):
+def _build_preview_response(result, pattern_id=None, persisted=False):
     calibration_data = result.get("calibration_data") or result.get("metadata") or {}
     response = {
-        "success": True,
         "image_base64": _encode_image_base64(result["image"]),
         "calibration_data": calibration_data,
         "metadata": calibration_data,
@@ -120,8 +244,6 @@ def _build_preview_response(result, pattern_id=None, persisted=False, message=No
         "pattern_id": pattern_id,
         "persisted": persisted,
     }
-    if message:
-        response["persistence_message"] = message
     return response
 
 
@@ -138,18 +260,24 @@ def _dictionary_name_from_id(dictionary_id):
 
 def _parse_import_file(file_bytes, filename):
     if not file_bytes:
-        raise ValueError("Import file is empty")
+        raise APIValidationError(
+            "Import file is empty", fields={"file": "File is empty"}
+        )
     text = file_bytes.decode("utf-8", errors="ignore")
     if filename and filename.lower().endswith(".json"):
         try:
             return json.loads(text)
         except json.JSONDecodeError as exc:
-            raise ValueError("Invalid JSON calibration file") from exc
+            raise APIValidationError(
+                "Invalid JSON calibration file", fields={"file": "Invalid JSON"}
+            ) from exc
     if text.lstrip().startswith("{"):
         try:
             return json.loads(text)
         except json.JSONDecodeError as exc:
-            raise ValueError("Invalid JSON calibration file") from exc
+            raise APIValidationError(
+                "Invalid JSON calibration file", fields={"file": "Invalid JSON"}
+            ) from exc
 
     sanitized = "\n".join(
         line for line in text.splitlines() if not line.startswith("%YAML")
@@ -157,9 +285,13 @@ def _parse_import_file(file_bytes, filename):
     try:
         payload = yaml.safe_load(sanitized)
     except yaml.YAMLError as exc:
-        raise ValueError("Invalid YAML calibration file") from exc
+        raise APIValidationError(
+            "Invalid YAML calibration file", fields={"file": "Invalid YAML"}
+        ) from exc
     if payload is None:
-        raise ValueError("Unable to parse YAML calibration data")
+        raise APIValidationError(
+            "Unable to parse YAML calibration data", fields={"file": "Invalid YAML"}
+        )
     return payload
 
 
@@ -170,7 +302,7 @@ def _normalize_import_payload(payload):
         data = payload
 
     if not isinstance(data, dict):
-        raise ValueError("Calibration import expects a JSON or YAML object")
+        raise APIValidationError("Calibration import expects a JSON or YAML object")
 
     pattern_type = data.get("pattern_type")
     if not pattern_type:
@@ -184,7 +316,7 @@ def _normalize_import_payload(payload):
             pattern_type = "apriltag"
 
     if not pattern_type:
-        raise ValueError("Unsupported calibration data format")
+        raise APIValidationError("Unsupported calibration data format")
 
     extras = dict(data)
     extras.pop("pattern_type", None)
@@ -271,7 +403,7 @@ def _normalize_import_payload(payload):
         }
         return base_data, extras
 
-    raise ValueError("Unsupported calibration pattern type")
+    raise APIValidationError("Unsupported calibration pattern type")
 
 
 def _generate_from_calibration_data(calibration_data):
@@ -279,13 +411,23 @@ def _generate_from_calibration_data(calibration_data):
     if pattern_type == "charuco":
         squares_x, squares_y = calibration_data.get("board_size", [None, None])
         if squares_x is None or squares_y is None:
-            raise ValueError("ChArUco import requires board_size")
+            raise APIValidationError(
+                "ChArUco import requires board_size", fields={"board_size": "Required"}
+            )
         if calibration_data.get("square_size_mm") is None:
-            raise ValueError("ChArUco import requires square_size_mm")
+            raise APIValidationError(
+                "ChArUco import requires square_size_mm",
+                fields={"square_size_mm": "Required"},
+            )
         if calibration_data.get("marker_size_mm") is None:
-            raise ValueError("ChArUco import requires marker_size_mm")
+            raise APIValidationError(
+                "ChArUco import requires marker_size_mm",
+                fields={"marker_size_mm": "Required"},
+            )
         if not calibration_data.get("dictionary"):
-            raise ValueError("ChArUco import requires dictionary")
+            raise APIValidationError(
+                "ChArUco import requires dictionary", fields={"dictionary": "Required"}
+            )
         return calibration_gen.generate_charuco_board(
             squares_x=int(squares_x),
             squares_y=int(squares_y),
@@ -297,11 +439,20 @@ def _generate_from_calibration_data(calibration_data):
     if pattern_type == "aruco_board":
         grid_x, grid_y = calibration_data.get("grid_size", [None, None])
         if grid_x is None or grid_y is None:
-            raise ValueError("ArUco board import requires grid_size")
+            raise APIValidationError(
+                "ArUco board import requires grid_size",
+                fields={"grid_size": "Required"},
+            )
         if calibration_data.get("marker_size_mm") is None:
-            raise ValueError("ArUco board import requires marker_size_mm")
+            raise APIValidationError(
+                "ArUco board import requires marker_size_mm",
+                fields={"marker_size_mm": "Required"},
+            )
         if not calibration_data.get("dictionary"):
-            raise ValueError("ArUco board import requires dictionary")
+            raise APIValidationError(
+                "ArUco board import requires dictionary",
+                fields={"dictionary": "Required"},
+            )
         return calibration_gen.generate_aruco_board(
             markers_x=int(grid_x),
             markers_y=int(grid_y),
@@ -312,9 +463,14 @@ def _generate_from_calibration_data(calibration_data):
         )
     if pattern_type == "apriltag":
         if calibration_data.get("tag_size_mm") is None:
-            raise ValueError("AprilTag import requires tag_size_mm")
+            raise APIValidationError(
+                "AprilTag import requires tag_size_mm",
+                fields={"tag_size_mm": "Required"},
+            )
         if not calibration_data.get("tag_family"):
-            raise ValueError("AprilTag import requires tag_family")
+            raise APIValidationError(
+                "AprilTag import requires tag_family", fields={"tag_family": "Required"}
+            )
         return calibration_gen.generate_apriltag(
             tag_family=calibration_data.get("tag_family", "tag36h11"),
             tag_id=int(calibration_data.get("tag_id", 0)),
@@ -324,11 +480,20 @@ def _generate_from_calibration_data(calibration_data):
     if pattern_type == "apriltag_grid":
         grid_x, grid_y = calibration_data.get("grid_size", [None, None])
         if grid_x is None or grid_y is None:
-            raise ValueError("AprilTag grid import requires grid_size")
+            raise APIValidationError(
+                "AprilTag grid import requires grid_size",
+                fields={"grid_size": "Required"},
+            )
         if calibration_data.get("tag_size_mm") is None:
-            raise ValueError("AprilTag grid import requires tag_size_mm")
+            raise APIValidationError(
+                "AprilTag grid import requires tag_size_mm",
+                fields={"tag_size_mm": "Required"},
+            )
         if not calibration_data.get("tag_family"):
-            raise ValueError("AprilTag grid import requires tag_family")
+            raise APIValidationError(
+                "AprilTag grid import requires tag_family",
+                fields={"tag_family": "Required"},
+            )
         return calibration_gen.generate_apriltag_grid(
             grid_x=int(grid_x),
             grid_y=int(grid_y),
@@ -338,7 +503,7 @@ def _generate_from_calibration_data(calibration_data):
             first_tag_id=int(calibration_data.get("first_tag_id", 0)),
         )
 
-    raise ValueError("Unsupported calibration pattern type")
+    raise APIValidationError("Unsupported calibration pattern type")
 
 
 def _build_pattern_from_calibration_data(calibration_data, pattern_name):
@@ -349,7 +514,7 @@ def _build_pattern_from_calibration_data(calibration_data, pattern_name):
         marker_size = calibration_data.get("marker_size_mm")
         dictionary = calibration_data.get("dictionary")
         if not all([squares_x, squares_y, square_size, marker_size, dictionary]):
-            raise ValueError("ChArUco import missing required parameters")
+            raise APIValidationError("ChArUco import missing required parameters")
         physical_width = calibration_data.get("physical_width_mm") or (
             float(squares_x) * float(square_size)
         )
@@ -379,7 +544,7 @@ def _build_pattern_from_calibration_data(calibration_data, pattern_name):
         separation = calibration_data.get("separation_mm", 0)
         dictionary = calibration_data.get("dictionary")
         if not all([grid_x, grid_y, marker_size, dictionary]):
-            raise ValueError("ArUco board import missing required parameters")
+            raise APIValidationError("ArUco board import missing required parameters")
         physical_width = calibration_data.get("physical_width_mm") or (
             float(grid_x) * float(marker_size) + (float(grid_x) - 1) * float(separation)
         )
@@ -408,7 +573,7 @@ def _build_pattern_from_calibration_data(calibration_data, pattern_name):
         tag_family = calibration_data.get("tag_family")
         tag_id = calibration_data.get("tag_id", 0)
         if not all([tag_size, tag_family]):
-            raise ValueError("AprilTag import missing required parameters")
+            raise APIValidationError("AprilTag import missing required parameters")
         physical_width = calibration_data.get("physical_width_mm") or float(tag_size)
         physical_height = calibration_data.get("physical_height_mm") or float(tag_size)
         return CalibrationPattern(
@@ -431,7 +596,7 @@ def _build_pattern_from_calibration_data(calibration_data, pattern_name):
         spacing = calibration_data.get("spacing_mm", 0)
         tag_family = calibration_data.get("tag_family")
         if not all([grid_x, grid_y, tag_size, tag_family]):
-            raise ValueError("AprilTag grid import missing required parameters")
+            raise APIValidationError("AprilTag grid import missing required parameters")
         physical_width = calibration_data.get("physical_width_mm") or (
             float(grid_x) * float(tag_size) + (float(grid_x) - 1) * float(spacing)
         )
@@ -456,7 +621,7 @@ def _build_pattern_from_calibration_data(calibration_data, pattern_name):
             image_checksum=calibration_data.get("checksum"),
         )
 
-    raise ValueError("Unsupported calibration pattern type")
+    raise APIValidationError("Unsupported calibration pattern type")
 
 
 @calibration_bp.route("/calibration")
@@ -480,9 +645,13 @@ def generate_charuco():
         data, "marker_size_mm", 22.5, "Marker size", min_value=1.0
     )
     if marker_size_mm >= square_size_mm:
-        raise ValueError("Marker size must be smaller than square size")
+        raise APIValidationError(
+            "Marker size must be smaller than square size",
+            fields={"marker_size_mm": "Must be < square size"},
+        )
 
     dictionary = data.get("dictionary", "4X4_50")
+    _validate_aruco_dictionary(dictionary)
     paper_size = data.get("paper_size", "A4")
     save_to_db = _parse_bool(data, "save_to_db", False)
     pattern_name = str(data.get("pattern_name") or f"ChArUco_{squares_x}x{squares_y}")
@@ -498,7 +667,7 @@ def generate_charuco():
 
     pattern_id = None
     persisted = False
-    message = None
+    warning = None
     if save_to_db:
         pattern = CalibrationPattern(
             pattern_type="charuco",
@@ -513,9 +682,12 @@ def generate_charuco():
             calibration_data=result["calibration_data"],
             image_checksum=result["calibration_data"].get("checksum"),
         )
-        pattern_id, persisted, message = _persist_pattern(pattern)
+        pattern_id, persisted, warning = _persist_pattern(pattern)
 
-    return jsonify(_build_preview_response(result, pattern_id, persisted, message))
+    warnings = [warning] if warning else []
+    return api_success(
+        _build_preview_response(result, pattern_id, persisted), warnings=warnings
+    )
 
 
 @calibration_bp.route("/api/calibration/aruco_board", methods=["POST"])
@@ -533,6 +705,7 @@ def generate_aruco_board():
         data, "separation_mm", 10.0, "Separation", min_value=0.0
     )
     dictionary = data.get("dictionary", "4X4_50")
+    _validate_aruco_dictionary(dictionary)
     first_marker_id = _parse_int(
         data, "first_marker_id", 0, "First marker ID", min_value=0
     )
@@ -552,7 +725,7 @@ def generate_aruco_board():
 
     pattern_id = None
     persisted = False
-    message = None
+    warning = None
     if save_to_db:
         pattern = CalibrationPattern(
             pattern_type="aruco_board",
@@ -568,9 +741,12 @@ def generate_aruco_board():
             calibration_data=result["calibration_data"],
             image_checksum=result["calibration_data"].get("checksum"),
         )
-        pattern_id, persisted, message = _persist_pattern(pattern)
+        pattern_id, persisted, warning = _persist_pattern(pattern)
 
-    return jsonify(_build_preview_response(result, pattern_id, persisted, message))
+    warnings = [warning] if warning else []
+    return api_success(
+        _build_preview_response(result, pattern_id, persisted), warnings=warnings
+    )
 
 
 @calibration_bp.route("/api/calibration/apriltag", methods=["POST"])
@@ -580,6 +756,7 @@ def generate_apriltag():
     data = _get_json_payload()
 
     tag_family = data.get("tag_family", "tag36h11")
+    _validate_apriltag_family(tag_family)
     tag_id = _parse_int(data, "tag_id", 0, "Tag ID", min_value=0)
     tag_size_mm = _parse_float(data, "tag_size_mm", 50.0, "Tag size", min_value=1.0)
     save_to_db = _parse_bool(data, "save_to_db", False)
@@ -591,7 +768,7 @@ def generate_apriltag():
 
     pattern_id = None
     persisted = False
-    message = None
+    warning = None
     if save_to_db:
         pattern = CalibrationPattern(
             pattern_type="apriltag",
@@ -607,9 +784,12 @@ def generate_apriltag():
             calibration_data=result["calibration_data"],
             image_checksum=result["calibration_data"].get("checksum"),
         )
-        pattern_id, persisted, message = _persist_pattern(pattern)
+        pattern_id, persisted, warning = _persist_pattern(pattern)
 
-    return jsonify(_build_preview_response(result, pattern_id, persisted, message))
+    warnings = [warning] if warning else []
+    return api_success(
+        _build_preview_response(result, pattern_id, persisted), warnings=warnings
+    )
 
 
 @calibration_bp.route("/api/calibration/apriltag_grid", methods=["POST"])
@@ -621,6 +801,7 @@ def generate_apriltag_grid():
     grid_x = _parse_int(data, "grid_x", 3, "Grid X", min_value=1, max_value=50)
     grid_y = _parse_int(data, "grid_y", 3, "Grid Y", min_value=1, max_value=50)
     tag_family = data.get("tag_family", "tag36h11")
+    _validate_apriltag_family(tag_family)
     tag_size_mm = _parse_float(data, "tag_size_mm", 40.0, "Tag size", min_value=1.0)
     spacing_mm = _parse_float(data, "spacing_mm", 20.0, "Spacing", min_value=0.0)
     first_tag_id = _parse_int(data, "first_tag_id", 0, "First tag ID", min_value=0)
@@ -638,7 +819,7 @@ def generate_apriltag_grid():
 
     pattern_id = None
     persisted = False
-    message = None
+    warning = None
     if save_to_db:
         pattern = CalibrationPattern(
             pattern_type="apriltag_grid",
@@ -654,9 +835,12 @@ def generate_apriltag_grid():
             calibration_data=result["calibration_data"],
             image_checksum=result["calibration_data"].get("checksum"),
         )
-        pattern_id, persisted, message = _persist_pattern(pattern)
+        pattern_id, persisted, warning = _persist_pattern(pattern)
 
-    return jsonify(_build_preview_response(result, pattern_id, persisted, message))
+    warnings = [warning] if warning else []
+    return api_success(
+        _build_preview_response(result, pattern_id, persisted), warnings=warnings
+    )
 
 
 @calibration_bp.route("/api/calibration/export/<int:pattern_id>", methods=["GET"])
@@ -664,9 +848,15 @@ def generate_apriltag_grid():
 def export_calibration_data(pattern_id):
     """Export calibration data in various formats."""
     if not current_app.config.get("USE_DB", False):
-        raise ValueError("Calibration export requires database persistence")
+        raise APIValidationError(
+            "Calibration export requires database persistence",
+            status=409,
+            fields={"pattern_id": "Persist a pattern before export"},
+        )
 
-    pattern = CalibrationPattern.query.get_or_404(pattern_id)
+    pattern = CalibrationPattern.query.get(pattern_id)
+    if not pattern:
+        raise NotFound(f"Calibration pattern {pattern_id} not found")
     export_format = request.args.get("format", "yaml")
 
     if export_format == "yaml":
@@ -701,7 +891,9 @@ def export_calibration_data(pattern_id):
             download_name=f"calibration_{pattern_id}_ros.json",
         )
 
-    raise ValueError("Invalid export format")
+    raise APIValidationError(
+        "Invalid export format", fields={"format": "Invalid format"}
+    )
 
 
 @calibration_bp.route(
@@ -711,9 +903,15 @@ def export_calibration_data(pattern_id):
 def export_calibration_bundle(pattern_id):
     """Export calibration data bundle (image + YAML/JSON/ROS)."""
     if not current_app.config.get("USE_DB", False):
-        raise ValueError("Calibration export requires database persistence")
+        raise APIValidationError(
+            "Calibration export requires database persistence",
+            status=409,
+            fields={"pattern_id": "Persist a pattern before export"},
+        )
 
-    pattern = CalibrationPattern.query.get_or_404(pattern_id)
+    pattern = CalibrationPattern.query.get(pattern_id)
+    if not pattern:
+        raise NotFound(f"Calibration pattern {pattern_id} not found")
     calibration_data = pattern.calibration_data or {}
 
     result = _generate_from_calibration_data(calibration_data)
@@ -736,6 +934,8 @@ def export_calibration_bundle(pattern_id):
         opencv_yaml = exporter.export_opencv_yaml(calibration_data)
         archive.writestr(f"calibration_{pattern_id}_opencv.yaml", opencv_yaml)
 
+        if not OPENCV_AVAILABLE or cv2 is None:
+            raise APIServiceUnavailableError("OpenCV required for image export")
         success, buffer = cv2.imencode(".png", result["image"])
         if success:
             archive.writestr(f"calibration_{pattern_id}.png", buffer.tobytes())
@@ -754,10 +954,8 @@ def export_calibration_bundle(pattern_id):
 def import_calibration_data():
     """Import calibration data from JSON/YAML and generate preview."""
     file = request.files.get("file") or request.files.get("pattern")
-    if not file:
-        raise ValueError("No calibration file provided")
-
-    payload = _parse_import_file(file.read(), file.filename or "")
+    file_bytes, filename = _read_import_file(file)
+    payload = _parse_import_file(file_bytes, filename or "")
     base_data, extras = _normalize_import_payload(payload)
     result = _generate_from_calibration_data(base_data)
 
@@ -779,12 +977,15 @@ def import_calibration_data():
 
     pattern_id = None
     persisted = False
-    message = None
+    warning = None
     if save_to_db:
         pattern = _build_pattern_from_calibration_data(merged_data, pattern_name)
-        pattern_id, persisted, message = _persist_pattern(pattern)
+        pattern_id, persisted, warning = _persist_pattern(pattern)
 
-    return jsonify(_build_preview_response(result, pattern_id, persisted, message))
+    warnings = [warning] if warning else []
+    return api_success(
+        _build_preview_response(result, pattern_id, persisted), warnings=warnings
+    )
 
 
 @calibration_bp.route("/api/calibration/patterns", methods=["GET"])
@@ -792,18 +993,20 @@ def import_calibration_data():
 def list_calibration_patterns():
     """List all saved calibration patterns."""
     if not current_app.config.get("USE_DB", False):
-        return jsonify(
-            {
-                "patterns": [],
-                "total": 0,
-                "message": "Database unavailable - patterns not persisted",
-            }
+        return api_success(
+            {"patterns": [], "total": 0},
+            warnings=[
+                {
+                    "code": "db_disabled",
+                    "message": "Database unavailable - patterns not persisted",
+                }
+            ],
         )
 
     patterns = CalibrationPattern.query.order_by(
         CalibrationPattern.created_at.desc()
     ).all()
-    return jsonify(
+    return api_success(
         {"patterns": [p.to_dict() for p in patterns], "total": len(patterns)}
     )
 
@@ -813,16 +1016,20 @@ def list_calibration_patterns():
 def save_detection_metrics():
     """Save detection performance metrics."""
     if not current_app.config.get("USE_DB", False):
-        return jsonify(
-            {
-                "success": True,
-                "metric_id": None,
-                "message": "Metrics not persisted - database unavailable",
-            }
+        return api_success(
+            {"metric_id": None, "persisted": False},
+            warnings=[
+                {
+                    "code": "db_disabled",
+                    "message": "Metrics not persisted - database unavailable",
+                }
+            ],
         )
 
     data = _get_json_payload()
-    pattern_id = _parse_int(data, "pattern_id", None, "Pattern ID", min_value=1)
+    pattern_id = _parse_int(
+        data, "pattern_id", None, "Pattern ID", min_value=1, required=False
+    )
     detected_markers = _parse_int(
         data, "detected_markers", 0, "Detected markers", min_value=0
     )
@@ -847,13 +1054,15 @@ def save_detection_metrics():
     try:
         db.session.add(metric)
         db.session.commit()
-        return jsonify({"success": True, "metric_id": metric.id})
+        return api_success({"metric_id": metric.id, "persisted": True})
     except Exception:
         db.session.rollback()
-        return jsonify(
-            {
-                "success": True,
-                "metric_id": None,
-                "message": "Metrics not persisted - database unavailable",
-            }
+        return api_success(
+            {"metric_id": None, "persisted": False},
+            warnings=[
+                {
+                    "code": "db_unavailable",
+                    "message": "Metrics not persisted - database unavailable",
+                }
+            ],
         )
