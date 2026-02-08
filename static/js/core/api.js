@@ -3,10 +3,10 @@
  * <ai_agent_documentation>
  *   <file_meta>
  *     <name>api.js</name>
- *     <version>3.1.0</version>
+ *     <version>3.2.0</version>
  *     <type>frontend_api_client</type>
  *     <purpose>Centralized API communication layer with comprehensive error handling and loading states</purpose>
- *     <last_updated>2026-02-07</last_updated>
+ *     <last_updated>2026-02-08</last_updated>
  *     <maintainer>ArUCO Generator Team</maintainer>
  *   </file_meta>
  *
@@ -84,11 +84,13 @@
  *           <method name="generateChArUco" endpoint="/calibration/charuco" parameters="charuco_params"/>
  *           <method name="generateArUcoBoard" endpoint="/calibration/aruco_board" parameters="board_params"/>
  *           <method name="generateAprilTag" endpoint="/calibration/apriltag" parameters="apriltag_params"/>
+ *           <method name="importCalibrationPattern" endpoint="/calibration/import" parameters="file_upload"/>
  *         </category>
  *         <category name="validation_methods">
  *           <method name="generateTestPattern" endpoint="/validation/test_pattern" parameters="test_params"/>
  *           <method name="calculateHammingDistance" endpoint="/validation/hamming_distance" parameters="hamming_params"/>
  *           <method name="verifyQuality" endpoint="/validation/verify_quality" parameters="image_file, metadata"/>
+ *           <method name="detectMarkers" endpoint="/validation/detect" parameters="image_file, metadata"/>
  *         </category>
  *         <category name="export_methods">
  *           <method name="exportLightBurn" endpoint="/download" file_type=".lbrn2"/>
@@ -658,8 +660,22 @@ class ArUCOAPI extends APIClient {
         });
     }
 
+    async detectMarkers(imageFile, options = {}) {
+        const payload = {
+            dictionary: options.dictionary || '4X4_50'
+        };
+        if (options.expected_markers !== undefined && options.expected_markers !== null && options.expected_markers !== '') {
+            payload.expected_markers = options.expected_markers;
+        }
+        return this.uploadFile('/validation/detect', imageFile, payload);
+    }
+
     async generateDetectionReport(params) {
         return this.post('/validation/detection_report', params);
+    }
+
+    async importCalibrationPattern(file, params = {}) {
+        return this.uploadFile('/calibration/import', file, params);
     }
 
     // Export methods

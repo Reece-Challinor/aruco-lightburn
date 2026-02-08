@@ -1,4 +1,17 @@
 /**
+ * <!--
+ * <ai_agent_documentation>
+ *   <file_meta>
+ *     <name>validation.js</name>
+ *     <version>2.2.0</version>
+ *     <type>frontend_controller</type>
+ *     <purpose>Validation page controller for marker detection and quality reporting</purpose>
+ *     <last_updated>2026-02-08</last_updated>
+ *     <maintainer>ArUCO Generator Team</maintainer>
+ *   </file_meta>
+ * </ai_agent_documentation>
+ * -->
+ *
  * Validation Page JavaScript
  * Handles marker validation, testing, and quality metrics
  */
@@ -65,9 +78,21 @@ class ValidationManager {
         try {
             window.notificationManager.showLoading('Processing image...');
 
-            // In a real implementation, this would upload to the server
-            // For now, we'll simulate the detection
-            await this.simulateDetection(file);
+            const dictionarySelect = document.getElementById('detectDictionary');
+            const expectedInput = document.getElementById('expectedMarkers');
+            const dictionary = dictionarySelect ? dictionarySelect.value : '4X4_50';
+            let expectedMarkers = null;
+            if (expectedInput && expectedInput.value) {
+                const parsed = parseInt(expectedInput.value, 10);
+                expectedMarkers = Number.isFinite(parsed) ? parsed : null;
+            }
+
+            const result = await window.arucoAPI.detectMarkers(file, {
+                dictionary: dictionary,
+                expected_markers: expectedMarkers
+            });
+
+            this.displayDetection(result);
 
             window.notificationManager.hideLoading();
             window.notificationManager.showSuccess('Image processed successfully');
@@ -77,36 +102,50 @@ class ValidationManager {
         }
     }
 
-    async simulateDetection(file) {
-        // Simulate processing delay
-        await new Promise(resolve => setTimeout(resolve, 1500));
+    displayDetection(result) {
+        const payload = result?.detection || result;
+        if (!payload) {
+            window.notificationManager.showError('Detection service returned no data');
+            return;
+        }
 
-        // Show simulated results
-        const detectedCount = Math.floor(Math.random() * 10) + 1;
-        const quality = Math.floor(Math.random() * 30) + 70;
+        const detectedCount = payload.detected_markers || 0;
+        const quality = payload.detection_quality;
 
         document.getElementById('detectedCount').textContent = detectedCount;
-        document.getElementById('detectionQuality').textContent = quality + '%';
+        document.getElementById('detectionQuality').textContent =
+            quality !== null && quality !== undefined ? `${quality}%` : '-';
 
-        // Generate details
         const details = document.getElementById('detectionDetails');
         details.innerHTML = '';
 
-        for (let i = 0; i < detectedCount; i++) {
-            const markerId = Math.floor(Math.random() * 250);
-            const confidence = Math.floor(Math.random() * 20) + 80;
+        if (payload.markers && payload.markers.length) {
+            payload.markers.forEach(marker => {
+                const confidence = marker.confidence ?? 0;
+                const detailCard = document.createElement('div');
+                detailCard.className = 'alert alert-secondary';
+                detailCard.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span><strong>Marker ID ${marker.id}</strong></span>
+                        <span class="badge ${confidence >= 90 ? 'bg-success' : 'bg-warning'}">
+                            ${confidence}% confidence
+                        </span>
+                    </div>
+                `;
+                details.appendChild(detailCard);
+            });
+        } else {
+            const empty = document.createElement('div');
+            empty.className = 'alert alert-warning';
+            empty.textContent = 'No markers detected in the uploaded image.';
+            details.appendChild(empty);
+        }
 
-            const detailCard = document.createElement('div');
-            detailCard.className = 'alert alert-secondary';
-            detailCard.innerHTML = `
-                <div class="d-flex justify-content-between align-items-center">
-                    <span><strong>Marker ID ${markerId}</strong></span>
-                    <span class="badge ${confidence >= 90 ? 'bg-success' : 'bg-warning'}">
-                        ${confidence}% confidence
-                    </span>
-                </div>
-            `;
-            details.appendChild(detailCard);
+        if (payload.rejected_candidates) {
+            const rejected = document.createElement('div');
+            rejected.className = 'text-muted small mt-2';
+            rejected.textContent = `${payload.rejected_candidates} rejected candidates detected`;
+            details.appendChild(rejected);
         }
 
         this.testResults.style.display = 'block';

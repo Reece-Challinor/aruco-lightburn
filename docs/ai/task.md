@@ -2,10 +2,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>task.md</name>
-  <version>1.4.0</version>
+    <version>1.6.0</version>
     <type>task_tracker</type>
     <purpose>Track immediate engineering tasks for the active refactor</purpose>
-  <last_updated>2026-02-07</last_updated>
+    <last_updated>2026-02-08</last_updated>
     <maintainer>Codex (Senior CV Engineer)</maintainer>
   </file_meta>
 </ai_agent_documentation>
@@ -13,9 +13,18 @@
 
 # Task Status
 
-Status: Completed (2026-02-07)
+Status: Complete (2026-02-08)
+
+## In Progress
+- None (awaiting next directive).
 
 ## Completed
+- Fixed ChArUco corner positions + marker ID metadata using board-derived data.
+- Replaced simulated detection with real detection service and UI wiring.
+- Added calibration import workflow with preview and persistence handling.
+- Added consolidated calibration export bundle (image + YAML/JSON/ROS/OpenCV).
+- Added DB schema guardrails with legacy column backfill.
+- Expanded validation dictionary coverage and error handling consistency.
 - Wired DXF/STL into the simple export menu and validated UI affordances.
 - Expanded unit-test coverage across core, calibration, and navigation suites.
 - Added API smoke tests to pre-commit and kept UI smoke checks for templates/JS.

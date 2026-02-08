@@ -3,10 +3,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>test_api.py</name>
-    <version>1.2.0</version>
+    <version>1.3.0</version>
     <type>integration_test</type>
     <purpose>Verify API endpoints and export routes</purpose>
-    <last_updated>2026-02-07</last_updated>
+    <last_updated>2026-02-08</last_updated>
     <maintainer>ArUCO Generator Team</maintainer>
   </file_meta>
 </ai_agent_documentation>
@@ -14,6 +14,7 @@
 Test suite for API endpoints
 """
 
+import io
 import json
 
 import pytest
@@ -325,3 +326,53 @@ def test_content_types(client):
     data = response.get_json()
     assert "svg" in data
     assert "<svg" in data["svg"]
+
+
+def test_calibration_import_endpoint(client):
+    """Test calibration import endpoint with JSON payload."""
+    calibration_payload = {
+        "pattern_type": "charuco",
+        "board_size": [5, 7],
+        "square_size_mm": 30,
+        "marker_size_mm": 22,
+        "dictionary": "4X4_50",
+    }
+    file_data = io.BytesIO(json.dumps(calibration_payload).encode("utf-8"))
+    response = client.post(
+        "/api/calibration/import",
+        data={"file": (file_data, "calibration.json")},
+        content_type="multipart/form-data",
+    )
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["success"] is True
+    assert data["calibration_data"]["pattern_type"] == "charuco"
+
+
+def test_detection_endpoint(client):
+    """Test detection endpoint with generated marker."""
+    try:
+        import cv2
+        import numpy as np  # noqa: F401
+    except Exception:
+        pytest.skip("OpenCV not available")
+
+    dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
+    marker = cv2.aruco.generateImageMarker(dictionary, 0, 200)
+    marker = cv2.copyMakeBorder(marker, 20, 20, 20, 20, cv2.BORDER_CONSTANT, value=255)
+    success, buffer = cv2.imencode(".png", marker)
+    assert success
+
+    response = client.post(
+        "/api/validation/detect",
+        data={
+            "file": (io.BytesIO(buffer.tobytes()), "marker.png"),
+            "dictionary": "4X4_50",
+            "expected_markers": "1",
+        },
+        content_type="multipart/form-data",
+    )
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["success"] is True
+    assert data["detection"]["detected_markers"] >= 1

@@ -5,7 +5,7 @@
     <version>1.0.0</version>
     <type>changelog</type>
     <purpose>Track user-facing changes and releases</purpose>
-    <last_updated>2026-02-07</last_updated>
+    <last_updated>2026-02-08</last_updated>
   </file_meta>
 </ai_agent_documentation>
 -->
@@ -26,6 +26,18 @@ and this project adheres to Semantic Versioning.
 
 ### Removed
 - TBD
+
+## [2.3.0] - 2026-02-08
+### Added
+- Real marker detection service with upload workflow (`/api/validation/detect`).
+- Calibration data import for JSON/YAML with preview + persistence.
+- Calibration export bundle (image + YAML/JSON/ROS/OpenCV).
+- DB schema guardrail helpers with legacy column backfill.
+
+### Changed
+- ChArUco metadata now uses board-derived marker IDs and corner positions.
+- Validation UI now uses server-side detection results.
+- Validation endpoints standardized on shared error handling.
 
 ## [2.2.0] - 2026-02-07
 ### Added

@@ -3,10 +3,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>calibration.html</name>
-    <version>2.2.0</version>
+    <version>2.3.0</version>
     <type>template</type>
     <purpose>Calibration pattern selection and preview UI</purpose>
-    <last_updated>2026-02-07</last_updated>
+    <last_updated>2026-02-08</last_updated>
     <maintainer>ArUCO Generator Team</maintainer>
   </file_meta>
 </ai_agent_documentation>
@@ -231,6 +231,13 @@
                         </button>
                         <button class="btn btn-success" type="button" id="downloadBtn" disabled>
                             <i class="bi bi-download me-2"></i>Download Image
+                        </button>
+                        <button class="btn btn-outline-primary" type="button" id="importBtn">
+                            <i class="bi bi-upload me-2"></i>Import Calibration Data
+                        </button>
+                        <input type="file" id="importFile" class="d-none" accept=".json,.yaml,.yml">
+                        <button class="btn btn-outline-secondary" type="button" id="bundleBtn" disabled>
+                            <i class="bi bi-archive me-2"></i>Export Bundle
                         </button>
                         <div class="btn-group" role="group">
                             <button class="btn btn-outline-secondary" type="button" data-export-format="yaml"

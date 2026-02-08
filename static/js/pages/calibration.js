@@ -3,10 +3,10 @@
  * <ai_agent_documentation>
  *   <file_meta>
  *     <name>calibration.js</name>
- *     <version>2.2.0</version>
+ *     <version>2.4.0</version>
  *     <type>frontend_controller</type>
  *     <purpose>Manage calibration pattern selection, generation, and exports</purpose>
- *     <last_updated>2026-02-07</last_updated>
+ *     <last_updated>2026-02-08</last_updated>
  *     <maintainer>ArUCO Generator Team</maintainer>
  *   </file_meta>
  * </ai_agent_documentation>
@@ -68,6 +68,9 @@ class CalibrationManager {
     bindActionButtons() {
         const generateBtn = document.getElementById('generateBtn');
         const downloadBtn = document.getElementById('downloadBtn');
+        const importBtn = document.getElementById('importBtn');
+        const importFile = document.getElementById('importFile');
+        const bundleBtn = document.getElementById('bundleBtn');
 
         if (generateBtn) {
             generateBtn.addEventListener('click', () => this.generatePattern());
@@ -75,6 +78,21 @@ class CalibrationManager {
 
         if (downloadBtn) {
             downloadBtn.addEventListener('click', () => this.downloadPattern());
+        }
+
+        if (importBtn && importFile) {
+            importBtn.addEventListener('click', () => importFile.click());
+            importFile.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    this.importPattern(file);
+                }
+                importFile.value = '';
+            });
+        }
+
+        if (bundleBtn) {
+            bundleBtn.addEventListener('click', () => this.exportBundle());
         }
 
         document.querySelectorAll('[data-export-format]').forEach(button => {
@@ -89,7 +107,11 @@ class CalibrationManager {
         this.currentPattern = type;
         this.currentPatternData = null;
         this.currentPatternId = null;
+        this.showPatternConfig(type, element);
+        this.clearPreview();
+    }
 
+    showPatternConfig(type, element) {
         document.querySelectorAll('.pattern-config').forEach(el => {
             el.style.display = 'none';
         });
@@ -114,7 +136,6 @@ class CalibrationManager {
             generateBtn.disabled = false;
         }
 
-        this.clearPreview();
         this.updateSelectionState(element);
     }
 
@@ -153,6 +174,7 @@ class CalibrationManager {
         const yamlBtn = document.getElementById('yamlBtn');
         const jsonBtn = document.getElementById('jsonBtn');
         const rosBtn = document.getElementById('rosBtn');
+        const bundleBtn = document.getElementById('bundleBtn');
 
         if (downloadBtn) {
             downloadBtn.disabled = !enabled;
@@ -167,6 +189,9 @@ class CalibrationManager {
         }
         if (rosBtn) {
             rosBtn.disabled = !enableExports;
+        }
+        if (bundleBtn) {
+            bundleBtn.disabled = !enableExports;
         }
     }
 
@@ -243,6 +268,10 @@ class CalibrationManager {
             this.renderPreview(result);
             this.setExportEnabled(true);
 
+            if (result.persisted === false && result.persistence_message) {
+                window.notificationManager.showWarning(result.persistence_message);
+            }
+
             window.notificationManager.showSuccess('Calibration pattern generated');
         } catch (error) {
             window.notificationManager.showError(error.message || 'Failed to generate pattern');
@@ -265,7 +294,7 @@ class CalibrationManager {
             previewImage.style.display = 'block';
         }
 
-        const info = result.calibration_data || result.metadata;
+        const info = result.calibration_data;
         if (info && patternInfo) {
             const infoContent = document.getElementById('infoContent');
             let infoHtml = `
@@ -312,6 +341,90 @@ class CalibrationManager {
         URL.revokeObjectURL(url);
     }
 
+    async importPattern(file) {
+        if (!file) return;
+
+        try {
+            window.notificationManager.showLoading('Importing calibration data...');
+            const result = await window.arucoAPI.importCalibrationPattern(file, {
+                save_to_db: true
+            });
+
+            if (!result || !result.success) {
+                throw new Error(result?.error || 'Unable to import calibration data');
+            }
+
+            const patternType = result.calibration_data?.pattern_type;
+            if (patternType) {
+                this.currentPattern = patternType;
+                const card = document.querySelector(`.pattern-card[data-pattern="${patternType}"]`);
+                this.showPatternConfig(patternType, card);
+                this.populateFieldsFromMetadata(result.calibration_data);
+            }
+
+            this.currentPatternData = result;
+            this.currentPatternId = result.pattern_id;
+            this.renderPreview(result);
+            this.setExportEnabled(true);
+
+            if (result.persisted === false && result.persistence_message) {
+                window.notificationManager.showWarning(result.persistence_message);
+            }
+
+            window.notificationManager.showSuccess('Calibration data imported');
+        } catch (error) {
+            window.notificationManager.showError(error.message || 'Failed to import calibration data');
+        } finally {
+            window.notificationManager.hideLoading();
+        }
+    }
+
+    populateFieldsFromMetadata(metadata) {
+        if (!metadata) return;
+
+        const setValue = (id, value) => {
+            const el = document.getElementById(id);
+            if (el && value !== undefined && value !== null) {
+                el.value = value;
+            }
+        };
+
+        if (metadata.pattern_type === 'charuco') {
+            const boardSize = metadata.board_size || [];
+            setValue('charuco_squares_x', boardSize[0]);
+            setValue('charuco_squares_y', boardSize[1]);
+            setValue('charuco_square_size', metadata.square_size_mm);
+            setValue('charuco_marker_size', metadata.marker_size_mm);
+            setValue('charuco_dictionary', metadata.dictionary);
+        }
+
+        if (metadata.pattern_type === 'aruco_board') {
+            const gridSize = metadata.grid_size || [];
+            setValue('board_markers_x', gridSize[0]);
+            setValue('board_markers_y', gridSize[1]);
+            setValue('board_marker_size', metadata.marker_size_mm);
+            setValue('board_separation', metadata.separation_mm);
+            setValue('board_first_id', metadata.first_marker_id);
+            setValue('board_dictionary', metadata.dictionary);
+        }
+
+        if (metadata.pattern_type === 'apriltag') {
+            setValue('apriltag_family', metadata.tag_family);
+            setValue('apriltag_id', metadata.tag_id);
+            setValue('apriltag_size', metadata.tag_size_mm);
+        }
+
+        if (metadata.pattern_type === 'apriltag_grid') {
+            const gridSize = metadata.grid_size || [];
+            setValue('aprilgrid_x', gridSize[0]);
+            setValue('aprilgrid_y', gridSize[1]);
+            setValue('aprilgrid_size', metadata.tag_size_mm);
+            setValue('aprilgrid_spacing', metadata.spacing_mm);
+            setValue('aprilgrid_family', metadata.tag_family);
+            setValue('aprilgrid_first_id', metadata.first_tag_id);
+        }
+    }
+
     exportData(format) {
         if (!this.currentPatternId) {
             window.notificationManager.showWarning('Generate and save a pattern before exporting data');
@@ -319,6 +432,15 @@ class CalibrationManager {
         }
 
         window.location.href = `/api/calibration/export/${this.currentPatternId}?format=${format}`;
+    }
+
+    exportBundle() {
+        if (!this.currentPatternId) {
+            window.notificationManager.showWarning('Generate and save a pattern before exporting');
+            return;
+        }
+
+        window.location.href = `/api/calibration/export/${this.currentPatternId}/bundle`;
     }
 }
 

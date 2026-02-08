@@ -2,10 +2,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>implementation_plan.md</name>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <type>plan_document</type>
     <purpose>Approved refactor execution plan and validation gates</purpose>
-    <last_updated>2026-02-07</last_updated>
+    <last_updated>2026-02-08</last_updated>
     <maintainer>Codex (Senior CV Engineer)</maintainer>
   </file_meta>
 </ai_agent_documentation>
@@ -62,6 +62,12 @@ Extend scope to refactor calibration and advanced generation workflows for expor
 - Add deployment checklist and release hygiene updates.
 - Expand unit-test coverage for calibration, utility, and navigation suites.
 - Add API smoke pre-commit hook and XML coverage output for CI uploads.
+
+### Phase 7: Validation + Import/Export Consolidation
+- Replace simulated detection with real marker detection service.
+- Add calibration data import workflow with preview + persistence support.
+- Provide consolidated calibration export bundles (image + YAML/JSON/ROS).
+- Add lightweight DB schema guardrails for legacy columns.
 
 ## Documentation Deliverables
 - Update AI_NAVIGATION line references impacted by refactor.

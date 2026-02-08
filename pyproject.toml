@@ -1,6 +1,16 @@
+# <ai_agent_documentation>
+#   <file_meta>
+#     <name>pyproject.toml</name>
+#     <version>1.0.0</version>
+#     <type>build_config</type>
+#     <purpose>Project metadata and build configuration</purpose>
+#     <last_updated>2026-02-08</last_updated>
+#     <maintainer>ArUCO Generator Team</maintainer>
+#   </file_meta>
+# </ai_agent_documentation>
 [project]
 name = "aruco-generator"
-version = "2.2.0"
+version = "2.3.0"
 description = "Professional ArUCO marker generator with calibration patterns and multi-format export"
 requires-python = ">=3.11"
 

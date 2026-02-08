@@ -3,10 +3,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>app.py</name>
-    <version>3.2.1</version>
+    <version>3.3.0</version>
     <type>flask_application_factory</type>
     <purpose>Main Flask application factory with database integration and route registration</purpose>
-    <last_updated>2026-02-07</last_updated>
+    <last_updated>2026-02-08</last_updated>
     <maintainer>ArUCO Generator Team</maintainer>
   </file_meta>
 
@@ -259,8 +259,10 @@ def create_app() -> Flask:
             with app.app_context():
                 # Import models to ensure tables are created
                 from aruco_generator import models  # noqa: F401
+                from aruco_generator.db.schema import ensure_schema
 
                 db.create_all()
+                ensure_schema(db)
                 logger.info("Database initialized")
         except Exception as e:
             logger.warning(f"Database initialization skipped: {e}")

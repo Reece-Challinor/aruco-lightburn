@@ -3,20 +3,20 @@
 <ai_agent_documentation>
   <file_meta>
     <name>AI_NAVIGATION.xml</name>
-    <version>2.2.0</version>
+    <version>2.3.0</version>
     <type>navigation_map</type>
     <purpose>Authoritative map of code structure, key line references, and architecture</purpose>
-    <last_updated>2026-02-07</last_updated>
+    <last_updated>2026-02-08</last_updated>
     <maintainer>ArUCO Generator Team</maintainer>
   </file_meta>
 </ai_agent_documentation>
 -->
-<ai_navigation version="2.2.0" xmlns="http://aruco-lightburn.ai/navigation">
+<ai_navigation version="2.3.0" xmlns="http://aruco-lightburn.ai/navigation">
     <metadata>
         <project>ArUCO Generator for LightBurn</project>
         <version>2.2.0</version>
         <description>Computer vision ArUCO marker generation with LightBurn laser cutting integration</description>
-        <last_updated>2026-02-07</last_updated>
+        <last_updated>2026-02-08</last_updated>
         <documentation_standard>Google/NumPy docstrings with ASCII diagrams</documentation_standard>
     </metadata>
 
@@ -98,6 +98,10 @@
                     <description>Database models for calibration patterns and metrics</description>
                     <models>CalibrationPattern, DetectionMetric, User</models>
                 </submodule>
+                <submodule name="schema" file="db/schema.py">
+                    <description>Schema guardrails and legacy column backfill helpers</description>
+                    <key_features>Column presence checks, legacy backfill</key_features>
+                </submodule>
 
                 <submodule name="web" file="web/web.py">
                     <description>Main Flask API endpoints for marker generation</description>
@@ -134,13 +138,17 @@
                 <submodule name="advanced_web" file="web/advanced_web.py">
                     <description>Advanced API endpoints with 3D coordinates and validation</description>
                     <endpoints>
-                    <endpoint path="/api/advanced/generate_with_coordinates" method="POST" line="163">
+                    <endpoint path="/api/advanced/generate_with_coordinates" method="POST" line="205">
                             <description>Generate markers with full 3D coordinate system data</description>
                             <use_case>Professional calibration workflows</use_case>
                         </endpoint>
-                    <endpoint path="/api/validation/test_pattern" method="POST" line="340">
+                    <endpoint path="/api/validation/test_pattern" method="POST" line="382">
                             <description>Generate multi-scale test pattern for validation</description>
                             <use_case>Quality assurance testing</use_case>
+                        </endpoint>
+                    <endpoint path="/api/validation/detect" method="POST" line="432">
+                            <description>Detect markers from uploaded images</description>
+                            <use_case>Real-world detection validation</use_case>
                         </endpoint>
                     </endpoints>
                 </submodule>
@@ -148,9 +156,9 @@
                 <submodule name="calibration" file="calibration/calibration.py">
                     <description>Camera calibration algorithms and ChArUco board generation</description>
                     <key_functions>
-                    <function name="generate_charuco_board" line="68" complexity="medium">
+                    <function name="generate_charuco_board" line="113" complexity="medium">
                             <description>Generate ChArUco board for camera calibration</description>
-                            <parameters>squares_x, squares_y, square_length, marker_length</parameters>
+                            <parameters>squares_x, squares_y, square_size_mm, marker_size_mm</parameters>
                         </function>
                     </key_functions>
                 </submodule>
@@ -173,10 +181,10 @@
                     <file name="api.js">
                         <description>API communication layer with error handling</description>
                         <key_functions>
-                            <function name="APIClient" line="271">
+                            <function name="APIClient" line="273">
                                 <description>Base API client class</description>
                             </function>
-                            <function name="ArUCOAPI" line="407">
+                            <function name="ArUCOAPI" line="607">
                                 <description>ArUCO-specific API methods</description>
                             </function>
                         </key_functions>
@@ -206,16 +214,29 @@
                     <description>Stores calibration pattern configurations</description>
                     <fields>
                         <field name="id" type="Integer" primary_key="true"/>
-                        <field name="name" type="String" description="Pattern name"/>
-                        <field name="dictionary" type="String" description="ArUCO dictionary"/>
-                        <field name="pattern_data" type="JSON" description="Configuration data"/>
+                        <field name="pattern_type" type="String" description="Pattern classification"/>
+                        <field name="pattern_name" type="String" description="Pattern name"/>
+                        <field name="physical_width_mm" type="Float" description="Physical width in mm"/>
+                        <field name="physical_height_mm" type="Float" description="Physical height in mm"/>
+                        <field name="marker_size_mm" type="Float" description="Marker size in mm"/>
+                        <field name="grid_size_x" type="Integer" description="Grid size X"/>
+                        <field name="grid_size_y" type="Integer" description="Grid size Y"/>
+                        <field name="dictionary_type" type="String" description="ArUco dictionary or tag family"/>
+                        <field name="total_markers" type="Integer" description="Marker count"/>
+                        <field name="first_marker_id" type="Integer" description="Starting marker ID"/>
+                        <field name="calibration_data" type="JSON" description="Configuration data"/>
+                        <field name="image_checksum" type="String" description="Image checksum"/>
                     </fields>
                 </model>
                 <model name="DetectionMetric" line="109">
                     <description>Stores detection performance metrics</description>
                     <fields>
+                        <field name="detected_markers" type="Integer" description="Detected markers"/>
+                        <field name="expected_markers" type="Integer" description="Expected markers"/>
                         <field name="detection_rate" type="Float" description="Success rate percentage"/>
-                        <field name="pose_error_mm" type="Float" description="Pose estimation error"/>
+                        <field name="avg_corner_error" type="Float" description="Average corner error"/>
+                        <field name="avg_pose_error" type="Float" description="Pose estimation error"/>
+                        <field name="avg_detection_time" type="Float" description="Detection time (ms)"/>
                     </fields>
                 </model>
             </models>
@@ -245,56 +266,6 @@
     </error_handling>
 
     <!-- Navigation Shortcuts for AI Agents -->
-    <ai_shortcuts>
-        <common_tasks>
-            <task name="add_new_api_endpoint">
-                <steps>
-                    <step>Add route in appropriate web module (web/web.py or web/advanced_web.py)</step>
-                    <step>Follow error handling patterns from docs/ai/ERROR_HANDLING.md</step>
-                    <step>Add tests in tests/test_api*.py</step>
-                    <step>Update docs/ai/NAVIGATION.md</step>
-                </steps>
-            </task>
-            <task name="extend_aruco_functionality">
-                <steps>
-                    <step>Modify ArUCOGenerator class in core/aruco.py line 298</step>
-                    <step>Add comprehensive docstring with ASCII diagrams</step>
-                    <step>Update get_dictionary_info if needed</step>
-                    <step>Add tests in tests/test_aruco_generator.py</step>
-                </steps>
-            </task>
-            <task name="add_export_format">
-                <steps>
-                    <step>Extend export/exporters.py or export/lightburn.py</step>
-                    <step>Add API endpoint in web.py or advanced_web.py</step>
-                    <step>Add tests in tests/test_export_formats.py</step>
-                </steps>
-            </task>
-        </common_tasks>
-
-        <performance_hotspots>
-            <hotspot location="aruco_generator/core/aruco.py:generate_marker" description="Core marker generation - optimize for batch operations"/>
-            <hotspot location="aruco_generator/core/drawing.py:_find_merged_rectangles" description="Rectangle merging algorithm - O(n²) complexity"/>
-            <hotspot location="static/js/core/api.js" description="Frontend API calls - consider caching dictionary info"/>
-        </performance_hotspots>
-
-        <architecture_decisions>
-            <decision>
-                <topic>OpenCV Integration</topic>
-                <rationale>Graceful degradation with fallback pattern generation</rationale>
-                <location>aruco_generator/core/aruco.py lines 283-293</location>
-            </decision>
-            <decision>
-                <topic>Modular Web Routes</topic>
-                <rationale>Separation of concerns: basic (web.py) vs advanced (advanced_web.py)</rationale>
-            </decision>
-            <decision>
-                <topic>Error Handling Strategy</topic>
-                <rationale>Specific validation messages over generic errors</rationale>
-                <documentation>docs/ai/ERROR_HANDLING.md</documentation>
-            </decision>
-        </architecture_decisions>
-    </ai_shortcuts>
 
     <!-- Testing Infrastructure -->
     <testing>

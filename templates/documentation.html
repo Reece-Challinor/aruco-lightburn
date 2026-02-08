@@ -1,3 +1,15 @@
+{#
+<ai_agent_documentation>
+  <file_meta>
+    <name>documentation.html</name>
+    <version>2.2.0</version>
+    <type>template</type>
+    <purpose>Product documentation and API reference UI</purpose>
+    <last_updated>2026-02-08</last_updated>
+    <maintainer>ArUCO Generator Team</maintainer>
+  </file_meta>
+</ai_agent_documentation>
+#}
 {% extends "base.html" %}
 
 {% block title %}Documentation - ArUCO Generator{% endblock %}
@@ -70,7 +82,6 @@
                         <a class="doc-nav-link" href="#api-reference">API Reference</a>
                         <a class="doc-nav-link" href="#best-practices">Best Practices</a>
                         <a class="doc-nav-link" href="#troubleshooting">Troubleshooting</a>
-                        <a class="doc-nav-link" href="#keyboard-shortcuts">Keyboard Shortcuts</a>
                     </nav>
                 </div>
             </div>
@@ -221,6 +232,28 @@
 }</code></pre>
                         </div>
 
+                        <h5>Calibration Import</h5>
+                        <div class="code-example">
+                            <pre><code>POST /api/calibration/import
+FormData:
+  file=@calibration.json
+  save_to_db=true</code></pre>
+                        </div>
+
+                        <h5>Calibration Export Bundle</h5>
+                        <div class="code-example">
+                            <pre><code>GET /api/calibration/export/&lt;pattern_id&gt;/bundle</code></pre>
+                        </div>
+
+                        <h4>Validation Endpoints</h4>
+                        <div class="code-example">
+                            <pre><code>POST /api/validation/detect
+FormData:
+  file=@marker_image.png
+  dictionary=4X4_50
+  expected_markers=12</code></pre>
+                        </div>
+
                         <h4>Export Formats</h4>
                         <ul>
                             <li><strong>SVG:</strong> Vector graphics for digital use and printing</li>
@@ -303,44 +336,6 @@
                         </ul>
                     </section>
 
-                    <section id="keyboard-shortcuts">
-                        <h2>Keyboard Shortcuts</h2>
-
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Shortcut</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><kbd>Alt</kbd> + <kbd>H</kbd></td>
-                                    <td>Go to Home</td>
-                                </tr>
-                                <tr>
-                                    <td><kbd>Alt</kbd> + <kbd>G</kbd></td>
-                                    <td>Go to Generate</td>
-                                </tr>
-                                <tr>
-                                    <td><kbd>Alt</kbd> + <kbd>C</kbd></td>
-                                    <td>Go to Calibration</td>
-                                </tr>
-                                <tr>
-                                    <td><kbd>Alt</kbd> + <kbd>V</kbd></td>
-                                    <td>Go to Validation</td>
-                                </tr>
-                                <tr>
-                                    <td><kbd>?</kbd></td>
-                                    <td>Show keyboard shortcuts</td>
-                                </tr>
-                                <tr>
-                                    <td><kbd>Esc</kbd></td>
-                                    <td>Close dialogs</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </section>
                 </div>
             </div>
         </div>

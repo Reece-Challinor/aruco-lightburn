@@ -1,14 +1,30 @@
 """
+Calibration pattern generator for computer vision.
+
+<!--
+<ai_agent_documentation>
+  <file_meta>
+    <name>calibration.py</name>
+    <version>2.4.0</version>
+    <type>calibration_engine</type>
+    <purpose>Generate calibration patterns and export metadata for ChArUco, ARUCO boards, and AprilTags</purpose>
+    <last_updated>2026-02-08</last_updated>
+    <maintainer>ArUCO Generator Team</maintainer>
+  </file_meta>
+</ai_agent_documentation>
+-->
+
 {
   "file_type": "calibration_pattern_generator",
   "purpose": "Generate calibration patterns for computer vision: ChArUco, ARUCO boards, AprilTags",
   "dependencies": ["opencv-python", "numpy"],
   "main_class": "CalibrationPatternGenerator",
-  "last_updated": "2026-02-07",
+  "last_updated": "2026-02-08",
   "key_methods": {
     "generate_charuco_board": "ChArUco board for camera calibration",
     "generate_aruco_board": "Fixed grid ARUCO pattern with known dimensions",
     "generate_apriltag": "AprilTag markers for robotics applications",
+    "generate_apriltag_grid": "AprilTag grid for wide-area tracking",
     "export_calibration_data": "Export calibration data in various formats"
   },
   "ai_navigation": {
@@ -37,6 +53,9 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import yaml
 
+DEFAULT_PIXELS_PER_MM = 10
+DEFAULT_BORDER_MM = 10
+
 
 class CalibrationPatternGenerator:
     def __init__(self):
@@ -64,6 +83,32 @@ class CalibrationPatternGenerator:
                 "tag36h10": cv2.aruco.DICT_APRILTAG_36h10,
                 "tag36h11": cv2.aruco.DICT_APRILTAG_36h11,
             }
+        self.pixels_per_mm = DEFAULT_PIXELS_PER_MM
+        self.border_mm = DEFAULT_BORDER_MM
+
+    def _get_aruco_dictionary(self, dictionary: str):
+        if not OPENCV_AVAILABLE or cv2 is None:
+            raise RuntimeError("OpenCV required for ArUco dictionary access")
+        if not dictionary or dictionary not in self.aruco_dicts:
+            available = ", ".join(sorted(self.aruco_dicts.keys()))
+            raise ValueError(
+                f'Unknown ArUco dictionary "{dictionary}". Available: {available}'
+            )
+        return cv2.aruco.getPredefinedDictionary(self.aruco_dicts[dictionary])
+
+    def _get_apriltag_dictionary(self, tag_family: str):
+        if not OPENCV_AVAILABLE or cv2 is None:
+            raise RuntimeError("OpenCV required for AprilTag dictionary access")
+        if not tag_family or tag_family not in self.apriltag_families:
+            available = ", ".join(sorted(self.apriltag_families.keys()))
+            raise ValueError(
+                f'Unknown AprilTag family "{tag_family}". Available: {available}'
+            )
+        return cv2.aruco.getPredefinedDictionary(self.apriltag_families[tag_family])
+
+    @staticmethod
+    def _checksum_image(image) -> str:
+        return hashlib.md5(image.tobytes()).hexdigest()  # nosec
 
     def generate_charuco_board(
         self,
@@ -91,12 +136,17 @@ class CalibrationPatternGenerator:
         if not OPENCV_AVAILABLE or cv2 is None:
             raise RuntimeError("OpenCV required for ChArUco board generation")
 
-        # Validate marker size
+        if squares_x < 2 or squares_y < 2:
+            raise ValueError("Squares X and Y must be at least 2")
+        if square_size_mm <= 0:
+            raise ValueError("Square size must be positive (in millimeters)")
+        if marker_size_mm <= 0:
+            raise ValueError("Marker size must be positive (in millimeters)")
         if marker_size_mm >= square_size_mm:
-            marker_size_mm = square_size_mm * 0.75
+            raise ValueError("Marker size must be smaller than square size")
 
         # Get dictionary
-        aruco_dict = cv2.aruco.getPredefinedDictionary(self.aruco_dicts[dictionary])
+        aruco_dict = self._get_aruco_dictionary(dictionary)
 
         # Create ChArUco board
         board = cv2.aruco.CharucoBoard(
@@ -108,14 +158,14 @@ class CalibrationPatternGenerator:
         board_height_mm = squares_y * square_size_mm
 
         # Generate board image at high resolution (10 pixels per mm)
-        pixels_per_mm = 10
+        pixels_per_mm = self.pixels_per_mm
         board_width_px = int(board_width_mm * pixels_per_mm)
         board_height_px = int(board_height_mm * pixels_per_mm)
 
         board_image = board.generateImage((board_width_px, board_height_px))
 
         # Add white border for printing
-        border_px = int(10 * pixels_per_mm)  # 10mm border
+        border_px = int(self.border_mm * pixels_per_mm)
         bordered_image = cv2.copyMakeBorder(
             board_image,
             border_px,
@@ -126,6 +176,10 @@ class CalibrationPatternGenerator:
             value=(255,),
         )
 
+        marker_ids, total_markers, corner_positions = self._extract_charuco_metadata(
+            board, squares_x, squares_y, square_size_mm
+        )
+
         # Generate calibration metadata
         calibration_data = {
             "pattern_type": "charuco",
@@ -133,15 +187,14 @@ class CalibrationPatternGenerator:
             "square_size_mm": square_size_mm,
             "marker_size_mm": marker_size_mm,
             "dictionary": dictionary,
+            "paper_size": paper_size,
             "physical_width_mm": board_width_mm,
             "physical_height_mm": board_height_mm,
-            "total_markers": (squares_x - 1) * (squares_y - 1) // 2,
-            "corner_positions": self._get_charuco_corners(
-                squares_x, squares_y, square_size_mm
-            ),
-            "marker_ids": list(range((squares_x - 1) * (squares_y - 1) // 2)),
+            "total_markers": total_markers,
+            "corner_positions": corner_positions,
+            "marker_ids": marker_ids,
             "generation_date": datetime.now().isoformat(),
-            "checksum": hashlib.md5(board_image.tobytes()).hexdigest(),  # nosec
+            "checksum": self._checksum_image(bordered_image),
         }
 
         return {
@@ -177,8 +230,17 @@ class CalibrationPatternGenerator:
         if not OPENCV_AVAILABLE or cv2 is None:
             raise RuntimeError("OpenCV required for ARUCO board generation")
 
+        if markers_x < 1 or markers_y < 1:
+            raise ValueError("Markers X and Y must be at least 1")
+        if marker_size_mm <= 0:
+            raise ValueError("Marker size must be positive (in millimeters)")
+        if separation_mm < 0:
+            raise ValueError("Separation must be non-negative (in millimeters)")
+        if first_marker_id < 0:
+            raise ValueError("First marker ID must be non-negative")
+
         # Get dictionary
-        aruco_dict = cv2.aruco.getPredefinedDictionary(self.aruco_dicts[dictionary])
+        aruco_dict = self._get_aruco_dictionary(dictionary)
 
         # Create marker IDs array
         total_markers = markers_x * markers_y
@@ -198,14 +260,14 @@ class CalibrationPatternGenerator:
         board_height_mm = markers_y * marker_size_mm + (markers_y - 1) * separation_mm
 
         # Generate board image
-        pixels_per_mm = 10
+        pixels_per_mm = self.pixels_per_mm
         board_width_px = int(board_width_mm * pixels_per_mm)
         board_height_px = int(board_height_mm * pixels_per_mm)
 
         board_image = board.generateImage((board_width_px, board_height_px))
 
         # Add white border
-        border_px = int(10 * pixels_per_mm)
+        border_px = int(self.border_mm * pixels_per_mm)
         bordered_image = cv2.copyMakeBorder(
             board_image,
             border_px,
@@ -244,7 +306,7 @@ class CalibrationPatternGenerator:
             "first_marker_id": first_marker_id,
             "marker_corners_3d": marker_corners,
             "generation_date": datetime.now().isoformat(),
-            "checksum": hashlib.md5(board_image.tobytes()).hexdigest(),  # nosec
+            "checksum": self._checksum_image(bordered_image),
         }
 
         return {
@@ -276,22 +338,24 @@ class CalibrationPatternGenerator:
         if not OPENCV_AVAILABLE or cv2 is None:
             raise RuntimeError("OpenCV required for AprilTag generation")
 
-        if tag_family not in self.apriltag_families:
-            raise ValueError(f"Unknown AprilTag family: {tag_family}")
+        if tag_id < 0:
+            raise ValueError("Tag ID must be non-negative")
+        if tag_size_mm <= 0:
+            raise ValueError("Tag size must be positive (in millimeters)")
+        if border_bits < 0:
+            raise ValueError("Border bits must be non-negative")
 
         # Get AprilTag dictionary
-        apriltag_dict = cv2.aruco.getPredefinedDictionary(
-            self.apriltag_families[tag_family]
-        )
+        apriltag_dict = self._get_apriltag_dictionary(tag_family)
 
         # Generate tag image
-        pixels_per_mm = 10
+        pixels_per_mm = self.pixels_per_mm
         tag_size_px = int(tag_size_mm * pixels_per_mm)
 
         tag_image = cv2.aruco.generateImageMarker(apriltag_dict, tag_id, tag_size_px)
 
         # Add white border for printing
-        border_px = int(10 * pixels_per_mm)
+        border_px = int(self.border_mm * pixels_per_mm)
         bordered_image = cv2.copyMakeBorder(
             tag_image,
             border_px,
@@ -337,12 +401,12 @@ class CalibrationPatternGenerator:
                 [0, tag_size_mm, 0],
             ],
             "generation_date": datetime.now().isoformat(),
-            "checksum": hashlib.md5(tag_image.tobytes()).hexdigest(),  # nosec
+            "checksum": self._checksum_image(bordered_image),
         }
 
         return {
             "image": bordered_image,
-            "metadata": metadata,
+            "calibration_data": metadata,
             "dimensions_mm": (tag_size_mm, tag_size_mm),
         }
 
@@ -361,20 +425,28 @@ class CalibrationPatternGenerator:
         if not OPENCV_AVAILABLE or cv2 is None:
             raise RuntimeError("OpenCV required for AprilTag generation")
 
+        if grid_x < 1 or grid_y < 1:
+            raise ValueError("Grid X and Y must be at least 1")
+        if tag_size_mm <= 0:
+            raise ValueError("Tag size must be positive (in millimeters)")
+        if spacing_mm < 0:
+            raise ValueError("Spacing must be non-negative (in millimeters)")
+        if first_tag_id < 0:
+            raise ValueError("First tag ID must be non-negative")
+
         # Calculate grid dimensions
         grid_width_mm = grid_x * tag_size_mm + (grid_x - 1) * spacing_mm
         grid_height_mm = grid_y * tag_size_mm + (grid_y - 1) * spacing_mm
 
         # Create blank canvas
-        pixels_per_mm = 10
-        canvas_width = int((grid_width_mm + 20) * pixels_per_mm)  # 20mm border
-        canvas_height = int((grid_height_mm + 20) * pixels_per_mm)
+        pixels_per_mm = self.pixels_per_mm
+        border_mm = self.border_mm
+        canvas_width = int((grid_width_mm + 2 * border_mm) * pixels_per_mm)
+        canvas_height = int((grid_height_mm + 2 * border_mm) * pixels_per_mm)
         canvas = np.ones((canvas_height, canvas_width), dtype=np.uint8) * 255
 
         # Get AprilTag dictionary
-        apriltag_dict = cv2.aruco.getPredefinedDictionary(
-            self.apriltag_families[tag_family]
-        )
+        apriltag_dict = self._get_apriltag_dictionary(tag_family)
 
         # Place tags on canvas
         tag_positions = []
@@ -391,8 +463,8 @@ class CalibrationPatternGenerator:
                 # Calculate position
                 x_mm = col * (tag_size_mm + spacing_mm)
                 y_mm = row * (tag_size_mm + spacing_mm)
-                x_px = int((x_mm + 10) * pixels_per_mm)  # 10mm border offset
-                y_px = int((y_mm + 10) * pixels_per_mm)
+                x_px = int((x_mm + border_mm) * pixels_per_mm)
+                y_px = int((y_mm + border_mm) * pixels_per_mm)
 
                 # Place tag on canvas
                 canvas[y_px : y_px + tag_size_px, x_px : x_px + tag_size_px] = tag_image
@@ -423,11 +495,12 @@ class CalibrationPatternGenerator:
             "first_tag_id": first_tag_id,
             "tag_positions": tag_positions,
             "generation_date": datetime.now().isoformat(),
+            "checksum": self._checksum_image(canvas),
         }
 
         return {
             "image": canvas,
-            "metadata": metadata,
+            "calibration_data": metadata,
             "dimensions_mm": (grid_width_mm, grid_height_mm),
         }
 
@@ -642,12 +715,46 @@ class CalibrationPatternGenerator:
 
         return ros_data
 
+    def _extract_charuco_metadata(
+        self, board, squares_x: int, squares_y: int, square_size: float
+    ) -> Tuple[List[int], int, List[List[float]]]:
+        """Extract marker IDs and corner positions from a ChArUco board."""
+        marker_ids = None
+        if hasattr(board, "getIds"):
+            marker_ids = board.getIds()
+        elif hasattr(board, "ids"):
+            marker_ids = board.ids
+
+        if marker_ids is None:
+            total_markers = (squares_x * squares_y + 1) // 2
+            marker_id_list = list(range(total_markers))
+        else:
+            marker_id_list = [int(x) for x in np.array(marker_ids).flatten().tolist()]
+            total_markers = len(marker_id_list)
+
+        corners = None
+        if hasattr(board, "getChessboardCorners"):
+            corners = board.getChessboardCorners()
+        elif hasattr(board, "chessboardCorners"):
+            corners = board.chessboardCorners
+
+        if corners is None or len(corners) == 0:
+            corner_positions = self._get_charuco_corners(
+                squares_x, squares_y, square_size
+            )
+        else:
+            corner_positions = [
+                [float(c[0]), float(c[1]), float(c[2])] for c in np.array(corners)
+            ]
+
+        return marker_id_list, total_markers, corner_positions
+
     def _get_charuco_corners(
         self, squares_x: int, squares_y: int, square_size: float
     ) -> List[List[float]]:
         """Calculate 3D positions of ChArUco board corners."""
         corners = []
-        for y in range(squares_y):
-            for x in range(squares_x):
+        for y in range(squares_y - 1):
+            for x in range(squares_x - 1):
                 corners.append([x * square_size, y * square_size, 0])
         return corners

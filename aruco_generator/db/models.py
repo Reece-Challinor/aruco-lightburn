@@ -5,10 +5,10 @@ Simplified database models for ArUCO Generator
 <ai_agent_documentation>
   <file_meta>
     <name>models.py</name>
-    <version>3.1.0</version>
+    <version>3.2.0</version>
     <type>sqlalchemy_models</type>
     <purpose>Database schema definitions for calibration patterns and metrics</purpose>
-  <last_updated>2026-02-06</last_updated>
+    <last_updated>2026-02-08</last_updated>
   </file_meta>
 
   <golden_path>
@@ -134,7 +134,11 @@ class DetectionMetric(db.Model):
     notes = db.Column(db.Text)
 
     def __repr__(self):
-        return f"<DetectionMetric {self.id}: {self.detection_rate:.1f}% detection>"
+        if self.detection_rate is None:
+            rate = "n/a"
+        else:
+            rate = f"{self.detection_rate:.1f}%"
+        return f"<DetectionMetric {self.id}: {rate} detection>"
 
     def to_dict(self):
         """Convert to dictionary for JSON serialization."""

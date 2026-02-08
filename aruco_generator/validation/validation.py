@@ -1,9 +1,23 @@
 """
 Simplified detection validation and quality assurance tools for ArUCO markers.
+
+<!--
+<ai_agent_documentation>
+  <file_meta>
+    <name>validation.py</name>
+    <version>2.2.0</version>
+    <type>validation_module</type>
+    <purpose>Detection validation helpers, quality scoring, and marker analysis utilities</purpose>
+    <last_updated>2026-02-08</last_updated>
+    <maintainer>ArUCO Generator Team</maintainer>
+  </file_meta>
+</ai_agent_documentation>
+-->
 """
 
+import time
 from datetime import datetime
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import cv2
 import numpy as np
@@ -26,6 +40,10 @@ class DetectionValidator:
             "6X6_100": cv2.aruco.DICT_6X6_100,
             "6X6_250": cv2.aruco.DICT_6X6_250,
             "6X6_1000": cv2.aruco.DICT_6X6_1000,
+            "7X7_50": cv2.aruco.DICT_7X7_50,
+            "7X7_100": cv2.aruco.DICT_7X7_100,
+            "7X7_250": cv2.aruco.DICT_7X7_250,
+            "7X7_1000": cv2.aruco.DICT_7X7_1000,
         }
 
     def generate_test_pattern(self, pattern_config: Dict[str, Any]) -> Dict[str, Any]:
@@ -58,6 +76,10 @@ class DetectionValidator:
         self, marker_image: np.ndarray, expected_id: int, dictionary: str = "4X4_50"
     ) -> Dict[str, Any]:
         """Verify quality of a printed/displayed marker."""
+        if marker_image is None:
+            raise ValueError("Marker image is required")
+        if marker_image.ndim == 3:
+            marker_image = cv2.cvtColor(marker_image, cv2.COLOR_BGR2GRAY)
         aruco_dict = cv2.aruco.getPredefinedDictionary(self.aruco_dicts[dictionary])
         parameters = cv2.aruco.DetectorParameters()
         detector = cv2.aruco.ArucoDetector(aruco_dict, parameters)
@@ -79,6 +101,77 @@ class DetectionValidator:
             )
 
         return quality_report
+
+    def detect_markers(
+        self,
+        image: np.ndarray,
+        dictionary: str = "4X4_50",
+        expected_count: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        """Detect ArUCO markers in an image and return detection metrics."""
+        if image is None:
+            raise ValueError("Image data is required for detection")
+        if dictionary not in self.aruco_dicts:
+            available = ", ".join(sorted(self.aruco_dicts.keys()))
+            raise ValueError(
+                f'Unknown ArUCO dictionary "{dictionary}". Available: {available}'
+            )
+
+        if image.ndim == 3:
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+        aruco_dict = cv2.aruco.getPredefinedDictionary(self.aruco_dicts[dictionary])
+        parameters = cv2.aruco.DetectorParameters()
+        detector = cv2.aruco.ArucoDetector(aruco_dict, parameters)
+
+        start_time = time.monotonic()
+        corners, ids, rejected = detector.detectMarkers(image)
+        detection_time_ms = (time.monotonic() - start_time) * 1000.0
+
+        image_area = float(image.shape[0] * image.shape[1])
+        markers = []
+        if ids is not None and len(ids) > 0:
+            for marker_id, marker_corners in zip(ids.flatten(), corners):
+                contour = marker_corners.reshape(4, 2)
+                area = float(cv2.contourArea(contour))
+                perimeter = float(cv2.arcLength(contour, True))
+                confidence = self._estimate_confidence(area, image_area)
+
+                markers.append(
+                    {
+                        "id": int(marker_id),
+                        "confidence": round(confidence * 100, 1),
+                        "area_px": round(area, 2),
+                        "perimeter_px": round(perimeter, 2),
+                        "corners": contour.tolist(),
+                    }
+                )
+
+        detected_count = len(markers)
+        detection_rate = detected_count / expected_count if expected_count else None
+        avg_confidence = (
+            sum(m["confidence"] for m in markers) / detected_count / 100.0
+            if detected_count
+            else 0.0
+        )
+        detection_quality = (
+            round(detection_rate * 100, 1)
+            if detection_rate is not None
+            else round(avg_confidence * 100, 1)
+        )
+
+        return {
+            "dictionary": dictionary,
+            "image_size": {"width": image.shape[1], "height": image.shape[0]},
+            "detected_markers": detected_count,
+            "expected_markers": expected_count,
+            "detection_rate": detection_rate,
+            "detection_quality": detection_quality,
+            "avg_confidence": round(avg_confidence * 100, 1) if detected_count else 0.0,
+            "rejected_candidates": len(rejected) if rejected is not None else 0,
+            "detection_time_ms": round(detection_time_ms, 2),
+            "markers": markers,
+        }
 
     def calculate_hamming_distance(
         self, id1: int, id2: int, dictionary: str = "4X4_50"
@@ -239,6 +332,15 @@ class DetectionValidator:
             )
 
         return report
+
+    @staticmethod
+    def _estimate_confidence(area_px: float, image_area: float) -> float:
+        """Estimate confidence from marker area relative to image size."""
+        if image_area <= 0 or area_px <= 0:
+            return 0.0
+        area_ratio = area_px / image_area
+        score = 0.3 + 0.7 * min(1.0, (area_ratio**0.5) * 5.0)
+        return max(0.0, min(1.0, score))
 
     def _analyze_detection_failure(self, report, image, rejected):
         """Analyze why marker detection failed."""

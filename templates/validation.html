@@ -1,3 +1,15 @@
+{#
+<ai_agent_documentation>
+  <file_meta>
+    <name>validation.html</name>
+    <version>2.2.0</version>
+    <type>template</type>
+    <purpose>Validation UI for marker detection and quality testing</purpose>
+    <last_updated>2026-02-08</last_updated>
+    <maintainer>ArUCO Generator Team</maintainer>
+  </file_meta>
+</ai_agent_documentation>
+#}
 {% extends "base.html" %}
 
 {% block title %}Validation Center - ArUCO Generator{% endblock %}
@@ -71,6 +83,24 @@
                         <h6>Drop image here or click to upload</h6>
                         <p class="text-muted small">Supports PNG, JPG, JPEG (Max 10MB)</p>
                         <input type="file" id="fileInput" class="d-none" accept="image/*">
+                    </div>
+
+                    <div class="row g-3 mt-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Dictionary</label>
+                            <select class="form-select" id="detectDictionary">
+                                <option value="4X4_50" selected>4X4_50</option>
+                                <option value="4X4_100">4X4_100</option>
+                                <option value="4X4_250">4X4_250</option>
+                                <option value="5X5_100">5X5_100</option>
+                                <option value="6X6_250">6X6_250</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Expected Markers (optional)</label>
+                            <input type="number" class="form-control" id="expectedMarkers" min="0"
+                                placeholder="e.g., 12">
+                        </div>
                     </div>
 
                     <div id="testResults" class="mt-4" style="display: none;">

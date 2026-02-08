@@ -5,10 +5,10 @@ Advanced web routes for coordinate systems, professional exports, and validation
 <ai_agent_documentation>
   <file_meta>
     <name>advanced_web.py</name>
-    <version>2.3.0</version>
+    <version>2.4.0</version>
     <type>flask_blueprint</type>
     <purpose>Advanced previews, calibration exports, and validation utilities</purpose>
-    <last_updated>2026-02-07</last_updated>
+    <last_updated>2026-02-08</last_updated>
     <maintainer>ArUCO Generator Team</maintainer>
   </file_meta>
   <route_summary>
@@ -17,6 +17,7 @@ Advanced web routes for coordinate systems, professional exports, and validation
     <route path="/api/export/ros" method="POST" purpose="ROS JSON export"/>
     <route path="/api/export/dxf" method="POST" purpose="DXF export"/>
     <route path="/api/export/stl" method="POST" purpose="STL export"/>
+    <route path="/api/validation/detect" method="POST" purpose="Detect markers in uploaded image"/>
   </route_summary>
 </ai_agent_documentation>
 -->
@@ -26,6 +27,7 @@ import base64
 from io import BytesIO
 
 import cv2
+import numpy as np
 from flask import Blueprint, current_app, jsonify, request, send_file
 
 from ..core.aruco import ArUCOGenerator
@@ -42,6 +44,46 @@ advanced_bp = Blueprint("advanced", __name__)
 aruco_gen = ArUCOGenerator()
 exporter = ProfessionalExporter()
 validator = DetectionValidator()
+
+
+def _get_request_json():
+    return request.get_json(silent=True) or {}
+
+
+def _validate_dictionary(dictionary: str):
+    if dictionary not in validator.aruco_dicts:
+        available = ", ".join(sorted(validator.aruco_dicts.keys()))
+        raise ValueError(
+            f'Unknown ArUCO dictionary "{dictionary}". Available: {available}'
+        )
+
+
+def _extract_upload_image():
+    file = request.files.get("file") or request.files.get("image")
+    if not file:
+        raise ValueError("No image provided")
+    image_bytes = file.read()
+    if not image_bytes:
+        raise ValueError("Uploaded image is empty")
+    nparr = np.frombuffer(image_bytes, np.uint8)
+    image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    if image is None:
+        raise ValueError("Unable to decode image file")
+    return image
+
+
+def _decode_base64_image(image_base64: str):
+    if not image_base64:
+        raise ValueError("Image payload is empty")
+    try:
+        payload = base64.b64decode(image_base64)
+    except Exception as exc:
+        raise ValueError("Invalid base64 image payload") from exc
+    nparr = np.frombuffer(payload, np.uint8)
+    image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    if image is None:
+        raise ValueError("Unable to decode base64 image")
+    return image
 
 
 def build_advanced_preview(params):
@@ -338,209 +380,217 @@ def export_stl():
 
 
 @advanced_bp.route("/api/validation/test_pattern", methods=["POST"])
+@handle_api_errors
 def generate_test_pattern():
     """Generate multi-scale test pattern for validation."""
-    try:
-        data = request.get_json()
+    data = _get_request_json()
 
-        pattern_config = {
-            "dictionary": data.get("dictionary", "4X4_50"),
-            "scales": data.get("scales", [10, 20, 50, 100]),
-            "marker_ids": data.get("marker_ids", [0, 1, 2, 3]),
-            "canvas_size_mm": tuple(data.get("canvas_size_mm", [300, 200])),
-            "include_distortions": data.get("include_distortions", False),
-            "include_occlusions": data.get("include_occlusions", False),
+    dictionary = data.get("dictionary", "4X4_50")
+    _validate_dictionary(dictionary)
+
+    pattern_config = {
+        "dictionary": dictionary,
+        "scales": data.get("scales", [10, 20, 50, 100]),
+        "marker_ids": data.get("marker_ids", [0, 1, 2, 3]),
+        "canvas_size_mm": tuple(data.get("canvas_size_mm", [300, 200])),
+        "include_distortions": data.get("include_distortions", False),
+        "include_occlusions": data.get("include_occlusions", False),
+    }
+
+    # Generate test pattern
+    result = validator.generate_test_pattern(pattern_config)
+
+    # Convert image to base64
+    _, buffer = cv2.imencode(".png", result["image"])
+    image_base64 = base64.b64encode(buffer).decode("utf-8")
+
+    return jsonify(
+        {
+            "success": True,
+            "image_base64": image_base64,
+            "metadata": result["metadata"],
+            "test_markers": result["test_markers"],
         }
-
-        # Generate test pattern
-        result = validator.generate_test_pattern(pattern_config)
-
-        # Convert image to base64
-        _, buffer = cv2.imencode(".png", result["image"])
-        image_base64 = base64.b64encode(buffer).decode("utf-8")
-
-        return jsonify(
-            {
-                "success": True,
-                "image_base64": image_base64,
-                "metadata": result["metadata"],
-                "test_markers": result["test_markers"],
-            }
-        )
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    )
 
 
 @advanced_bp.route("/api/validation/verify_quality", methods=["POST"])
+@handle_api_errors
 def verify_marker_quality():
     """Verify quality of uploaded marker image."""
-    try:
-        # Get image from request
-        if "image" not in request.files:
-            return jsonify({"error": "No image provided"}), 400
+    image = _extract_upload_image()
+    expected_id = int(request.form.get("expected_id", 0))
+    dictionary = request.form.get("dictionary", "4X4_50")
+    _validate_dictionary(dictionary)
 
-        file = request.files["image"]
-        expected_id = int(request.form.get("expected_id", 0))
-        dictionary = request.form.get("dictionary", "4X4_50")
+    # Verify quality
+    quality_report = validator.verify_marker_quality(image, expected_id, dictionary)
 
-        # Read image
-        import numpy as np
+    return jsonify({"success": True, "quality_report": quality_report})
 
-        image_bytes = file.read()
-        nparr = np.frombuffer(image_bytes, np.uint8)
-        image = cv2.imdecode(nparr, cv2.IMREAD_GRAYSCALE)
 
-        # Verify quality
-        quality_report = validator.verify_marker_quality(image, expected_id, dictionary)
+@advanced_bp.route("/api/validation/detect", methods=["POST"])
+@handle_api_errors
+def detect_markers():
+    """Detect ArUCO markers in an uploaded image."""
+    image = _extract_upload_image()
+    dictionary = request.form.get("dictionary", "4X4_50")
+    expected_markers = request.form.get("expected_markers")
+    expected_count = int(expected_markers) if expected_markers else None
+    _validate_dictionary(dictionary)
 
-        return jsonify({"success": True, "quality_report": quality_report})
+    detection = validator.detect_markers(
+        image, dictionary=dictionary, expected_count=expected_count
+    )
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return jsonify({"success": True, "detection": detection})
 
 
 @advanced_bp.route("/api/validation/hamming_distance", methods=["POST"])
+@handle_api_errors
 def calculate_hamming():
     """Calculate Hamming distance between two markers."""
-    try:
-        data = request.get_json()
+    data = _get_request_json()
 
-        id1 = int(data.get("id1", 0))
-        id2 = int(data.get("id2", 1))
-        dictionary = data.get("dictionary", "4X4_50")
+    id1 = int(data.get("id1", 0))
+    id2 = int(data.get("id2", 1))
+    dictionary = data.get("dictionary", "4X4_50")
+    _validate_dictionary(dictionary)
 
-        distance = validator.calculate_hamming_distance(id1, id2, dictionary)
+    distance = validator.calculate_hamming_distance(id1, id2, dictionary)
+    if distance < 0:
+        raise ValueError("Marker IDs out of range for selected dictionary")
 
-        # Determine safety level
-        safety_level = "Safe"
-        if distance < 3:
-            safety_level = "Critical - High confusion risk"
-        elif distance < 5:
-            safety_level = "Warning - Moderate confusion risk"
+    # Determine safety level
+    safety_level = "Safe"
+    if distance < 3:
+        safety_level = "Critical - High confusion risk"
+    elif distance < 5:
+        safety_level = "Warning - Moderate confusion risk"
 
-        return jsonify(
-            {
-                "success": True,
-                "id1": id1,
-                "id2": id2,
-                "hamming_distance": distance,
-                "safety_level": safety_level,
-                "dictionary": dictionary,
-            }
-        )
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return jsonify(
+        {
+            "success": True,
+            "id1": id1,
+            "id2": id2,
+            "hamming_distance": distance,
+            "safety_level": safety_level,
+            "dictionary": dictionary,
+        }
+    )
 
 
 @advanced_bp.route("/api/validation/detection_report", methods=["POST"])
+@handle_api_errors
 def generate_report():
     """Generate detection quality report."""
-    try:
-        data = request.get_json()
+    data = _get_request_json()
 
-        test_results = data.get("test_results", [])
-        pattern_metadata = data.get("pattern_metadata", {})
+    test_results = data.get("test_results", [])
+    pattern_metadata = data.get("pattern_metadata", {})
 
-        # Generate report
-        report = validator.generate_detection_report(test_results, pattern_metadata)
+    # Generate report
+    report = validator.generate_detection_report(test_results, pattern_metadata)
 
-        # Save metrics to database if pattern_id provided
-        if "pattern_id" in data:
-            if current_app.config.get("USE_DB"):
-                # Calculate summary metrics from report/test results
-                summary = report.get("summary", {})
-                total_tests = summary.get("total_tests", len(test_results))
-                successful = summary.get(
-                    "successful_detections",
-                    sum(1 for r in test_results if r.get("detected")),
-                )
+    # Save metrics to database if pattern_id provided
+    if "pattern_id" in data:
+        if current_app.config.get("USE_DB"):
+            # Calculate summary metrics from report/test results
+            summary = report.get("summary", {})
+            total_tests = summary.get("total_tests", len(test_results))
+            successful = summary.get(
+                "successful_detections",
+                sum(1 for r in test_results if r.get("detected")),
+            )
 
-                pose_errors = [
-                    r.get("pose_error_mm")
-                    for r in test_results
-                    if r.get("pose_error_mm") is not None
-                ]
-                avg_pose_error = (
-                    sum(pose_errors) / len(pose_errors) if pose_errors else None
-                )
+            pose_errors = [
+                r.get("pose_error_mm")
+                for r in test_results
+                if r.get("pose_error_mm") is not None
+            ]
+            avg_pose_error = (
+                sum(pose_errors) / len(pose_errors) if pose_errors else None
+            )
 
-                corner_errors = [
-                    r.get("corner_error")
-                    for r in test_results
-                    if r.get("corner_error") is not None
-                ]
-                avg_corner_error = (
-                    sum(corner_errors) / len(corner_errors) if corner_errors else None
-                )
+            corner_errors = [
+                r.get("corner_error")
+                for r in test_results
+                if r.get("corner_error") is not None
+            ]
+            avg_corner_error = (
+                sum(corner_errors) / len(corner_errors) if corner_errors else None
+            )
 
-                perf = report.get("performance", {})
-                avg_detection_time = perf.get("avg_detection_time")
+            perf = report.get("performance", {})
+            avg_detection_time = perf.get("avg_detection_time")
 
-                metric = DetectionMetric(
-                    pattern_id=data["pattern_id"],
-                    detected_markers=successful,
-                    expected_markers=total_tests,
-                    detection_rate=summary.get("detection_rate"),
-                    avg_corner_error=avg_corner_error,
-                    avg_pose_error=avg_pose_error,
-                    avg_detection_time=avg_detection_time,
-                    lighting_condition=data.get("lighting_conditions", "unknown"),
-                    distance_mm=data.get("distance_mm"),
-                    viewing_angle=data.get("viewing_angle"),
-                )
-                db.session.add(metric)
-                db.session.commit()
+            metric = DetectionMetric(
+                pattern_id=data["pattern_id"],
+                detected_markers=successful,
+                expected_markers=total_tests,
+                detection_rate=summary.get("detection_rate"),
+                avg_corner_error=avg_corner_error,
+                avg_pose_error=avg_pose_error,
+                avg_detection_time=avg_detection_time,
+                lighting_condition=data.get("lighting_conditions", "unknown"),
+                distance_mm=data.get("distance_mm"),
+                viewing_angle=data.get("viewing_angle"),
+            )
+            db.session.add(metric)
+            db.session.commit()
 
-                report["metric_id"] = metric.id
-            else:
-                report["metric_id"] = None
-                report["metric_message"] = "Database disabled - metrics not persisted"
+            report["metric_id"] = metric.id
+        else:
+            report["metric_id"] = None
+            report["metric_message"] = "Database disabled - metrics not persisted"
 
-        return jsonify({"success": True, "report": report})
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return jsonify({"success": True, "report": report})
 
 
 @advanced_bp.route("/api/validation/batch_test", methods=["POST"])
+@handle_api_errors
 def batch_validation_test():
     """Run batch validation tests on multiple patterns."""
-    try:
-        data = request.get_json()
+    data = _get_request_json()
 
-        patterns = data.get("patterns", [])
-        test_configs = data.get("test_configs", [])
+    tests = data.get("tests", [])
+    if not tests:
+        raise ValueError("No tests provided for batch validation")
 
-        results = []
-        for pattern in patterns:
-            for config in test_configs:
-                # Simulate test (in production, this would actually test detection)
-                test_result = {
-                    "pattern_id": pattern.get("id"),
-                    "config": config,
-                    "detected": True,  # Placeholder
-                    "confidence": 0.95,
-                    "pose_error_mm": 2.5,
-                    "processing_time_ms": 15.0,
-                }
-                results.append(test_result)
+    results = []
+    for test in tests:
+        image_base64 = test.get("image_base64")
+        image = _decode_base64_image(image_base64)
+        dictionary = test.get("dictionary", "4X4_50")
+        _validate_dictionary(dictionary)
+        expected_markers = test.get("expected_markers")
+        expected_count = int(expected_markers) if expected_markers else None
 
-        # Generate overall report
-        pattern_metadata = {
-            "total_patterns": len(patterns),
-            "test_configurations": len(test_configs),
-            "dictionary": (
-                patterns[0].get("dictionary", "4X4_50") if patterns else "4X4_50"
-            ),
-        }
-
-        report = validator.generate_detection_report(results, pattern_metadata)
-
-        return jsonify(
-            {"success": True, "batch_results": results, "overall_report": report}
+        detection = validator.detect_markers(
+            image, dictionary=dictionary, expected_count=expected_count
+        )
+        results.append(
+            {
+                "pattern_id": test.get("pattern_id"),
+                "config": test.get("config", {}),
+                "detected": detection["detected_markers"] > 0,
+                "detected_markers": detection["detected_markers"],
+                "expected_markers": detection["expected_markers"],
+                "detection_rate": detection["detection_rate"],
+                "confidence": detection["avg_confidence"],
+                "processing_time_ms": detection["detection_time_ms"],
+            }
         )
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    pattern_metadata = data.get("pattern_metadata", {})
+    if not pattern_metadata:
+        pattern_metadata = {
+            "total_tests": len(tests),
+            "dictionary": tests[0].get("dictionary", "4X4_50"),
+        }
+
+    report = validator.generate_detection_report(results, pattern_metadata)
+
+    return jsonify(
+        {"success": True, "batch_results": results, "overall_report": report}
+    )
