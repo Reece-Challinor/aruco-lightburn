@@ -2,10 +2,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>CHANGELOG.md</name>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
     <type>changelog</type>
     <purpose>Track user-facing changes and releases</purpose>
-    <last_updated>2026-02-08</last_updated>
+    <last_updated>2026-02-23</last_updated>
   </file_meta>
 </ai_agent_documentation>
 -->
@@ -26,6 +26,24 @@ and this project adheres to Semantic Versioning.
 
 ### Removed
 - TBD
+
+## [2.5.0] - 2026-02-23
+### Added
+- Security headers and session secret fallback warning.
+- Input bounds for marker size and grid limits to prevent excessive allocations.
+- Shared pytest fixtures plus new edge case and concurrency tests.
+- Coverage and pytest configuration with a baseline threshold.
+- Import validation pre-commit hook and Docker Compose env template.
+
+### Changed
+- Standardized JSON request handling across core endpoints.
+- Sanitized generated download filenames.
+- LightBurn exporter now logs material load warnings via logger.
+- Docker Compose now uses env-based credentials.
+
+### Removed
+- Legacy compatibility shim modules for core/export/web imports.
+- No-op validate-imports pre-commit hook.
 
 ## [2.4.0] - 2026-02-08
 ### Added

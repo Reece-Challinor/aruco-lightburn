@@ -16,12 +16,11 @@
 Date: 2026-02-23
 
 ## Summary
-- Removed pytest from production deps, added coverage/pytest config, and tightened Makefile coverage enforcement.
-- Added input validation guards (max pixel/grid limits), JSON handling consistency, and filename sanitization.
-- Introduced security headers, secret key fallback warning, and logger-based LightBurn warnings.
-- Added shared pytest fixtures, unskipped/refined edge tests, and added concurrency/empty-grid cases.
-- Removed compatibility shims, deduped drawing grid logic, and tightened advanced DB exception handling.
-- Hardened CI/pre-commit/Docker Compose alignment with Python 3.11 and env-based secrets.
+- Released 2.5.0 with audit remediation (validation, test infra, cleanup, CI hardening).
+- Added input bounds, JSON handling consistency, filename sanitization, and security headers.
+- Centralized pytest fixtures, unskipped edge tests, and added concurrency/empty-grid coverage.
+- Removed compatibility shims, deduped drawing logic, and tightened DB exception handling.
+- Enforced coverage thresholds and aligned pre-commit/CI/Docker env hygiene.
 
 ## Changes
 - `/Users/reecechallinor/Development/Projects/aruco/aruco-lightburn/pyproject.toml`: removed pytest from main deps; added pytest + coverage config.
@@ -42,6 +41,7 @@ Date: 2026-02-23
 
 ## Tests
 - `make validate`
+- `make ci` (coverage 65.55% >= 65% threshold)
 
 Warnings:
 - PytestDeprecationWarning about `asyncio_default_fixture_loop_scope` being unset (from pytest-asyncio).
