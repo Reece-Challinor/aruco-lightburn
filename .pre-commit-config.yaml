@@ -1,4 +1,16 @@
-# Pre-commit configuration for ArUCO Generator v2.2.0
+# <!--
+# <ai_agent_documentation>
+#   <file_meta>
+#     <name>.pre-commit-config.yaml</name>
+#     <version>1.2.0</version>
+#     <type>precommit_config</type>
+#     <purpose>Local developer automation hooks for code quality and safety checks</purpose>
+#     <last_updated>2026-02-23</last_updated>
+#     <maintainer>ArUCO Generator Team</maintainer>
+#   </file_meta>
+# </ai_agent_documentation>
+# -->
+# Pre-commit configuration for ArUCO Generator v2.4.0
 # Professional calibration pattern generator with coordinate systems
 
 repos:
@@ -19,7 +31,7 @@ repos:
     rev: 24.3.0
     hooks:
       - id: black
-        language_version: python3.13
+        language_version: python3.11
 
   - repo: https://github.com/pycqa/isort
     rev: 5.13.2
@@ -46,7 +58,7 @@ repos:
     hooks:
       - id: validate-imports
         name: Validate Python imports
-        entry: python3 -c "import sys; sys.exit(0)"
+        entry: python3 scripts/validate_imports.py
         language: system
         files: \.py$
         pass_filenames: false
@@ -57,7 +69,7 @@ repos:
         language: system
         pass_filenames: false
         always_run: false
-        files: ^aruco_generator/(aruco|drawing)\.py$
+        files: ^aruco_generator/core/(aruco|drawing)\.py$
 
       # SVG overlap test removed - overlapping elements are acceptable for production use
 
@@ -67,7 +79,7 @@ repos:
         language: system
         pass_filenames: false
         always_run: false
-        files: ^aruco_generator/(drawing|lightburn|web)\.py$
+        files: ^aruco_generator/(core/drawing|export/lightburn|web/web)\.py$
 
       - id: validate-marker-scaling
         name: Validate marker scaling preserves quality
@@ -75,7 +87,7 @@ repos:
         language: system
         pass_filenames: false
         always_run: false
-        files: ^aruco_generator/aruco\.py$
+        files: ^aruco_generator/core/aruco\.py$
 
       - id: check-ui-smoke
         name: Check UI smoke tests

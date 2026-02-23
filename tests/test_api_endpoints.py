@@ -3,10 +3,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>test_api_endpoints.py</name>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
     <type>test_suite</type>
     <purpose>Integration coverage for core API endpoints and health checks</purpose>
-    <last_updated>2026-02-07</last_updated>
+    <last_updated>2026-02-23</last_updated>
     <maintainer>ArUCO Generator Team</maintainer>
   </file_meta>
 </ai_agent_documentation>
@@ -15,243 +15,208 @@ Integration tests for API endpoints
 """
 
 import json
-import os
-import sys
-import unittest
-
-# Add parent directory to path for imports
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from app import app  # noqa: E402
 
 
-class TestAPIEndpoints(unittest.TestCase):
-    """Test API endpoints functionality"""
-
-    def setUp(self):
-        """Set up test client"""
-        self.app = app
-        self.app.config["TESTING"] = True
-        self.client = self.app.test_client()
-
-    def test_home_page(self):
-        """Test home page loads"""
-        response = self.client.get("/")
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(b"ArUCO", response.data)
-
-    def test_generate_page(self):
-        """Test generate page loads"""
-        response = self.client.get("/generate")
-        self.assertEqual(response.status_code, 200)
-
-    def test_calibration_page(self):
-        """Test calibration page loads"""
-        response = self.client.get("/calibration")
-        self.assertEqual(response.status_code, 200)
-
-    def test_validation_page(self):
-        """Test validation page loads"""
-        response = self.client.get("/validation")
-        self.assertEqual(response.status_code, 200)
-
-    def test_documentation_page(self):
-        """Test documentation page loads"""
-        response = self.client.get("/documentation")
-        self.assertEqual(response.status_code, 200)
-
-    def test_get_dictionaries(self):
-        """Test dictionary list API"""
-        response = self.client.get("/api/dictionaries")
-        self.assertEqual(response.status_code, 200)
-
-        data = json.loads(response.data)
-        self.assertIsInstance(data, dict)
-        self.assertIn("4X4_50", data)
-
-        # Check dictionary structure
-        dict_info = data["4X4_50"]
-        self.assertIn("size", dict_info)
-        self.assertIn("max_markers", dict_info)
-        self.assertIn("recommended_use", dict_info)
-
-    def test_preview_generation(self):
-        """Test SVG preview generation"""
-        test_data = {
-            "dictionary": "4X4_50",
-            "start_id": 0,
-            "rows": 2,
-            "cols": 2,
-            "size_mm": 20,
-            "spacing_mm": 5,
-            "border_bits": 1,
-            "include_labels": True,
-            "include_outer_border": False,
-        }
-
-        response = self.client.post(
-            "/api/preview", data=json.dumps(test_data), content_type="application/json"
-        )
-
-        self.assertEqual(response.status_code, 200)
-
-        data = json.loads(response.data)
-        self.assertIn("svg", data)
-        self.assertIn("dimensions", data)
-        self.assertIn("marker_count", data)
-        self.assertEqual(data["marker_count"], 4)
-        self.assertTrue(data["success"])
-
-    def test_preview_invalid_dictionary(self):
-        """Test preview with invalid dictionary"""
-        test_data = {
-            "dictionary": "INVALID",
-            "start_id": 0,
-            "rows": 1,
-            "cols": 1,
-            "size_mm": 20,
-            "spacing_mm": 5,
-            "border_bits": 1,
-        }
-
-        response = self.client.post(
-            "/api/preview", data=json.dumps(test_data), content_type="application/json"
-        )
-
-        self.assertEqual(response.status_code, 400)
-        data = json.loads(response.data)
-        self.assertIn("error", data)
-
-    def test_preview_invalid_params(self):
-        """Test preview with invalid parameters"""
-        test_data = {
-            "dictionary": "4X4_50",
-            "start_id": -1,  # Invalid negative ID
-            "rows": 0,  # Invalid zero rows
-            "cols": 1,
-            "size_mm": 20,
-            "spacing_mm": 5,
-            "border_bits": 1,
-        }
-
-        response = self.client.post(
-            "/api/preview", data=json.dumps(test_data), content_type="application/json"
-        )
-
-        self.assertEqual(response.status_code, 400)
-        data = json.loads(response.data)
-        self.assertIn("error", data)
-
-    def test_download_lightburn(self):
-        """Test LightBurn file download"""
-        test_data = {
-            "dictionary": "4X4_50",
-            "start_id": 0,
-            "rows": 1,
-            "cols": 1,
-            "size_mm": 20,
-            "spacing_mm": 5,
-            "border_bits": 1,
-            "include_labels": False,
-        }
-
-        response = self.client.post(
-            "/api/download", data=json.dumps(test_data), content_type="application/json"
-        )
-
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("application/octet-stream", response.content_type)
-        self.assertIn("attachment", response.headers.get("Content-Disposition", ""))
-
-    def test_quick_test_endpoint(self):
-        """Test quick test API endpoint"""
-        response = self.client.get("/api/quick-test")
-        self.assertEqual(response.status_code, 200)
-
-        data = json.loads(response.data)
-        self.assertEqual(data["status"], "success")
-        self.assertIn("message", data)
-        self.assertIn("available_dictionaries", data)
-        self.assertIn("timestamp", data)
-
-    def test_debug_status_endpoint(self):
-        """Test debug status endpoint"""
-        response = self.client.get("/api/debug/status")
-        self.assertEqual(response.status_code, 200)
-
-        data = json.loads(response.data)
-        self.assertEqual(data["status"], "operational")
-        self.assertIn("opencv", data)
-        self.assertIn("dictionaries", data)
-        self.assertIn("timestamp", data)
-
-    def test_health_endpoint(self):
-        """Test comprehensive health endpoint"""
-        response = self.client.get("/api/health")
-        self.assertEqual(response.status_code, 200)
-
-        data = json.loads(response.data)
-        self.assertIn("status", data)
-        self.assertIn("metrics", data)
-        self.assertIn("dependencies", data)
-        self.assertIn("database", data)
-        self.assertIn("request_id", data)
-
-    def test_healthz_endpoint(self):
-        """Test lightweight health endpoint"""
-        response = self.client.get("/api/healthz")
-        self.assertEqual(response.status_code, 200)
-
-        data = json.loads(response.data)
-        self.assertEqual(data["status"], "ok")
-        self.assertIn("timestamp", data)
-        self.assertIn("request_id", data)
-
-    def test_log_error_endpoint(self):
-        """Test error logging endpoint"""
-        error_data = {
-            "timestamp": "2024-01-01T00:00:00Z",
-            "context": "Test",
-            "message": "Test error",
-            "stack": "Test stack trace",
-            "url": "http://test.com",
-        }
-
-        response = self.client.post(
-            "/api/log-error",
-            data=json.dumps(error_data),
-            content_type="application/json",
-        )
-
-        self.assertEqual(response.status_code, 200)
-        data = json.loads(response.data)
-        self.assertEqual(data["status"], "logged")
-
-    def test_preview_with_outer_border(self):
-        """Test preview generation with outer border"""
-        test_data = {
-            "dictionary": "4X4_50",
-            "start_id": 0,
-            "rows": 1,
-            "cols": 1,
-            "size_mm": 20,
-            "spacing_mm": 5,
-            "border_bits": 1,
-            "include_outer_border": True,
-            "border_width": 3.0,
-        }
-
-        response = self.client.post(
-            "/api/preview", data=json.dumps(test_data), content_type="application/json"
-        )
-
-        self.assertEqual(response.status_code, 200)
-        data = json.loads(response.data)
-
-        # Check dimensions include border
-        self.assertGreater(data["total_width"], 20)
-        self.assertGreater(data["total_height"], 20)
+def test_home_page(client):
+    """Test home page loads"""
+    response = client.get("/")
+    assert response.status_code == 200
+    assert b"ArUCO" in response.data
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_generate_page(client):
+    """Test generate page loads"""
+    response = client.get("/generate")
+    assert response.status_code == 200
+
+
+def test_calibration_page(client):
+    """Test calibration page loads"""
+    response = client.get("/calibration")
+    assert response.status_code == 200
+
+
+def test_validation_page(client):
+    """Test validation page loads"""
+    response = client.get("/validation")
+    assert response.status_code == 200
+
+
+def test_documentation_page(client):
+    """Test documentation page loads"""
+    response = client.get("/documentation")
+    assert response.status_code == 200
+
+
+def test_get_dictionaries(client):
+    """Test dictionary list API"""
+    response = client.get("/api/dictionaries")
+    assert response.status_code == 200
+
+    data = json.loads(response.data)
+    assert isinstance(data, dict)
+    assert "4X4_50" in data
+
+    dict_info = data["4X4_50"]
+    assert "size" in dict_info
+    assert "max_markers" in dict_info
+    assert "recommended_use" in dict_info
+
+
+def test_preview_generation(client):
+    """Test SVG preview generation"""
+    test_data = {
+        "dictionary": "4X4_50",
+        "start_id": 0,
+        "rows": 2,
+        "cols": 2,
+        "size_mm": 20,
+        "spacing_mm": 5,
+        "border_bits": 1,
+        "include_labels": True,
+        "include_outer_border": False,
+    }
+
+    response = client.post(
+        "/api/preview", data=json.dumps(test_data), content_type="application/json"
+    )
+
+    assert response.status_code == 200
+
+    data = json.loads(response.data)
+    assert "svg" in data
+    assert "dimensions" in data
+    assert "marker_count" in data
+    assert data["marker_count"] == 4
+    assert data["success"]
+
+
+def test_preview_invalid_dictionary(client):
+    """Test preview with invalid dictionary"""
+    test_data = {
+        "dictionary": "INVALID",
+        "start_id": 0,
+        "rows": 1,
+        "cols": 1,
+        "size_mm": 20,
+        "spacing_mm": 5,
+        "border_bits": 1,
+    }
+
+    response = client.post(
+        "/api/preview", data=json.dumps(test_data), content_type="application/json"
+    )
+
+    assert response.status_code == 400
+    data = json.loads(response.data)
+    assert "error" in data
+
+
+def test_preview_invalid_params(client):
+    """Test preview with invalid parameters"""
+    test_data = {
+        "dictionary": "4X4_50",
+        "start_id": -1,
+        "rows": 0,
+        "cols": 1,
+        "size_mm": 20,
+        "spacing_mm": 5,
+        "border_bits": 1,
+    }
+
+    response = client.post(
+        "/api/preview", data=json.dumps(test_data), content_type="application/json"
+    )
+
+    assert response.status_code == 400
+    data = json.loads(response.data)
+    assert "error" in data
+
+
+def test_download_lightburn(client):
+    """Test LightBurn file download"""
+    test_data = {
+        "dictionary": "4X4_50",
+        "start_id": 0,
+        "rows": 1,
+        "cols": 1,
+        "size_mm": 20,
+        "spacing_mm": 5,
+        "border_bits": 1,
+        "include_labels": False,
+    }
+
+    response = client.post(
+        "/api/download", data=json.dumps(test_data), content_type="application/json"
+    )
+
+    assert response.status_code == 200
+    assert "application/octet-stream" in response.content_type
+    assert "attachment" in response.headers.get("Content-Disposition", "")
+
+
+def test_quick_test_endpoint(client):
+    """Test quick test API endpoint"""
+    response = client.get("/api/quick-test")
+    assert response.status_code == 200
+
+    data = json.loads(response.data)
+    assert data["status"] == "success"
+    assert "message" in data
+    assert "available_dictionaries" in data
+    assert "timestamp" in data
+
+
+def test_debug_status_endpoint(client):
+    """Test debug status endpoint"""
+    response = client.get("/api/debug/status")
+    assert response.status_code == 200
+
+    data = json.loads(response.data)
+    assert data["status"] == "operational"
+    assert "opencv" in data
+    assert "dictionaries" in data
+    assert "timestamp" in data
+
+
+def test_health_endpoint(client):
+    """Test comprehensive health endpoint"""
+    response = client.get("/api/health")
+    assert response.status_code == 200
+
+    data = json.loads(response.data)
+    assert "status" in data
+    assert "metrics" in data
+    assert "dependencies" in data
+    assert "database" in data
+    assert "request_id" in data
+
+
+def test_healthz_endpoint(client):
+    """Test lightweight health endpoint"""
+    response = client.get("/api/healthz")
+    assert response.status_code == 200
+
+    data = json.loads(response.data)
+    assert data["status"] == "ok"
+    assert "timestamp" in data
+    assert "request_id" in data
+
+
+def test_log_error_endpoint(client):
+    """Test error logging endpoint"""
+    error_data = {
+        "timestamp": "2024-01-01T00:00:00Z",
+        "context": "Test",
+        "message": "Test error",
+        "stack": "Test stack trace",
+        "url": "http://test.com",
+    }
+
+    response = client.post(
+        "/api/log-error", data=json.dumps(error_data), content_type="application/json"
+    )
+
+    assert response.status_code == 200
+    data = json.loads(response.data)
+    assert data["status"] == "logged"

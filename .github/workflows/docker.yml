@@ -1,0 +1,47 @@
+name: Docker Build
+
+# <!--
+# <ai_agent_documentation>
+#   <file_meta>
+#     <name>docker.yml</name>
+#     <version>1.0.0</version>
+#     <type>github_actions_workflow</type>
+#     <purpose>Build and push Docker images on release tags</purpose>
+#     <last_updated>2026-02-09</last_updated>
+#     <maintainer>ArUCO Generator Team</maintainer>
+#   </file_meta>
+# </ai_agent_documentation>
+# -->
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  docker:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/aruco-generator:latest
+            ${{ secrets.DOCKER_USERNAME }}/aruco-generator:${{ github.ref_name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

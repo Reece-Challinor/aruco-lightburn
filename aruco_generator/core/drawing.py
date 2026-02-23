@@ -1,8 +1,20 @@
 """
+<!--
+<ai_agent_documentation>
+  <file_meta>
+    <name>drawing.py</name>
+    <version>1.1.0</version>
+    <type>core_drawing_module</type>
+    <purpose>SVG drawing and rendering system for ArUCO markers</purpose>
+    <last_updated>2026-02-23</last_updated>
+    <maintainer>ArUCO Generator Team</maintainer>
+  </file_meta>
+</ai_agent_documentation>
+-->
 {
   "file_type": "svg_drawing_context",
   "purpose": "SVG drawing and rendering system for ArUCO markers",
-  "last_updated": "2026-02-06",
+  "last_updated": "2026-02-23",
   "dependencies": ["numpy"],
   "main_class": "DrawingContext",
   "key_methods": {
@@ -69,50 +81,52 @@ class DrawingContext:
         border_width: float = 2.0,
     ):
         """Add ArUCO markers as filled rectangles with 2D optimization"""
+        self._add_marker_grid_internal(
+            markers=markers,
+            include_borders=include_borders,
+            include_outer_border=include_outer_border,
+            border_width=border_width,
+            allow_placeholder=True,
+        )
+
+    def add_marker_grid_preview(
+        self,
+        markers: List[Dict[str, Any]],
+        include_borders: bool = True,
+        include_outer_border: bool = False,
+        border_width: float = 2.0,
+    ):
+        """Add ArUCO markers with optimized preview rendering"""
+        self._add_marker_grid_internal(
+            markers=markers,
+            include_borders=include_borders,
+            include_outer_border=include_outer_border,
+            border_width=border_width,
+            allow_placeholder=True,
+        )
+
+    def _add_marker_grid_internal(
+        self,
+        markers: List[Dict[str, Any]],
+        include_borders: bool,
+        include_outer_border: bool,
+        border_width: float,
+        allow_placeholder: bool,
+    ):
         for marker in markers:
             size = marker["size"]
             x, y = marker["x"], marker["y"]
             marker_id = marker["id"]
 
-            # Add border if requested
             if include_borders:
                 self.add_rectangle(
                     x, y, size, size, fill=False, layer=1, marker_id=marker_id
                 )
 
-            # Check if we have actual image data or just placeholder
-            if "image" in marker:
-                # Use 2D rectangle merging for optimal XML size
-                image = marker["image"]
-                pixel_size = size / image.shape[0]
-
-                # Find all black rectangles using 2D merging
-                rectangles = self._find_merged_rectangles(image)
-
-                # Add merged rectangles with overlap to prevent gaps
-                for rect in rectangles:
-                    # Calculate positions with proper precision
-                    px_x = x + rect["col"] * pixel_size
-                    px_y = y + rect["row"] * pixel_size
-                    width = rect["width"] * pixel_size
-                    height = rect["height"] * pixel_size
-
-                    # Add small overlap to prevent gaps but maintain dimensions
-                    # Use 0.5% of the rectangle size or 0.05mm, whichever is smaller
-                    overlap = min(
-                        0.05, max(width * 0.005, height * 0.005)
-                    )  # Max 0.05mm, or 0.5% of size
-                    self.add_rectangle(
-                        px_x,
-                        px_y,
-                        width + overlap,
-                        height + overlap,
-                        fill=True,
-                        layer=0,
-                        marker_id=marker_id,
-                    )
-            else:
-                # For preview, use simplified representation
+            image = marker.get("image")
+            if image is not None:
+                self._add_marker_rectangles(image, x, y, size, marker_id)
+            elif allow_placeholder:
                 self.elements.append(
                     {
                         "type": "marker_placeholder",
@@ -125,96 +139,46 @@ class DrawingContext:
                     }
                 )
 
-            # Update bounds
             self._update_bounds(x, y, size, size)
 
-        # Add outer border around entire grid if requested
         if include_outer_border and markers:
-            # Calculate grid bounds
-            min_x = min(float(marker["x"]) for marker in markers)
-            min_y = min(float(marker["y"]) for marker in markers)
-            max_x = max(float(marker["x"] + marker["size"]) for marker in markers)
-            max_y = max(float(marker["y"] + marker["size"]) for marker in markers)
+            self._add_outer_border(markers, border_width)
 
-            # Add outer border rectangle
-            border_x = min_x - border_width
-            border_y = min_y - border_width
-            border_w = (max_x - min_x) + (2 * border_width)
-            border_h = (max_y - min_y) + (2 * border_width)
-
-            self.add_rectangle(
-                border_x, border_y, border_w, border_h, fill=False, layer=1
-            )
-
-    def add_marker_grid_preview(
-        self,
-        markers: List[Dict[str, Any]],
-        include_borders: bool = True,
-        include_outer_border: bool = False,
-        border_width: float = 2.0,
+    def _add_marker_rectangles(
+        self, image: np.ndarray, x: float, y: float, size: float, marker_id: int
     ):
-        """Add ArUCO markers with optimized preview rendering"""
-        for marker in markers:
-            image = marker["image"]
-            size = marker["size"]
-            x, y = marker["x"], marker["y"]
-            marker_id = marker["id"]
+        pixel_size = size / image.shape[0]
+        rectangles = self._find_merged_rectangles(image)
 
-            # Add border if requested
-            if include_borders:
-                self.add_rectangle(
-                    x, y, size, size, fill=False, layer=1, marker_id=marker_id
-                )
+        for rect in rectangles:
+            px_x = x + rect["col"] * pixel_size
+            px_y = y + rect["row"] * pixel_size
+            width = rect["width"] * pixel_size
+            height = rect["height"] * pixel_size
 
-            # Convert ArUCO image to rectangles - use merged rectangles for better quality
-            pixel_size = size / image.shape[0]
-
-            # Use rectangle merging algorithm for preview as well to prevent artifacts
-            rectangles = self._find_merged_rectangles(image)
-
-            # Add merged rectangles with overlap to prevent gaps
-            for rect in rectangles:
-                # Calculate positions
-                px_x = x + rect["col"] * pixel_size
-                px_y = y + rect["row"] * pixel_size
-                width = rect["width"] * pixel_size
-                height = rect["height"] * pixel_size
-
-                # Add small overlap to prevent gaps but maintain dimensions
-                # Use 0.5% of the rectangle size or 0.05mm, whichever is smaller
-                overlap = min(
-                    0.05, max(width * 0.005, height * 0.005)
-                )  # Max 0.05mm, or 0.5% of size
-                self.add_rectangle(
-                    px_x,
-                    px_y,
-                    width + overlap,
-                    height + overlap,
-                    fill=True,
-                    layer=0,
-                    marker_id=marker_id,
-                )
-
-            # Update bounds
-            self._update_bounds(x, y, size, size)
-
-        # Add outer border around entire grid if requested
-        if include_outer_border and markers:
-            # Calculate grid bounds
-            min_x = min(float(marker["x"]) for marker in markers)
-            min_y = min(float(marker["y"]) for marker in markers)
-            max_x = max(float(marker["x"] + marker["size"]) for marker in markers)
-            max_y = max(float(marker["y"] + marker["size"]) for marker in markers)
-
-            # Add outer border rectangle
-            border_x = min_x - border_width
-            border_y = min_y - border_width
-            border_w = (max_x - min_x) + (2 * border_width)
-            border_h = (max_y - min_y) + (2 * border_width)
-
+            overlap = min(0.05, max(width * 0.005, height * 0.005))
             self.add_rectangle(
-                border_x, border_y, border_w, border_h, fill=False, layer=1
+                px_x,
+                px_y,
+                width + overlap,
+                height + overlap,
+                fill=True,
+                layer=0,
+                marker_id=marker_id,
             )
+
+    def _add_outer_border(self, markers: List[Dict[str, Any]], border_width: float):
+        min_x = min(float(marker["x"]) for marker in markers)
+        min_y = min(float(marker["y"]) for marker in markers)
+        max_x = max(float(marker["x"] + marker["size"]) for marker in markers)
+        max_y = max(float(marker["y"] + marker["size"]) for marker in markers)
+
+        border_x = min_x - border_width
+        border_y = min_y - border_width
+        border_w = (max_x - min_x) + (2 * border_width)
+        border_h = (max_y - min_y) + (2 * border_width)
+
+        self.add_rectangle(border_x, border_y, border_w, border_h, fill=False, layer=1)
 
     def add_text_labels(self, markers: List[Dict[str, Any]], font_size: float = 3.0):
         """Add text labels below each marker"""

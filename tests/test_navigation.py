@@ -3,32 +3,16 @@
 <ai_agent_documentation>
   <file_meta>
     <name>test_navigation.py</name>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
     <type>integration_test</type>
     <purpose>Validate navigation routes and rendered UI affordances</purpose>
-    <last_updated>2026-02-08</last_updated>
+    <last_updated>2026-02-23</last_updated>
     <maintainer>ArUCO Generator Team</maintainer>
   </file_meta>
 </ai_agent_documentation>
 -->
 Test suite for navigation and routing improvements
 """
-
-import pytest
-
-from app import app, db
-
-
-@pytest.fixture
-def client():
-    """Create test client"""
-    app.config["TESTING"] = True
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
-
-    with app.test_client() as client:
-        with app.app_context():
-            db.create_all()
-        yield client
 
 
 def test_home_page(client):

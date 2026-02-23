@@ -2,10 +2,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>implementation_plan.md</name>
-    <version>1.2.0</version>
+    <version>1.3.0</version>
     <type>plan_document</type>
     <purpose>Approved refactor execution plan and validation gates</purpose>
-    <last_updated>2026-02-08</last_updated>
+    <last_updated>2026-02-23</last_updated>
     <maintainer>Codex (Senior CV Engineer)</maintainer>
   </file_meta>
 </ai_agent_documentation>
@@ -13,7 +13,14 @@
 
 # Implementation Plan - ArUCO Generator Refactor
 
-Status: Updated on 2026-02-08 for calibration + validation hardening plan
+Status: Updated on 2026-02-23 for audit remediation phases (1-5)
+
+## 2026-02-23 Audit Remediation (Phases 1-5)
+- Phase 1: Critical fixes (dependency cleanup, secret fallback warnings, logging updates).
+- Phase 2: Input validation + safety (bounds checks, JSON handling, filename sanitization, security headers).
+- Phase 3: Test infrastructure (shared fixtures, unskipped edge tests, baseline coverage gates).
+- Phase 4: Cleanup (remove compatibility shims, dedupe drawing logic, tighten exception handling).
+- Phase 5: CI/CD hardening (coverage enforcement, Makefile fixes, pre-commit alignment, Docker env hygiene).
 
 ## Scope
 Implement phases 0-4 from the audit plan while preserving working behavior, with compatibility shims where needed.
@@ -33,7 +40,7 @@ Extend scope to refactor calibration and advanced generation workflows for expor
 ### Phase 2: Structure
 - Introduce subpackages: core, export, web, calibration, validation, db.
 - Move canonical implementations to new locations.
-- Keep legacy module shims for compatibility.
+- Remove legacy module shims once imports are updated (2026-02-23).
 - Align entrypoints (Makefile/Docker/Vercel).
 
 ### Phase 3: Export + Advanced + Calibration Fixes

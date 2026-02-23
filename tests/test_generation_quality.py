@@ -1,4 +1,16 @@
 """
+<!--
+<ai_agent_documentation>
+  <file_meta>
+    <name>test_generation_quality.py</name>
+    <version>1.1.0</version>
+    <type>integration_test</type>
+    <purpose>Validate marker generation quality and rendering integrity</purpose>
+    <last_updated>2026-02-23</last_updated>
+    <maintainer>ArUCO Generator Team</maintainer>
+  </file_meta>
+</ai_agent_documentation>
+-->
 Integration tests for ArUCO marker generation quality.
 Tests ensure no line artifacts or rendering issues in generated markers.
 """
@@ -13,9 +25,9 @@ import pytest
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from aruco_generator.aruco import ArUCOGenerator  # noqa: E402
-from aruco_generator.drawing import DrawingContext  # noqa: E402
-from aruco_generator.lightburn import LightBurnExporter  # noqa: E402
+from aruco_generator.core.aruco import ArUCOGenerator  # noqa: E402
+from aruco_generator.core.drawing import DrawingContext  # noqa: E402
+from aruco_generator.export.lightburn import LightBurnExporter  # noqa: E402
 
 
 class TestGenerationQuality:

@@ -1,4 +1,16 @@
 """
+<!--
+<ai_agent_documentation>
+  <file_meta>
+    <name>test_aruco_generator.py</name>
+    <version>1.2.0</version>
+    <type>unit_test</type>
+    <purpose>Validate core ArUCO marker generation logic and edge cases</purpose>
+    <last_updated>2026-02-23</last_updated>
+    <maintainer>ArUCO Generator Team</maintainer>
+  </file_meta>
+</ai_agent_documentation>
+-->
 Unit tests for ArUCO marker generation - Fixed for updated API
 """
 
@@ -8,12 +20,11 @@ import unittest
 from unittest.mock import patch
 
 import numpy as np
-import pytest
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from aruco_generator.aruco import ArUCOGenerator  # noqa: E402
+from aruco_generator.core.aruco import ArUCOGenerator  # noqa: E402
 
 
 class TestArUCOGenerator(unittest.TestCase):
@@ -56,12 +67,11 @@ class TestArUCOGenerator(unittest.TestCase):
         self.assertGreater(marker.shape[0], 0)
         self.assertGreater(marker.shape[1], 0)
 
-    @pytest.mark.skip(reason="Error handling refinement needed")
     def test_invalid_marker_id(self):
         """Test that invalid marker ID raises error"""
         with self.assertRaises(ValueError):
             self.generator.generate_marker(
-                marker_id=51,  # Max ID for 4X4_50 is 50
+                marker_id=51,  # Max ID for 4X4_50 is 49
                 dict_name="4X4_50",
                 size_pixels=200,
             )
@@ -83,6 +93,15 @@ class TestArUCOGenerator(unittest.TestCase):
             self.assertIn("size", marker)
             self.assertIn("dict", marker)
 
+    def test_generate_grid_zero_spacing(self):
+        """Test grid generation with zero spacing"""
+        markers = self.generator.generate_grid(
+            start_id=0, dict_name="4X4_50", rows=1, cols=2, size_mm=20, spacing_mm=0
+        )
+        self.assertEqual(len(markers), 2)
+        self.assertEqual(markers[0]["x"], 0)
+        self.assertEqual(markers[1]["x"], 20)
+
     def test_calculate_total_size(self):
         """Test total size calculation for grid"""
         width, height = self.generator.calculate_total_size(
@@ -94,16 +113,14 @@ class TestArUCOGenerator(unittest.TestCase):
         self.assertEqual(width, 70)
         self.assertEqual(height, 45)
 
-    @pytest.mark.skip(reason="ChArUco board implementation needs refinement")
     def test_generate_charuco_board(self):
         """Test ChArUco board generation"""
         result = self.generator.generate_charuco_board(
-            cols=5,
-            rows=7,
+            squares_x=5,
+            squares_y=7,
             square_size_mm=30,
             marker_size_mm=22,
             dictionary="4X4_50",
-            start_id=0,
         )
 
         self.assertIn("board_image", result)
@@ -123,7 +140,6 @@ class TestArUCOGenerator(unittest.TestCase):
                 marker_id=0, dict_name="INVALID_DICT", size_pixels=200
             )
 
-    @pytest.mark.skip(reason="Error handling refinement needed")
     def test_negative_size(self):
         """Test that negative size raises error"""
         with self.assertRaises(ValueError):
@@ -139,15 +155,28 @@ class TestArUCOGenerator(unittest.TestCase):
         # With default size
         self.assertGreater(marker.shape[0], 0)
 
+    def test_max_dictionary_id(self):
+        """Test maximum dictionary ID boundary"""
+        info = self.generator.get_dictionary_info()["4X4_50"]
+        max_id = info["max_markers"] - 1
+        marker = self.generator.generate_marker(
+            marker_id=max_id, dict_name="4X4_50", size_pixels=200
+        )
+        self.assertIsInstance(marker, np.ndarray)
+        with self.assertRaises(ValueError):
+            self.generator.generate_marker(
+                marker_id=max_id + 1, dict_name="4X4_50", size_pixels=200
+            )
+
 
 class TestArUCOGeneratorFallback(unittest.TestCase):
     """Test ArUCO generator in fallback mode (no OpenCV)"""
 
-    @patch("aruco_generator.aruco.OPENCV_AVAILABLE", False)
-    @patch("aruco_generator.aruco.cv2", None)
+    @patch("aruco_generator.core.aruco.OPENCV_AVAILABLE", False)
+    @patch("aruco_generator.core.aruco.cv2", None)
     def test_fallback_mode(self):
         """Test that generator works without OpenCV"""
-        from aruco_generator.aruco import ArUCOGenerator
+        from aruco_generator.core.aruco import ArUCOGenerator
 
         generator = ArUCOGenerator()
 

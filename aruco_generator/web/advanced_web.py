@@ -5,10 +5,10 @@ Advanced web routes for coordinate systems, professional exports, and validation
 <ai_agent_documentation>
   <file_meta>
     <name>advanced_web.py</name>
-    <version>2.6.0</version>
+    <version>2.7.0</version>
     <type>flask_blueprint</type>
     <purpose>Advanced previews, calibration exports, and validation utilities</purpose>
-    <last_updated>2026-02-08</last_updated>
+    <last_updated>2026-02-23</last_updated>
     <maintainer>ArUCO Generator Team</maintainer>
   </file_meta>
   <route_summary>
@@ -25,6 +25,7 @@ Advanced web routes for coordinate systems, professional exports, and validation
 """
 
 import base64
+import logging
 from io import BytesIO
 
 try:
@@ -38,6 +39,7 @@ except ImportError:
 
     OPENCV_AVAILABLE = False
 from flask import Blueprint, current_app, request, send_file
+from sqlalchemy.exc import DatabaseError, IntegrityError
 
 from ..core.aruco import ArUCOGenerator
 from ..core.utils import (
@@ -59,6 +61,7 @@ advanced_bp = Blueprint("advanced", __name__)
 aruco_gen = ArUCOGenerator()
 exporter = ProfessionalExporter()
 validator = DetectionValidator()
+logger = logging.getLogger(__name__)
 
 
 def _get_request_json():
@@ -689,8 +692,9 @@ def generate_report():
                 db.session.commit()
 
                 report["metric_id"] = metric.id
-            except Exception:
+            except (IntegrityError, DatabaseError) as exc:
                 db.session.rollback()
+                logger.warning("Metric persistence failed: %s", exc)
                 report["metric_id"] = None
                 report["metric_message"] = (
                     "Metrics not persisted - database unavailable"

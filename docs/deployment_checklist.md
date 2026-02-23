@@ -2,10 +2,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>deployment_checklist.md</name>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <type>checklist</type>
     <purpose>Release and deployment checklist for CI/CD and manual validation</purpose>
-    <last_updated>2026-02-07</last_updated>
+    <last_updated>2026-02-09</last_updated>
     <maintainer>ArUCO Generator Team</maintainer>
   </file_meta>
 </ai_agent_documentation>
@@ -24,6 +24,7 @@
    - `make validate`
 4. Verify UI smoke tests pass (`make test-ui`).
 5. Run the app locally and confirm `/`, `/generate`, `/calibration` load.
+6. Cut `release/vX.Y` from `main` for staging validation.
 
 ## CI Gate
 1. CI `make validate` must pass.
@@ -32,11 +33,11 @@
 
 ## Release
 1. Create a branch with the `codex/` prefix.
-2. Commit changes and tag the release (e.g., `v2.2.0`).
-3. Open PR with summary + test results from `docs/ai/walkthrough.md`.
-4. Merge PR after review and ensure CI passes.
+2. Commit changes and open PR with summary + test results from `docs/ai/walkthrough.md`.
+3. Merge PR after review and ensure CI passes on `main`.
+4. Tag `main` with an annotated tag (e.g., `v2.4.0`) to publish the release.
 
 ## Post-Release
-1. Verify staging/production deployments (if enabled).
+1. Verify staging (`staging.aruco.tools`) and production (`aruco.tools`) deployments.
 2. Monitor logs and error rates.
 3. Update release notes if needed.

@@ -2,10 +2,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>AGENTS.md</name>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
     <type>engineering_guide</type>
     <purpose>Operational rules, workflows, and quality gates for contributors</purpose>
-    <last_updated>2026-02-07</last_updated>
+    <last_updated>2026-02-09</last_updated>
     <maintainer>ArUCO Generator Team</maintainer>
   </file_meta>
 </ai_agent_documentation>
@@ -13,8 +13,8 @@
 <INSTRUCTIONS>
 # AGENTS.md - Engineering Guide
 
-**Current Implementation**: `v2.2.0`
-**Last Updated**: 2026-02-07
+**Current Implementation**: `v2.4.0`
+**Last Updated**: 2026-02-09
 
 ---
 
@@ -32,6 +32,9 @@ Your work must be **Dynamic**, **Robust**, and **Aesthetically Pleasing**.
 5. **Versioning**: On release-level changes, update `pyproject.toml`, `aruco_generator/__init__.py`, `docs/CHANGELOG.md`, and `AI_NAVIGATION.xml`.
 6. **Deployment Checklist**: Follow `docs/deployment_checklist.md` before any release or deployment.
 7. **Observability First**: Use `/api/health` and `/api/healthz` to verify readiness and capture request IDs in error reports.
+8. **Trunk-Based Delivery**: `main` is the production branch. Use short-lived feature branches and merge via PR after CI passes.
+9. **Vercel GitHub Integration**: Deployments are handled by Vercel (preview + production). GitHub Actions runs CI and release validation only.
+10. **Release Tags**: Production releases are annotated tags (`vX.Y.Z`) on `main`. Tags trigger GitHub Releases and Docker builds.
 
 ---
 
@@ -75,12 +78,22 @@ Start with `AI_NAVIGATION.xml` for exact file locations and line references.
 
 ---
 
+## Deployment & Environments
+- **Production**: `aruco.tools` (Vercel production branch = `main`)
+- **Staging**: `staging.aruco.tools` (active `release/vX.Y` branch)
+- **Preview**: Per-PR preview deployments from Vercel
+- **Local env sync**: `vercel env pull` for `.env.local` when needed
+- **Repo hygiene**: `.vercel/` is local-only and must not be committed
+
+---
+
 ## Release + PR Checklist
 - Update version and changelog for new releases.
 - Ensure AI navigation line references are correct.
 - Create a branch using the `codex/` prefix.
 - Commit and tag releases with an annotated tag.
 - Prepare a PR summary in `docs/ai/walkthrough.md`.
+ - For releases: cut `release/vX.Y`, validate on staging, then tag `main` with `vX.Y.Z`.
 
 ---
 

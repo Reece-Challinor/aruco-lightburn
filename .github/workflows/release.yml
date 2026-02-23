@@ -1,0 +1,100 @@
+name: Release
+
+# <!--
+# <ai_agent_documentation>
+#   <file_meta>
+#     <name>release.yml</name>
+#     <version>1.0.0</version>
+#     <type>github_actions_workflow</type>
+#     <purpose>Validate releases and publish GitHub releases for version tags</purpose>
+#     <last_updated>2026-02-09</last_updated>
+#     <maintainer>ArUCO Generator Team</maintainer>
+#   </file_meta>
+# </ai_agent_documentation>
+# -->
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Release Validation + Publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgl1-mesa-glx libglib2.0-0
+
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -e .
+          make install-dev
+
+      - name: Verify tag matches version and changelog
+        env:
+          GIT_TAG: ${{ github.ref_name }}
+        run: |
+          python3 - <<'PY'
+          from __future__ import annotations
+
+          import os
+          import pathlib
+          import re
+          import sys
+          import tomllib
+
+          tag = os.environ.get("GIT_TAG", "")
+          if not tag.startswith("v"):
+              raise SystemExit(f"Tag must start with 'v': {tag}")
+          version = tag[1:]
+
+          pyproject = tomllib.loads(pathlib.Path("pyproject.toml").read_text())
+          project_version = pyproject["project"]["version"]
+          if version != project_version:
+              raise SystemExit(
+                  f"Tag {version} does not match pyproject version {project_version}."
+              )
+
+          changelog = pathlib.Path("docs/CHANGELOG.md").read_text()
+          lines = changelog.splitlines()
+          heading_pattern = re.compile(rf"^## \\[{re.escape(version)}\\] - ")
+          start_idx = next((i for i, line in enumerate(lines) if heading_pattern.match(line)), None)
+          if start_idx is None:
+              raise SystemExit(f"Changelog missing section for {version}.")
+
+          next_idx = next(
+              (i for i in range(start_idx + 1, len(lines)) if lines[i].startswith("## [")),
+              len(lines),
+          )
+          release_lines = lines[start_idx:next_idx]
+          if len(release_lines) < 2:
+              raise SystemExit("Changelog section looks empty.")
+
+          pathlib.Path("release_notes.md").write_text("\n".join(release_lines).strip() + "\n")
+          print("Release notes generated from docs/CHANGELOG.md.")
+          PY
+
+      - name: Run validation suite
+        run: make validate
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: release_notes.md
+          generate_release_notes: false

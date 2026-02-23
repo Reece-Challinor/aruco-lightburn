@@ -3,10 +3,10 @@
 # <ai_agent_documentation>
 #   <file_meta>
 #     <name>Makefile</name>
-#     <version>1.2.0</version>
+#     <version>1.3.0</version>
 #     <type>build_automation</type>
 #     <purpose>Development, testing, and deployment automation targets</purpose>
-#     <last_updated>2026-02-08</last_updated>
+#     <last_updated>2026-02-23</last_updated>
 #     <maintainer>ArUCO Generator Team</maintainer>
 #   </file_meta>
 # </ai_agent_documentation>
@@ -49,7 +49,7 @@ help:
 # Install production dependencies
 install:
 	@echo "Installing production dependencies..."
-	pip install -r <(grep -v '^\[' pyproject.toml | grep -E '^\s*"' | sed 's/[",]//g' | sed 's/^\s*//')
+	pip install -e .
 
 # Install development dependencies
 install-dev:
@@ -109,7 +109,7 @@ test-qa: test-quality test-export
 # Run tests with coverage
 coverage:
 	@echo "Running tests with coverage..."
-	python3 -m pytest tests/ --cov=aruco_generator --cov=app --cov-report=html --cov-report=term --cov-report=xml
+	python3 -m pytest tests/ --cov=aruco_generator --cov=app --cov-report=html --cov-report=term --cov-report=xml --cov-fail-under=65
 
 # Lint code
 lint:
@@ -194,13 +194,3 @@ validate-export:
 	python3 -m pytest tests/test_export_formats.py::TestLightBurnExport -xvs
 	python3 -m pytest tests/test_export_formats.py::TestExportConsistency -xvs
 	@echo "Export formats validated successfully!"
-
-# Docker build (if needed in future)
-docker-build:
-	@echo "Building Docker image..."
-	@echo "Docker support not yet implemented"
-
-# Deploy (placeholder for future deployment automation)
-deploy:
-	@echo "Deployment automation not yet implemented"
-	@echo "Use 'make run' for production server"

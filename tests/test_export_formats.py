@@ -1,4 +1,16 @@
 """
+<!--
+<ai_agent_documentation>
+  <file_meta>
+    <name>test_export_formats.py</name>
+    <version>1.1.0</version>
+    <type>test_suite</type>
+    <purpose>Validate SVG and LightBurn export format correctness</purpose>
+    <last_updated>2026-02-23</last_updated>
+    <maintainer>ArUCO Generator Team</maintainer>
+  </file_meta>
+</ai_agent_documentation>
+-->
 Tests for various export format quality and correctness.
 Validates SVG, LightBurn, and other export formats.
 """
@@ -13,9 +25,9 @@ import pytest
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from aruco_generator.aruco import ArUCOGenerator  # noqa: E402
-from aruco_generator.drawing import DrawingContext  # noqa: E402
-from aruco_generator.lightburn import LightBurnExporter  # noqa: E402
+from aruco_generator.core.aruco import ArUCOGenerator  # noqa: E402
+from aruco_generator.core.drawing import DrawingContext  # noqa: E402
+from aruco_generator.export.lightburn import LightBurnExporter  # noqa: E402
 
 
 class TestSVGExport:

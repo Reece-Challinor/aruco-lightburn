@@ -3,10 +3,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>web.py</name>
-    <version>3.4.0</version>
+    <version>3.5.0</version>
     <type>flask_web_module</type>
     <purpose>Main Flask API endpoints for ArUCO marker generation and management</purpose>
-    <last_updated>2026-02-07</last_updated>
+    <last_updated>2026-02-23</last_updated>
     <maintainer>ArUCO Generator Team</maintainer>
   </file_meta>
 
@@ -237,6 +237,7 @@ from flask import (
     send_file,
 )
 from sqlalchemy import text
+from werkzeug.utils import secure_filename
 
 from .. import __version__
 from ..core.aruco import ArUCOGenerator
@@ -253,6 +254,11 @@ web_bp = Blueprint("web", __name__)
 aruco_gen = ArUCOGenerator()
 lightburn_exporter = LightBurnExporter()
 logger = logging.getLogger(__name__)
+
+
+def _safe_filename(value: str, fallback: str) -> str:
+    safe_value = secure_filename(str(value))
+    return safe_value or fallback
 
 
 # Page routes
@@ -294,7 +300,7 @@ def get_dictionaries():
 @handle_api_errors
 def generate_preview():
     """Generate SVG preview of markers"""
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     params = validate_generation_params(data, list(aruco_gen.dictionaries.keys()))
 
     # Generate markers
@@ -366,7 +372,7 @@ def generate_preview():
 @handle_api_errors
 def download_lightburn():
     """Generate and download LightBurn file"""
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     params = validate_generation_params(data, list(aruco_gen.dictionaries.keys()))
 
     # Generate markers
@@ -411,7 +417,8 @@ def download_lightburn():
 
     # Generate filename
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"aruco_{params['dictionary']}_{params['rows']}x{params['cols']}_{timestamp}.lbrn2"
+    safe_dict = _safe_filename(params["dictionary"], "dictionary")
+    filename = f"aruco_{safe_dict}_{params['rows']}x{params['cols']}_{timestamp}.lbrn2"
 
     return send_file(
         io.BytesIO(lightburn_content),
@@ -425,7 +432,7 @@ def download_lightburn():
 @handle_api_errors
 def generate_advanced_preview():
     """Generate advanced preview with additional options"""
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     params = validate_generation_params(data, list(aruco_gen.dictionaries.keys()))
     from .advanced_web import build_advanced_preview
 
@@ -436,7 +443,7 @@ def generate_advanced_preview():
 def batch_generate():
     """Generate multiple sets of markers"""
     try:
-        data = request.get_json()
+        data = request.get_json(silent=True) or {}
 
         # Batch specific validation (keeping it simple here for now or could refactor too)
         sets = int(data.get("sets", 1))
@@ -541,7 +548,7 @@ def get_presets():
 @handle_api_errors
 def export_svg():
     """Export markers as SVG file"""
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     params = validate_generation_params(data, list(aruco_gen.dictionaries.keys()))
 
     # Generate markers with actual images
@@ -570,7 +577,8 @@ def export_svg():
 
     # Generate filename
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"aruco_{params['dictionary']}_{params['rows']}x{params['cols']}_{timestamp}.svg"
+    safe_dict = _safe_filename(params["dictionary"], "dictionary")
+    filename = f"aruco_{safe_dict}_{params['rows']}x{params['cols']}_{timestamp}.svg"
 
     return send_file(
         io.BytesIO(svg_content.encode("utf-8")),
@@ -589,7 +597,7 @@ def export_pdf():
 
         pdf_exporter = PDFExporter()
 
-        data = request.get_json()
+        data = request.get_json(silent=True) or {}
         params = validate_generation_params(data, list(aruco_gen.dictionaries.keys()))
 
         # Generate markers with actual images
@@ -612,7 +620,10 @@ def export_pdf():
         )
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"aruco_{params['dictionary']}_{params['rows']}x{params['cols']}_{timestamp}.pdf"
+        safe_dict = _safe_filename(params["dictionary"], "dictionary")
+        filename = (
+            f"aruco_{safe_dict}_{params['rows']}x{params['cols']}_{timestamp}.pdf"
+        )
 
         return send_file(
             io.BytesIO(pdf_content),
@@ -631,7 +642,7 @@ def export_pdf():
         )
     except Exception as e:
         logger.error(f"PDF Export failed: {e}")
-        raise e
+        raise
 
 
 @web_bp.route("/api/quick-test")

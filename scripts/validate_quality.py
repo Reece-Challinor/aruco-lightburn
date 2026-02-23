@@ -1,5 +1,17 @@
 #!/usr/bin/env python3
 """
+<!--
+<ai_agent_documentation>
+  <file_meta>
+    <name>validate_quality.py</name>
+    <version>1.1.0</version>
+    <type>tooling_script</type>
+    <purpose>Quick validation of marker generation quality and SVG integrity</purpose>
+    <last_updated>2026-02-23</last_updated>
+    <maintainer>ArUCO Generator Team</maintainer>
+  </file_meta>
+</ai_agent_documentation>
+-->
 Quick validation script to test ArUCO generation quality improvements.
 This ensures no line artifacts are present in generated markers.
 """
@@ -11,8 +23,8 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from aruco_generator.aruco import ArUCOGenerator  # noqa: E402
-from aruco_generator.drawing import DrawingContext  # noqa: E402
+from aruco_generator.core.aruco import ArUCOGenerator  # noqa: E402
+from aruco_generator.core.drawing import DrawingContext  # noqa: E402
 
 
 def test_single_marker_quality():

@@ -3,10 +3,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>test_api.py</name>
-    <version>1.4.0</version>
+    <version>1.5.0</version>
     <type>integration_test</type>
     <purpose>Verify API endpoints and export routes</purpose>
-    <last_updated>2026-02-08</last_updated>
+    <last_updated>2026-02-23</last_updated>
     <maintainer>ArUCO Generator Team</maintainer>
   </file_meta>
 </ai_agent_documentation>
@@ -16,22 +16,9 @@ Test suite for API endpoints
 
 import io
 import json
+from concurrent.futures import ThreadPoolExecutor
 
 import pytest
-
-from app import app, db
-
-
-@pytest.fixture
-def client():
-    """Create test client"""
-    app.config["TESTING"] = True
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
-
-    with app.test_client() as client:
-        with app.app_context():
-            db.create_all()
-        yield client
 
 
 def test_generate_preview(client):
@@ -217,6 +204,44 @@ def test_upload_invalid_image(client):
     data = response.get_json()
     assert data["success"] is False
     assert "error" in data
+
+
+def test_export_svg_empty_grid(client):
+    """Test export rejects empty grid requests."""
+    response = client.post(
+        "/api/export/svg",
+        json={
+            "dictionary": "4X4_50",
+            "rows": 0,
+            "cols": 1,
+            "size_mm": 20,
+            "spacing_mm": 5,
+        },
+    )
+    assert response.status_code == 400
+
+
+def _preview_request(app):
+    with app.test_client() as thread_client:
+        response = thread_client.post(
+            "/api/preview",
+            json={
+                "dictionary": "4X4_50",
+                "rows": 1,
+                "cols": 1,
+                "size_mm": 20,
+                "spacing_mm": 5,
+                "start_id": 0,
+            },
+        )
+        return response.status_code
+
+
+def test_concurrent_preview_requests(app):
+    """Test concurrent preview requests complete successfully."""
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        results = list(executor.map(lambda _: _preview_request(app), range(4)))
+    assert all(code == 200 for code in results)
 
 
 def test_upload_too_large(client):

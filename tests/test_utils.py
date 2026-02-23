@@ -3,10 +3,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>test_utils.py</name>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
     <type>unit_test</type>
     <purpose>Validate core utility helpers and error handling</purpose>
-    <last_updated>2026-02-08</last_updated>
+    <last_updated>2026-02-23</last_updated>
     <maintainer>ArUCO Generator Team</maintainer>
   </file_meta>
 </ai_agent_documentation>
@@ -23,7 +23,7 @@ from flask import Flask
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from aruco_generator.utils import (  # noqa: E402
+from aruco_generator.core.utils import (  # noqa: E402
     handle_api_errors,
     validate_generation_params,
 )

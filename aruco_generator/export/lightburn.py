@@ -1,8 +1,20 @@
 """
+<!--
+<ai_agent_documentation>
+  <file_meta>
+    <name>lightburn.py</name>
+    <version>1.1.0</version>
+    <type>export_module</type>
+    <purpose>Export ArUCO markers to LightBurn .lbrn2 format for laser cutting</purpose>
+    <last_updated>2026-02-23</last_updated>
+    <maintainer>ArUCO Generator Team</maintainer>
+  </file_meta>
+</ai_agent_documentation>
+-->
 {
   "file_type": "lightburn_exporter",
   "purpose": "Export ArUCO markers to LightBurn .lbrn2 format for laser cutting",
-  "last_updated": "2026-02-06",
+  "last_updated": "2026-02-23",
   "dependencies": ["xml.etree.ElementTree", "drawing.py"],
   "main_class": "LightBurnExporter",
   "key_methods": {
@@ -25,11 +37,14 @@
 }
 """
 
+import logging
 import xml.etree.ElementTree as ET
 from io import BytesIO
 from typing import Any, Dict
 
 from ..core.drawing import DrawingContext
+
+logger = logging.getLogger(__name__)
 
 
 class LightBurnExporter:
@@ -65,7 +80,7 @@ class LightBurnExporter:
                     custom_settings = json.load(f)
                     self.material_settings.update(custom_settings)
             except Exception as e:
-                print(f"Warning: Failed to load {self.materials_file}: {e}")
+                logger.warning("Failed to load %s: %s", self.materials_file, e)
 
         # Layer configuration with material-specific settings
         self.layer_settings = {

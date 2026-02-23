@@ -1,10 +1,10 @@
 # <ai_agent_documentation>
 #   <file_meta>
 #     <name>pyproject.toml</name>
-#     <version>1.1.0</version>
+#     <version>1.2.0</version>
 #     <type>build_config</type>
 #     <purpose>Project metadata and build configuration</purpose>
-#     <last_updated>2026-02-08</last_updated>
+#     <last_updated>2026-02-23</last_updated>
 #     <maintainer>ArUCO Generator Team</maintainer>
 #   </file_meta>
 # </ai_agent_documentation>
@@ -29,7 +29,6 @@ dependencies = [
     "pyyaml>=6.0.2",
     # Server
     "gunicorn>=23.0.0",
-    "pytest",
     "flask-login",
 ]
 
@@ -48,3 +47,18 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 include = ["aruco_generator*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "slow: Slow or resource-intensive tests",
+]
+addopts = "--strict-markers"
+
+[tool.coverage.run]
+source = ["aruco_generator", "app"]
+
+[tool.coverage.report]
+fail_under = 65

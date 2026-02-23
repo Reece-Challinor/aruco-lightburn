@@ -1,3 +1,15 @@
+# <!--
+# <ai_agent_documentation>
+#   <file_meta>
+#     <name>docker-compose.yml</name>
+#     <version>1.1.0</version>
+#     <type>container_orchestration</type>
+#     <purpose>Local Docker Compose stack for app + database services</purpose>
+#     <last_updated>2026-02-23</last_updated>
+#     <maintainer>ArUCO Generator Team</maintainer>
+#   </file_meta>
+# </ai_agent_documentation>
+# -->
 version: '3.8'
 
 services:
@@ -12,7 +24,7 @@ services:
     environment:
       - FLASK_APP=app.py
       - FLASK_ENV=production
-      - DATABASE_URL=postgresql://aruco:aruco_password@db:5432/aruco_db
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       # Fallback to SQLite if PostgreSQL is not available
       - SQLALCHEMY_DATABASE_URI=sqlite:///instance/aruco.db
     volumes:
@@ -39,9 +51,9 @@ services:
     image: postgres:15-alpine
     container_name: aruco-postgres
     environment:
-      - POSTGRES_USER=aruco
-      - POSTGRES_PASSWORD=aruco_password
-      - POSTGRES_DB=aruco_db
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:

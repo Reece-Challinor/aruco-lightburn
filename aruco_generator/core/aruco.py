@@ -3,10 +3,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>aruco.py</name>
-    <version>1.0.1</version>
+    <version>1.1.0</version>
     <type>core_generation_module</type>
     <purpose>Core ArUCO marker generation engine with OpenCV integration and fallback support</purpose>
-    <last_updated>2025-12-23</last_updated>
+    <last_updated>2026-02-23</last_updated>
     <maintainer>ArUCO Generator Team</maintainer>
   </file_meta>
 
@@ -277,8 +277,11 @@ Golden Path Usage:
 Dependencies: opencv-python (optional), numpy (required)
 Used By: web.py, drawing.py, calibration.py, advanced_web.py
 Author: ArUCO Generator Team
-Version: 1.0.1
+Version: 1.1.0
 """
+
+from datetime import datetime
+from typing import Any, Dict, List, Tuple, Union
 
 try:
     import cv2
@@ -291,8 +294,8 @@ except ImportError:
 
     OPENCV_AVAILABLE = False
 
-from datetime import datetime
-from typing import Any, Dict, List, Tuple, Union
+MAX_MARKER_PIXELS = 5000
+MAX_GRID_MARKERS = 10000
 
 
 class ArUCOGenerator:
@@ -500,6 +503,21 @@ class ArUCOGenerator:
         """
         if dict_name not in self.dictionaries:
             raise ValueError(f"Unknown dictionary: {dict_name}")
+        if size_pixels <= 0:
+            raise ValueError("Size must be positive")
+        if size_pixels > MAX_MARKER_PIXELS:
+            raise ValueError(
+                f"Marker size exceeds maximum of {MAX_MARKER_PIXELS} pixels"
+            )
+
+        dict_info = self.get_dictionary_info().get(dict_name)
+        if not dict_info:
+            raise ValueError(f"Unknown dictionary: {dict_name}")
+        max_markers = dict_info["max_markers"]
+        if marker_id < 0 or marker_id >= max_markers:
+            raise ValueError(
+                f"Marker ID must be between 0 and {max_markers - 1} for {dict_name}"
+            )
 
         dict_data = self.dictionaries[dict_name]
         if OPENCV_AVAILABLE and cv2 is not None and isinstance(dict_data, int):
@@ -565,10 +583,24 @@ class ArUCOGenerator:
         generate_images: bool = True,
     ) -> List[Dict[str, Any]]:
         """Generate grid of markers with positions"""
-        if (
-            rows * cols + start_id
-            > self.get_dictionary_info()[dict_name]["max_markers"]
-        ):
+        if rows <= 0 or cols <= 0:
+            raise ValueError("Rows and columns must be positive integers")
+        if size_mm <= 0:
+            raise ValueError("Marker size must be positive (in millimeters)")
+        if spacing_mm < 0:
+            raise ValueError("Spacing must be non-negative (in millimeters)")
+        if start_id < 0:
+            raise ValueError("Start ID must be non-negative")
+
+        total_markers = rows * cols
+        if total_markers > MAX_GRID_MARKERS:
+            raise ValueError(f"Grid size exceeds maximum of {MAX_GRID_MARKERS} markers")
+        if dict_name not in self.dictionaries:
+            raise ValueError(f"Unknown dictionary: {dict_name}")
+        dict_info = self.get_dictionary_info().get(dict_name)
+        if not dict_info:
+            raise ValueError(f"Unknown dictionary: {dict_name}")
+        if total_markers + start_id > dict_info["max_markers"]:
             raise ValueError(f"Too many markers requested for dictionary {dict_name}")
 
         markers = []
@@ -774,39 +806,88 @@ class ArUCOGenerator:
         self,
         squares_x: int = 5,
         squares_y: int = 7,
-        square_length: float = 0.04,
-        marker_length: float = 0.02,
+        square_size_mm: float | None = None,
+        marker_size_mm: float | None = None,
         dictionary: str = "4X4_50",
-    ) -> np.ndarray:
-        """Generate ChArUco board for camera calibration.
+        square_length: float | None = None,
+        marker_length: float | None = None,
+    ) -> Dict[str, Any]:
+        """Generate ChArUco board metadata and image for camera calibration.
 
         Args:
             squares_x: Number of chessboard squares in X direction
             squares_y: Number of chessboard squares in Y direction
-            square_length: Square side length (meters)
-            marker_length: Marker side length (meters)
+            square_size_mm: Square side length in millimeters
+            marker_size_mm: Marker side length in millimeters
             dictionary: ArUCO dictionary name
+            square_length: Legacy square size in meters (deprecated)
+            marker_length: Legacy marker size in meters (deprecated)
 
         Returns:
-            ChArUco board image as numpy array
+            Dict with board image, corners, marker IDs, and configuration
         """
+        if square_size_mm is None:
+            if square_length is not None:
+                square_size_mm = square_length * 1000.0
+            else:
+                square_size_mm = 30.0
+
+        if marker_size_mm is None:
+            if marker_length is not None:
+                marker_size_mm = marker_length * 1000.0
+            else:
+                marker_size_mm = 22.5
+
+        if squares_x < 2 or squares_y < 2:
+            raise ValueError("Squares X and Y must be at least 2")
+        if square_size_mm <= 0:
+            raise ValueError("Square size must be positive (in millimeters)")
+        if marker_size_mm <= 0:
+            raise ValueError("Marker size must be positive (in millimeters)")
+        if marker_size_mm >= square_size_mm:
+            raise ValueError("Marker size must be smaller than square size")
+
+        board_config = {
+            "grid_size": [squares_x, squares_y],
+            "square_size_mm": square_size_mm,
+            "marker_size_mm": marker_size_mm,
+            "dictionary": dictionary,
+        }
+
         if not OPENCV_AVAILABLE or cv2 is None:
-            # Fallback implementation
             size_pixels = 800
-            board = np.ones((size_pixels, size_pixels), dtype=np.uint8) * 255
-            return board
+            board_image = np.ones((size_pixels, size_pixels), dtype=np.uint8) * 255
+            marker_ids = list(range(((squares_x * squares_y) + 1) // 2))
+            corners_3d = [
+                [x * square_size_mm, y * square_size_mm, 0.0]
+                for y in range(squares_y - 1)
+                for x in range(squares_x - 1)
+            ]
+            return {
+                "board_image": board_image,
+                "corners_3d": corners_3d,
+                "marker_ids": marker_ids,
+                "board_config": board_config,
+            }
 
         if dictionary not in self.dictionaries:
             raise ValueError(f"Unknown dictionary: {dictionary}")
 
-        dict_id = self.dictionaries[dictionary]
-        aruco_dict = cv2.aruco.getPredefinedDictionary(dict_id)
-        board = cv2.aruco.CharucoBoard(
-            (squares_x, squares_y), square_length, marker_length, aruco_dict
+        from ..calibration import CalibrationPatternGenerator
+
+        calibration_gen = CalibrationPatternGenerator()
+        result = calibration_gen.generate_charuco_board(
+            squares_x=squares_x,
+            squares_y=squares_y,
+            square_size_mm=square_size_mm,
+            marker_size_mm=marker_size_mm,
+            dictionary=dictionary,
         )
+        calibration_data = result.get("calibration_data", {})
 
-        # Generate board image
-        img_size = (800, 800)
-        img = board.generateImage(img_size)
-
-        return img
+        return {
+            "board_image": result.get("image"),
+            "corners_3d": calibration_data.get("corner_positions", []),
+            "marker_ids": calibration_data.get("marker_ids", []),
+            "board_config": board_config,
+        }

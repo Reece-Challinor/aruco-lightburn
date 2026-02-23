@@ -3,10 +3,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>app.py</name>
-    <version>3.5.0</version>
+    <version>3.6.0</version>
     <type>flask_application_factory</type>
     <purpose>Main Flask application factory with database integration and route registration</purpose>
-    <last_updated>2026-02-08</last_updated>
+    <last_updated>2026-02-23</last_updated>
     <maintainer>ArUCO Generator Team</maintainer>
   </file_meta>
 
@@ -45,7 +45,7 @@
 
     <security_configuration>
       <session_management>
-        <secret_key>SESSION_SECRET environment variable</secret_key>
+        <secret_key>SESSION_SECRET environment variable (fallback for local dev)</secret_key>
         <security_headers>ProxyFix middleware for reverse proxy deployment</security_headers>
       </session_management>
       <middleware_stack>
@@ -64,7 +64,7 @@
     <module_imports>
       <module name="aruco_generator.web" purpose="Main API endpoints and page routes"/>
       <module name="aruco_generator.calibration_web" purpose="Camera calibration endpoints"/>
-      <module name="aruco_generator.advanced_web" purpose="Advanced features and validation"/>
+      <module name="aruco_generator.web.advanced_web" purpose="Advanced features and validation"/>
     </module_imports>
     <registration_pattern>
       <method>Import modules within app context to register routes</method>
@@ -77,7 +77,7 @@
     <production_deployment>
       <wsgi_server>Gunicorn (app:app)</wsgi_server>
       <database>PostgreSQL with connection pooling</database>
-      <environment_variables>DATABASE_URL, SESSION_SECRET required</environment_variables>
+      <environment_variables>DATABASE_URL, SESSION_SECRET required for production</environment_variables>
       <reverse_proxy>Nginx with HTTPS termination</reverse_proxy>
     </production_deployment>
     <development_deployment>
@@ -213,7 +213,14 @@ logger = logging.getLogger(__name__)
 def create_app() -> Flask:
     """Create and configure the Flask application."""
     app = Flask(__name__)
-    app.secret_key = os.environ.get("SESSION_SECRET")
+    session_secret = os.environ.get("SESSION_SECRET")
+    if not session_secret:
+        session_secret = "dev-insecure-key-change-me"
+        logger.warning(
+            "SESSION_SECRET not set; using insecure default. "
+            "Set SESSION_SECRET for production."
+        )
+    app.secret_key = session_secret
     app.config["APP_START_TIME"] = time.time()
     app.config["APP_VERSION"] = app_version
 
@@ -233,14 +240,10 @@ def create_app() -> Flask:
     app.config.setdefault("MAX_IMAGE_PIXELS", 20_000_000)
     app.config.setdefault("MAX_IMAGE_DIMENSION", 8000)
 
-    # Database configuration
-    db_url = os.environ.get("DATABASE_URL")
-    if not db_url or db_url == "sqlite:///aruco_generator.db":
-        app.config["SQLALCHEMY_DATABASE_URI"] = db_url or "sqlite:///aruco_generator.db"
-
     USE_DB = False
-    if os.environ.get("DATABASE_URL"):
-        app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+    db_url = os.environ.get("DATABASE_URL")
+    if db_url:
+        app.config["SQLALCHEMY_DATABASE_URI"] = db_url
         USE_DB = True
     elif os.environ.get("USE_SQLITE"):
         app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///aruco_generator.db"
@@ -255,6 +258,13 @@ def create_app() -> Flask:
         "pool_recycle": 300,
         "pool_pre_ping": True,
     }
+
+    @app.after_request
+    def add_security_headers(response):
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault("X-XSS-Protection", "1; mode=block")
+        return response
 
     # Attach request tracing and metrics
     init_observability(app)
@@ -303,9 +313,9 @@ def create_app() -> Flask:
         logger.info("Running in Stateless Mode (No Database Persistence)")
 
     # Import and register blueprints
-    from aruco_generator.advanced_web import advanced_bp
     from aruco_generator.calibration_web import calibration_bp
     from aruco_generator.web import web_bp
+    from aruco_generator.web.advanced_web import advanced_bp
 
     app.register_blueprint(web_bp)
     app.register_blueprint(calibration_bp)
