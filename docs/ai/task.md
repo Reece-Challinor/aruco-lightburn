@@ -2,7 +2,7 @@
 <ai_agent_documentation>
   <file_meta>
     <name>task.md</name>
-    <version>1.9.0</version>
+    <version>1.9.1</version>
     <type>task_tracker</type>
     <purpose>Track immediate engineering tasks for the active refactor</purpose>
     <last_updated>2026-02-23</last_updated>
@@ -18,6 +18,7 @@ Status: Complete (2026-02-23)
 ## Completed (2026-02-23)
 - Executed audit remediation phases 1-5 (deps, validation, tests, cleanup, CI/CD hardening).
 - Refreshed AI navigation map and documentation artifacts.
+- Updated pre-commit Python version and pytest-asyncio config to align local tooling.
 
 ## Completed
 - Tag release and merge branch after tests pass.

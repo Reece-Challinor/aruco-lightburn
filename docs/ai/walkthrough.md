@@ -2,7 +2,7 @@
 <ai_agent_documentation>
   <file_meta>
     <name>walkthrough.md</name>
-    <version>1.9.0</version>
+    <version>1.9.1</version>
     <type>delivery_report</type>
     <purpose>Summarize completed work, tests, and recommended commits</purpose>
     <last_updated>2026-02-23</last_updated>
@@ -21,6 +21,7 @@ Date: 2026-02-23
 - Centralized pytest fixtures, unskipped edge tests, and added concurrency/empty-grid coverage.
 - Removed compatibility shims, deduped drawing logic, and tightened DB exception handling.
 - Enforced coverage thresholds and aligned pre-commit/CI/Docker env hygiene.
+- Pre-commit now uses the system Python (`python3`) and pytest-asyncio warnings are silenced via config.
 
 ## Changes
 - `/Users/reecechallinor/Development/Projects/aruco/aruco-lightburn/pyproject.toml`: removed pytest from main deps; added pytest + coverage config.
@@ -44,7 +45,7 @@ Date: 2026-02-23
 - `make ci` (coverage 65.55% >= 65% threshold)
 
 Warnings:
-- PytestDeprecationWarning about `asyncio_default_fixture_loop_scope` being unset (from pytest-asyncio).
+- None (pytest-asyncio warning resolved via config).
 
 Warnings:
 - None.

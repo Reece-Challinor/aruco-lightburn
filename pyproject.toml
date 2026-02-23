@@ -1,7 +1,7 @@
 # <ai_agent_documentation>
 #   <file_meta>
 #     <name>pyproject.toml</name>
-#     <version>1.3.0</version>
+#     <version>1.4.0</version>
 #     <type>build_config</type>
 #     <purpose>Project metadata and build configuration</purpose>
 #     <last_updated>2026-02-23</last_updated>
@@ -56,6 +56,7 @@ markers = [
     "slow: Slow or resource-intensive tests",
 ]
 addopts = "--strict-markers"
+asyncio_default_fixture_loop_scope = "function"
 
 [tool.coverage.run]
 source = ["aruco_generator", "app"]
