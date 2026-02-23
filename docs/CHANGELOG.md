@@ -2,7 +2,7 @@
 <ai_agent_documentation>
   <file_meta>
     <name>CHANGELOG.md</name>
-    <version>1.2.0</version>
+    <version>1.3.0</version>
     <type>changelog</type>
     <purpose>Track user-facing changes and releases</purpose>
     <last_updated>2026-02-23</last_updated>
@@ -26,6 +26,12 @@ and this project adheres to Semantic Versioning.
 
 ### Removed
 - TBD
+
+## [2.5.1] - 2026-02-23
+### Changed
+- Pre-commit now uses system Python to avoid local 3.11 dependency.
+- Pytest-asyncio loop scope configured to silence deprecation warnings.
+- Import validation hook now adds repo root to Python path.
 
 ## [2.5.0] - 2026-02-23
 ### Added

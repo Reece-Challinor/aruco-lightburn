@@ -3,7 +3,7 @@
 <ai_agent_documentation>
   <file_meta>
     <name>__init__.py</name>
-    <version>1.3.0</version>
+    <version>1.4.0</version>
     <type>package_init</type>
     <purpose>ArUCO generator package initialization metadata</purpose>
     <last_updated>2026-02-23</last_updated>
@@ -30,5 +30,5 @@
 }
 """
 
-__version__ = "2.5.0"
+__version__ = "2.5.1"
 __author__ = "ArUCO Generator Team"

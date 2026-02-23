@@ -3,7 +3,7 @@
 <ai_agent_documentation>
   <file_meta>
     <name>validate_imports.py</name>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <type>tooling_script</type>
     <purpose>Validate critical module imports for pre-commit checks</purpose>
     <last_updated>2026-02-23</last_updated>
@@ -17,8 +17,11 @@ from __future__ import annotations
 
 import importlib
 import sys
+from pathlib import Path
 from typing import Iterable
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO_ROOT))
 
 MODULES: Iterable[str] = (
     "app",

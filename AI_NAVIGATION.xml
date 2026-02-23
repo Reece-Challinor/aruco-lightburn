@@ -3,7 +3,7 @@
 <ai_agent_documentation>
   <file_meta>
     <name>AI_NAVIGATION.xml</name>
-    <version>2.6.1</version>
+    <version>2.6.2</version>
     <type>navigation_map</type>
     <purpose>Authoritative map of code structure, key line references, and architecture</purpose>
     <last_updated>2026-02-23</last_updated>
@@ -11,10 +11,10 @@
   </file_meta>
 </ai_agent_documentation>
 -->
-<ai_navigation version="2.6.1" xmlns="http://aruco-lightburn.ai/navigation">
+<ai_navigation version="2.6.2" xmlns="http://aruco-lightburn.ai/navigation">
     <metadata>
         <project>ArUCO Generator for LightBurn</project>
-        <version>2.6.1</version>
+        <version>2.6.2</version>
         <description>Computer vision ArUCO marker generation with LightBurn laser cutting integration</description>
         <last_updated>2026-02-23</last_updated>
         <documentation_standard>Google/NumPy docstrings with ASCII diagrams</documentation_standard>

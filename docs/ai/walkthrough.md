@@ -2,7 +2,7 @@
 <ai_agent_documentation>
   <file_meta>
     <name>walkthrough.md</name>
-    <version>1.9.1</version>
+    <version>1.9.2</version>
     <type>delivery_report</type>
     <purpose>Summarize completed work, tests, and recommended commits</purpose>
     <last_updated>2026-02-23</last_updated>
@@ -16,6 +16,8 @@
 Date: 2026-02-23
 
 ## Summary
+- Released 2.5.1 to align pre-commit with system Python and silence pytest-asyncio warnings.
+- Fixed validate-imports hook to resolve repo modules without a virtualenv install.
 - Released 2.5.0 with audit remediation (validation, test infra, cleanup, CI hardening).
 - Added input bounds, JSON handling consistency, filename sanitization, and security headers.
 - Centralized pytest fixtures, unskipped edge tests, and added concurrency/empty-grid coverage.
@@ -41,11 +43,12 @@ Date: 2026-02-23
 - `/Users/reecechallinor/Development/Projects/aruco/aruco-lightburn/AI_NAVIGATION.xml`: refreshed line references post-refactor.
 
 ## Tests
+- Not run for 2.5.1 (config-only change).
 - `make validate`
-- `make ci` (coverage 65.55% >= 65% threshold)
+- `make ci` (coverage 65.55% >= 65% threshold) for 2.5.0 release.
 
 Warnings:
-- None (pytest-asyncio warning resolved via config).
+- None.
 
 Warnings:
 - None.
