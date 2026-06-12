@@ -16,12 +16,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy dependency files
-COPY pyproject.toml ./
-
-# Install Python dependencies
+# Install from the lockfile export (pinned + hash-verified, same manifest
+# Vercel uses) — reproducible builds, no resolver drift
+COPY requirements.txt ./
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -e .
+    pip install --no-cache-dir --require-hashes -r requirements.txt
 
 # Stage 2: Runtime - Minimal production image
 FROM python:3.11-slim

@@ -58,14 +58,14 @@ repos:
     hooks:
       - id: validate-imports
         name: Validate Python imports
-        entry: python3 scripts/validate_imports.py
+        entry: uv run python scripts/validate_imports.py
         language: system
         files: \.py$
         pass_filenames: false
 
       - id: check-generation-quality
         name: Check generation quality (no line artifacts)
-        entry: python3 -m pytest tests/test_generation_quality.py::TestGenerationQuality::test_no_line_artifacts_in_single_marker -xvs
+        entry: uv run python -m pytest tests/test_generation_quality.py::TestGenerationQuality::test_no_line_artifacts_in_single_marker -xvs
         language: system
         pass_filenames: false
         always_run: false
@@ -75,7 +75,7 @@ repos:
 
       - id: check-export-consistency
         name: Check export format consistency
-        entry: python3 -m pytest tests/test_export_formats.py::TestExportConsistency -xvs
+        entry: uv run python -m pytest tests/test_export_formats.py::TestExportConsistency -xvs
         language: system
         pass_filenames: false
         always_run: false
@@ -83,7 +83,7 @@ repos:
 
       - id: validate-marker-scaling
         name: Validate marker scaling preserves quality
-        entry: python3 -m pytest tests/test_generation_quality.py::TestGenerationQuality::test_scaling_preserves_quality -xvs
+        entry: uv run python -m pytest tests/test_generation_quality.py::TestGenerationQuality::test_scaling_preserves_quality -xvs
         language: system
         pass_filenames: false
         always_run: false
@@ -91,7 +91,7 @@ repos:
 
       - id: check-ui-smoke
         name: Check UI smoke tests
-        entry: python3 -m pytest tests/test_ui_pages.py -q
+        entry: uv run python -m pytest tests/test_ui_pages.py -q
         language: system
         pass_filenames: false
         always_run: false
@@ -99,7 +99,7 @@ repos:
 
       - id: check-api-smoke
         name: Check API smoke tests
-        entry: python3 -m pytest tests/test_api.py tests/test_api_endpoints.py -q
+        entry: uv run python -m pytest tests/test_api.py tests/test_api_endpoints.py -q
         language: system
         pass_filenames: false
         always_run: false

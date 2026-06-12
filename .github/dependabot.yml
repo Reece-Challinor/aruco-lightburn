@@ -1,0 +1,23 @@
+# <!--
+# <ai_agent_documentation>
+#   <file_meta>
+#     <name>dependabot.yml</name>
+#     <type>dependency_automation</type>
+#     <purpose>Weekly dependency update PRs for Python and GitHub Actions</purpose>
+#   </file_meta>
+# </ai_agent_documentation>
+# -->
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      python-deps:
+        patterns: ["*"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

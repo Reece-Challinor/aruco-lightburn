@@ -33,12 +33,24 @@ and this project adheres to Semantic Versioning.
 - Bandit pre-commit hook now also scans `app.py` and `api/`.
 
 ### Added
+- CodeQL (Python + JS) and Dependabot workflows; `make audit` (bandit + pip-audit).
+- `make release VERSION=x.y.z` — bumps every version location atomically
+  (`scripts/release.py`), ending multi-file version drift.
+- CI gate ensuring `requirements.txt` stays in sync with `uv.lock`
+  (`make check-requirements`).
 - Vercel serverless entry point (`api/index.py`) with modern `vercel.json` rewrites.
 - Pinned `requirements.txt` exported from `uv.lock` for the Vercel build.
 - `.vercelignore` to slim deployment uploads.
 - Production launch program plan (`docs/ai/implementation_plan.md`).
 
 ### Changed
+- All tooling now runs through uv (`uv.lock` is the single source of dependency
+  truth): Makefile, CI, pre-commit hooks, and Docker (installs from the pinned
+  hash-verified `requirements.txt` export).
+- CI tests Python 3.11 and 3.12; dev tools (mypy, pip-audit, bandit, isort,
+  pre-commit, reportlab) are declared in `[dependency-groups]`.
+- Upgraded Flask 3.1.1→3.1.3 and Werkzeug 3.1.3→3.1.8 (4 known CVEs fixed,
+  found by the new pip-audit gate).
 - Docker HEALTHCHECK now uses stdlib `urllib` against `/api/healthz` (previous
   check imported `requests`, which is not a dependency, so containers always
   reported unhealthy).

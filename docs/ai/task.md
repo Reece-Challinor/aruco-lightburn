@@ -34,10 +34,20 @@ Status: ACTIVE — Production Launch Program (see docs/ai/implementation_plan.md
 - Removed /api/debug/status; health no longer fingerprints host.
 - New tests/test_security.py (headers, CSP, secrets, disclosure, 429s); bandit scope widened.
 
+## Done (2026-06-12, Phase 3 — CI/CD + uv everywhere)
+- uv is the single dependency tool: Makefile, pre-commit hooks, CI, release.yml.
+- Dev deps moved to [dependency-groups]; mypy/pip-audit/bandit/isort declared.
+- New: make audit, typecheck, requirements, check-requirements, release,
+  deploy-preview/deploy-prod targets.
+- CI matrix (3.11 + 3.12) with uv cache + lockfile sync gate; CodeQL + Dependabot.
+- scripts/release.py bumps all version locations atomically.
+- Dockerfile installs from hash-verified requirements.txt (reproducible).
+- pip-audit found + fixed 4 CVEs (Flask 3.1.3, Werkzeug 3.1.8).
+
 ## Next up
 - [ ] aruco.tools DNS at Namecheap (PM action — see plan).
 - [ ] Disable Deployment Protection for production (PM action).
-- [ ] Phase 3: CI/CD + uv everywhere.
+- [ ] Phase 4: code quality (shim removal, mypy, preview cap).
 
 ## Previous cycle (2026-02-23, complete)
 Archived — see git history of this file and docs/ai/walkthrough.md.
