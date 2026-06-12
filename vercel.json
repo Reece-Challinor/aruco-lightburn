@@ -1,38 +1,23 @@
 {
-  "builds": [
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "headers": [
     {
-      "config": {
-        "maxLambdaSize": "15mb",
-        "runtime": "python3.11"
-      },
-      "src": "app.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "static/**",
-      "use": "@vercel/static"
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ],
+      "source": "/static/(.*)"
     }
   ],
-  "env": {
-    "FLASK_APP": "app.py",
-    "FLASK_ENV": "production",
-    "PYTHONUNBUFFERED": "1"
-  },
   "regions": [
     "iad1"
   ],
-  "routes": [
+  "rewrites": [
     {
-      "dest": "/static/$1",
-      "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
-      },
-      "src": "/static/(.*)"
-    },
-    {
-      "dest": "app.py",
-      "src": "/(.*)"
+      "destination": "/api/index",
+      "source": "/(.*)"
     }
-  ],
-  "version": 2
+  ]
 }

@@ -1,0 +1,16 @@
+tests/
+docs/
+htmlcov/
+.github/
+.claude/
+scripts/
+Dockerfile
+docker-compose.yml
+Makefile
+.pre-commit-config.yaml
+.dockerignore
+.env.example
+uv.lock
+aruco_generator.egg-info/
+*.md
+!README.md

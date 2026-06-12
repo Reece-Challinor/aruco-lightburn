@@ -2,118 +2,234 @@
 <ai_agent_documentation>
   <file_meta>
     <name>implementation_plan.md</name>
-    <version>1.3.0</version>
+    <version>2.0.0</version>
     <type>plan_document</type>
-    <purpose>Approved refactor execution plan and validation gates</purpose>
-    <last_updated>2026-02-23</last_updated>
-    <maintainer>Codex (Senior CV Engineer)</maintainer>
+    <purpose>Production launch program: scorecard-to-A plan, Vercel-first deployment, aruco.tools</purpose>
+    <last_updated>2026-06-12</last_updated>
+    <maintainer>Claude (Senior Engineer) + Reece (PM)</maintainer>
   </file_meta>
 </ai_agent_documentation>
 -->
 
-# Implementation Plan - ArUCO Generator Refactor
+# Production Launch Program — ArUCO.tools
 
-Status: Updated on 2026-02-23 for audit remediation phases (1-5)
+Status: ACTIVE (started 2026-06-12). Supersedes the 2026-02 audit-remediation plan
+(see git history for the completed phases 1-11 of the previous refactor).
 
-## 2026-02-23 Audit Remediation (Phases 1-5)
-- Phase 1: Critical fixes (dependency cleanup, secret fallback warnings, logging updates).
-- Phase 2: Input validation + safety (bounds checks, JSON handling, filename sanitization, security headers).
-- Phase 3: Test infrastructure (shared fixtures, unskipped edge tests, baseline coverage gates).
-- Phase 4: Cleanup (remove compatibility shims, dedupe drawing logic, tighten exception handling).
-- Phase 5: CI/CD hardening (coverage enforcement, Makefile fixes, pre-commit alignment, Docker env hygiene).
+## Mission
 
-## Scope
-Implement phases 0-4 from the audit plan while preserving working behavior, with compatibility shims where needed.
-Extend scope to refactor calibration and advanced generation workflows for export-ready persistence and UX consistency.
+Launch this repo as a free, public demo product at **https://aruco.tools** —
+a portfolio-grade example of computer-vision product tooling (ArUCO markers,
+ChArUco calibration boards, AprilTags, laser-cutter export). No accounts, no
+payments. Team: Reece (PM) + Claude (engineering).
 
-## Phases
+Goal: every category in the production-readiness scorecard at **A− or better**.
 
-### Phase 0: Safety Rails
-- Add export snapshots/golden-file tests (SVG + LightBurn + advanced exports).
-- Add smoke tests for advanced endpoints.
-- Establish validation gates via `make validate`.
+| Category | Was | Target | Phase |
+|---|---|---|---|
+| Deployment | D | A | 1 (largely done) |
+| Security | C | A− | 2 |
+| CI/CD | B | A | 3 |
+| Dependencies | C+ | A | 3 |
+| Code quality | B+ | A | 4 |
+| Testing | B+ | A− | 5 |
+| Observability | C+ | A− | 6 |
+| Documentation / AI tooling | B / B− | A− | 7 |
+| Product polish | — | launch-ready | 8 |
 
-### Phase 1: Cleanup
-- Remove tracked logs, pid files, caches, and generated artifacts.
-- Extend `.gitignore` for pid files.
+## Architecture decision (locked)
 
-### Phase 2: Structure
-- Introduce subpackages: core, export, web, calibration, validation, db.
-- Move canonical implementations to new locations.
-- Remove legacy module shims once imports are updated (2026-02-23).
-- Align entrypoints (Makefile/Docker/Vercel).
+- **Primary target: Vercel** — project `reece-challinors-projects/aruco-lightburn`,
+  GitHub repo connected. Python functions (500 MB bundle limit) hold full
+  OpenCV; validated live on 2026-06-12 (`/api/health` → opencv 4.11.0,
+  `/api/preview` → working SVG).
+- **Entry**: `api/index.py` re-exports the Flask `app`; `vercel.json` rewrites
+  all routes to it. Pinned `requirements.txt` exported from `uv.lock`.
+- **Default runtime mode**: stateless (in-memory SQLite, `USE_DB=False`) —
+  perfect fit for serverless. Postgres (Neon/Vercel Postgres) only if a
+  persistence feature ever justifies it.
+- **Docker stays** as the self-host distribution path only (healthcheck fixed
+  2026-06-12). docker-compose remains for local Postgres testing.
+- **Replit: removed** (2026-06-12). Never reference it again.
 
-### Phase 3: Export + Advanced + Calibration Fixes
-- Route LightBurn export through `DrawingContext.add_marker_grid` to preserve marker bit patterns.
-- Fix/alias advanced preview endpoint and remove broken calls (`to_svg`).
-- Add DB-safe guards for advanced metrics when running in stateless mode.
+## Phase 1 — Deployment foundation (mostly DONE 2026-06-12)
 
-### Phase 4: Packaging + Release Hygiene
-- Single source of truth for version (pyproject.toml).
-- Sync README, __init__, and AI_NAVIGATION metadata.
-- Add missing docs referenced in AI_NAVIGATION (`docs/ai/NAVIGATION.md`, `docs/ai/ERROR_HANDLING.md`, etc.).
+Done:
+- [x] Fixed Docker HEALTHCHECK (stdlib urllib → `/api/healthz`).
+- [x] Deleted `.replit`; zero Replit references remain.
+- [x] Created + linked Vercel project; GitHub repo connected.
+- [x] Modern `vercel.json` (rewrites, static cache headers, iad1); removed
+      legacy 15 MB `maxLambdaSize` config that made deploys impossible.
+- [x] `api/index.py` serverless entry; `.vercelignore`.
+- [x] `requirements.txt` pinned+hashed via `uv export` (kept in sync with
+      `uv.lock` — see Phase 3 automation).
+- [x] First deploy validated end-to-end (health + generation pipeline).
 
-### Phase 5: Calibration + Advanced UX Refactor
-- Persist AprilTag single patterns in the database for export parity.
-- Normalize calibration API response shape across pattern types.
-- Replace inline handlers on calibration page with managed UI controller.
-- Add advanced export controls with isolated state from simple generation.
-- Deduplicate advanced preview logic and validation across endpoints.
-- Support DXF/STL exports from generation parameters for advanced flows.
-- Add PDF outer-border rendering option for advanced exports.
-- Move calibration-specific styles to a dedicated stylesheet.
+Remaining:
+- [ ] **Domain: aruco.tools** (owned at Namecheap). Recommended setup:
+      delegate nameservers to Vercel (`ns1.vercel-dns.com`, `ns2.vercel-dns.com`)
+      in the Namecheap dashboard — simplest apex handling, lets Vercel manage
+      all records. Alternative (keep Namecheap DNS): add the A/CNAME records
+      shown by `vercel domains inspect aruco.tools` after
+      `vercel domains add aruco.tools`. Then:
+      - `aruco.tools` → production deployments
+      - `www.aruco.tools` → redirect to apex (Vercel automatic)
+      - `staging.aruco.tools` → branch domain mapped to `staging` branch
+      SSL: automatic Let's Encrypt issuance + renewal by Vercel; HSTS header
+      added in Phase 2. DNS propagation: allow up to 48h after NS change.
+- [ ] Disable Vercel Deployment Protection for production (free public tool);
+      keep it on preview deployments (Project → Settings → Deployment Protection).
+- [ ] Set `SESSION_SECRET` in Vercel env (production + preview):
+      `openssl rand -hex 32 | vercel env add SESSION_SECRET production`.
 
-### Phase 6: Continuous Testing + CI Hygiene
-- Expand UI smoke coverage and wire into CI and pre-commit hooks.
-- Update Makefile targets to align local + CI workflows.
-- Add deployment checklist and release hygiene updates.
-- Expand unit-test coverage for calibration, utility, and navigation suites.
-- Add API smoke pre-commit hook and XML coverage output for CI uploads.
+## Environments & promotion model
 
-### Phase 7: Validation + Import/Export Consolidation
-- Replace simulated detection with real marker detection service.
-- Add calibration data import workflow with preview + persistence support.
-- Provide consolidated calibration export bundles (image + YAML/JSON/ROS).
-- Add lightweight DB schema guardrails for legacy columns.
+Trunk-based, two-person team:
 
-### Phase 8: Calibration + Validation Production Hardening
-- Unify API response envelope for calibration + validation endpoints (`success`, `data`, `errors`, `warnings`, `request_id`, `timestamp`, `version`).
-- Standardize error handling for all advanced/validation endpoints (use shared decorator, preserve HTTPException codes).
-- Add explicit OpenCV availability checks and return 503 with actionable guidance.
-- Enforce request validation with per-field error feedback and consistent unit handling.
-- Introduce file upload limits, MIME/type validation, and image dimension safeguards.
-- Normalize detection/quality metrics schema (rate vs percent, time units, consistent keys across report + batch).
-- Implement or remove unused request flags (`include_distortions`, `include_occlusions`) to keep API honest.
-- Improve DB resilience: add indexes, constraints, and persistence status messaging for stateless mode.
-- Add request/response tracing metadata in JSON responses to mirror header request IDs.
-- Build API warnings for partial persistence (DB disabled) and export limitations.
+| Env | Trigger | URL | Purpose |
+|---|---|---|---|
+| Preview | every PR / branch push | `aruco-lightburn-<hash>...vercel.app` | dev review, protected |
+| Staging | push to `staging` branch | `staging.aruco.tools` | PM demo / pre-release validation |
+| Production | push to `main` | `aruco.tools` | public |
 
-### Phase 9: Validation + Calibration UX Upgrade
-- Move validation inline CSS into a dedicated stylesheet with shared tokens.
-- Add per-field error display and inline validation hints on calibration form.
-- Surface API warnings and request IDs in UI for supportability.
-- Render real metrics from API instead of static placeholders.
-- Add export states and guidance when DB persistence is disabled.
+- Vercel Git integration performs the deploys (no deploy keys in CI).
+- GitHub branch protection on `main` (Reece enables in repo settings):
+  require the CI workflow check + up-to-date branch before merge. This is
+  the gate that keeps unvetted code off production.
+- Rollback: `vercel rollback` (or promote a previous deployment in the
+  dashboard) — instant, immutable deployments.
+- Staging promotion: `git push origin main:staging` to rehearse, or open a
+  PR `main → staging` for visible diffs. For most changes, PR previews are
+  enough; staging is for release-candidate sign-off.
 
-### Phase 10: Test + QA Expansion
-- Add API tests for error schema, 404 handling, and file upload limits.
-- Add unit tests for detection report aggregation and metric normalization.
-- Add UI smoke tests for new validation controls and error surfacing.
-- Add integration tests for upload error paths (invalid images, oversized files).
+## Phase 2 — Security to A− (~1 day)
 
-### Phase 11: Documentation + Release Hygiene
-- Update `docs/ai/ERROR_HANDLING.md` with the new API error schema and examples.
-- Refresh `docs/ai/NAVIGATION.md` and AI_NAVIGATION references if endpoints shift.
-- Update `docs/ai/walkthrough.md` with summaries and test logs after implementation.
+1. **XSS purge**: replace the 11 `innerHTML` sinks in
+   `static/js/pages/{generate,calibration,validation}.js` and
+   `static/js/core/notifications.js` with `textContent`/`createElement`
+   builders; add `escapeHtml()` helper in `core/api.js` for the few places
+   markup is genuinely needed (SVG preview injection stays — it is
+   server-generated, but sanitize the error-message paths).
+2. **Headers** (in `app.py` `add_security_headers`): add
+   `Content-Security-Policy` (self + cdn.jsdelivr.net with SRI, or vendor
+   Bootstrap locally — preferred for a stricter CSP),
+   `Strict-Transport-Security` (aruco.tools is HTTPS-only),
+   `Referrer-Policy: strict-origin-when-cross-origin`,
+   `Permissions-Policy` minimal.
+3. **Secret hardening**: in `create_app()`, raise `RuntimeError` if
+   `SESSION_SECRET` is unset when running on Vercel (`VERCEL_ENV` set) or
+   `FLASK_ENV=production`. Keep the warning fallback for local dev only.
+4. **Surface reduction**: delete `/api/debug/status`; drop
+   `platform.platform()` + Python version from unauthenticated `/api/health`.
+5. **Rate limiting**: Flask-Limiter (memory storage — per-instance is
+   acceptable for a free demo) on `/api/preview`, `/api/download`,
+   `/api/batch_generate`, `/api/validation/detect`, `/api/log-error`.
+   Document Vercel WAF as the escalation path.
+6. **Supply chain**: SRI hashes on any remaining CDN tags; widen bandit to
+   `app.py` + medium severity; add `pip-audit` to CI and pre-commit.
 
-## Documentation Deliverables
-- Update AI_NAVIGATION line references impacted by refactor.
-- Refresh file-level `<ai_agent_documentation>` headers for modified files.
-- Create `docs/ai/walkthrough.md` with change summary, tests, and commit log.
+## Phase 3 — CI/CD + dependencies to A (~1 day)
 
-## Validation Gates
-- `make validate` after structural changes.
-- Targeted pytest for export endpoints and advanced routes.
+1. **uv everywhere**: Makefile `install`/`install-dev` use
+   `uv sync` / `uv sync --group dev`; CI uses `astral-sh/setup-uv` with cache;
+   Dockerfile builder stage uses `uv sync --locked --no-dev`. Commit `uv.lock`
+   as the single source of dependency truth.
+2. **pyproject**: move all dev tools (isort, pre-commit, bandit, reportlab,
+   mypy, pip-audit) into `[dependency-groups] dev`; pin `flask-login>=0.6.3`
+   (or remove it + the vestigial `User` model — decision: remove, no auth in
+   a free demo).
+3. **ci.yml**: Python 3.11 + 3.12 matrix, uv-cached installs, `make validate`,
+   coverage gate, `concurrency: cancel-in-progress`, junit artifact upload.
+4. **requirements.txt sync gate**: CI step fails if
+   `uv export --no-dev --no-emit-project` differs from the committed
+   `requirements.txt` (keeps the Vercel manifest honest).
+5. **New workflows**: `codeql.yml` (python + javascript), `dependabot.yml`
+   (pip + github-actions, weekly).
+6. **Release automation**: `scripts/release.py` + `make release VERSION=x.y.z`
+   bumps pyproject, CHANGELOG scaffold, AI_NAVIGATION version, tags — kills
+   the multi-file version-drift problem permanently. `release.yml` keeps
+   validating tag == pyproject version.
+7. **Makefile/pre-commit refresh**: targets for `audit` (pip-audit + bandit),
+   `typecheck` (mypy), `deploy-preview` (`vercel deploy`), `deploy-prod`
+   (`vercel deploy --prod`, normally unused — Git integration deploys);
+   pre-commit gains mypy (changed files), pip-audit (weekly via CI not
+   pre-commit), and drops nothing existing.
 
-## Rollback Strategy
-- Each phase is isolated by commit; revert the specific phase commit if needed.
+## Phase 4 — Code quality to A (~0.5 day)
+
+1. Finish the shim migration: `app.py` imports from `aruco_generator.db.*`
+   and `aruco_generator.web.calibration_web` directly; delete all five shim
+   modules (`exporters.py`, `models.py`, `extensions.py`, `calibration_web.py`,
+   `validation_web.py`).
+2. `mypy` (gradual): strict on `core/` + `export/`, permissive elsewhere;
+   wire into `make validate`.
+3. Replace `debug=True` in `app.py` `__main__` with
+   `debug=os.environ.get("FLASK_DEBUG") == "1"`.
+4. Cap preview render resolution in `DrawingContext` to bound the
+   rectangle-merge hotspot (`drawing.py:234`).
+
+## Phase 5 — Testing to A− (~1 day)
+
+1. Raise coverage floor 65 → 75 (then 80 after #2): pyproject + Makefile.
+2. Target the gap: `web/calibration_web.py` (1,068 lines, thinnest coverage).
+3. Security regression tests: header presence, escaping helpers, upload
+   abuse (wrong MIME, oversized, decompression bomb dims), rate-limit 429s.
+4. Resolve the two skipped "LightBurn coordinate/layer refinement" tests:
+   fix or convert to `xfail` with linked GitHub issues — no silent skips.
+5. Response-envelope contract tests (jsonschema) for `/api/*`.
+
+## Phase 6 — Observability to A− (~0.5 day)
+
+1. Structured JSON logging when `VERCEL_ENV`/`LOG_FORMAT=json` (request_id,
+   path, status, duration) — greppable in Vercel log viewer; add a Log Drain
+   later if needed.
+2. Make `/api/health` serverless-aware (per-instance metrics labeled as such;
+   drop uptime claims on Vercel).
+3. Optional Sentry (free tier) via `SENTRY_DSN` env — error tracking with
+   request IDs; no-op when unset.
+4. Uptime check on `https://aruco.tools/api/healthz` (UptimeRobot free).
+5. Enable Vercel Web Analytics (free, privacy-friendly) for PM usage insight.
+
+## Phase 7 — Documentation & AI tooling to A− (~1 day)
+
+1. **Version single-sourcing**: `__init__.py` reads
+   `importlib.metadata.version("aruco-generator")`; remove version claims
+   from CLAUDE.md, AGENTS.md, README badge; release script owns the rest.
+2. **Symbol anchors**: AI_NAVIGATION.xml drops line numbers for
+   `symbol="Class.method"` references; add `scripts/validate_docs.py` to CI:
+   every referenced file/symbol exists, endpoint list matches `app.url_map`.
+3. **Consolidate**: CLAUDE.md + AGENTS.md become thin protocol files pointing
+   at one navigation map; merge docs/ai/NAVIGATION.md into it; archive
+   completed task.md/walkthrough.md cycles to docs/ai/archive/.
+4. **Trim per-file XML headers** to ≤8 lines (name, purpose, gotchas); drop
+   per-file version fields (git is the history). `app.py` header: 190 → ~8.
+5. **Product docs**: README rewritten as product front door (live URL, what
+   it does, screenshots, "built by a CV PM with Claude" story); docs page
+   gets an API reference (endpoints, params, envelope schema); CONTRIBUTING.md.
+6. Update AGENTS.md deployment section: Vercel-only, aruco.tools, staging
+   model above; delete Vercel-legacy/Replit references in docs/devops/.
+
+## Phase 8 — Product launch polish (~0.5 day + PM input)
+
+- Home page copy + OG/meta tags + favicon; "free & open source" positioning.
+- GitHub repo: description, topics, social card, link to aruco.tools.
+- Feedback channel: GitHub Issues link in footer.
+- Launch checklist: domain live, SSL valid, analytics on, uptime monitor on,
+  README badges green, `vercel rollback` rehearsed once.
+
+## Sequencing & effort
+
+Total ≈ 5-6 focused days. Order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8.
+Phases 2+3 are the gate for making aruco.tools public (don't point the domain
+at production until the XSS/CSP/secret work lands). Phases 4-7 can land as
+independent PRs, each through the preview→main pipeline.
+
+## Reece's (PM) action items — things only you can do
+
+1. Namecheap: switch aruco.tools nameservers to Vercel (or add the records
+   `vercel domains add aruco.tools` prints).
+2. GitHub repo settings: enable branch protection on `main` (require CI).
+3. Vercel dashboard: disable Deployment Protection for production; confirm
+   Web Analytics on.
+4. Decide: keep `staging.aruco.tools` branch domain, or live with PR previews
+   only (recommendation: add staging later, previews suffice for now).

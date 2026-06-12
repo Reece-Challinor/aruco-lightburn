@@ -63,9 +63,9 @@ USER aruco
 # Expose port
 EXPOSE 5000
 
-# Health check
+# Health check (stdlib only — `requests` is not an app dependency)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:5000/', timeout=5)"
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:5000/api/healthz', timeout=5)"
 
 # Run the application with gunicorn
 CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--threads", "2", "--timeout", "60", "app:app"]

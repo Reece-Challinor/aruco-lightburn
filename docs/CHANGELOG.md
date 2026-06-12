@@ -19,13 +19,19 @@ and this project adheres to Semantic Versioning.
 
 ## [Unreleased]
 ### Added
-- TBD
+- Vercel serverless entry point (`api/index.py`) with modern `vercel.json` rewrites.
+- Pinned `requirements.txt` exported from `uv.lock` for the Vercel build.
+- `.vercelignore` to slim deployment uploads.
+- Production launch program plan (`docs/ai/implementation_plan.md`).
 
 ### Changed
-- TBD
+- Docker HEALTHCHECK now uses stdlib `urllib` against `/api/healthz` (previous
+  check imported `requests`, which is not a dependency, so containers always
+  reported unhealthy).
+- Replaced legacy Vercel config (15 MB `maxLambdaSize` made deploys impossible).
 
 ### Removed
-- TBD
+- Replit support (`.replit`) — deployment is Vercel-first with Docker for self-hosting.
 
 ## [2.5.1] - 2026-02-23
 ### Changed
