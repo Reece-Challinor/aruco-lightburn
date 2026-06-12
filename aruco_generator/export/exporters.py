@@ -193,7 +193,9 @@ class ProfessionalExporter:
         return json.dumps(ros_data, indent=2)
 
     def export_dxf(
-        self, calibration_data: Dict[str, Any], markers_data: List[Dict] = None
+        self,
+        calibration_data: Dict[str, Any],
+        markers_data: Optional[List[Dict]] = None,
     ) -> BytesIO:
         """Export to DXF format for CNC/laser cutting."""
         dxf_content = []

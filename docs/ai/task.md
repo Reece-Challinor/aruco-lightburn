@@ -44,10 +44,15 @@ Status: ACTIVE — Production Launch Program (see docs/ai/implementation_plan.md
 - Dockerfile installs from hash-verified requirements.txt (reproducible).
 - pip-audit found + fixed 4 CVEs (Flask 3.1.3, Werkzeug 3.1.8).
 
+## Done (2026-06-12, Phase 4 — code quality)
+- Removed all five legacy shim modules; app.py + web.py import subpackages directly.
+- mypy green on core/ + export/, wired into make validate.
+- MAX_MARKER_PIXELS 5000→2000 (bounds rectangle-merge worst case).
+
 ## Next up
 - [ ] aruco.tools DNS at Namecheap (PM action — see plan).
 - [ ] Disable Deployment Protection for production (PM action).
-- [ ] Phase 4: code quality (shim removal, mypy, preview cap).
+- [ ] Phase 5: testing (coverage floor, calibration_web tests).
 
 ## Previous cycle (2026-02-23, complete)
 Archived — see git history of this file and docs/ai/walkthrough.md.

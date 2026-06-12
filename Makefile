@@ -211,7 +211,7 @@ deploy-prod:
 	vercel deploy --prod --yes
 
 # Quick validation of setup
-validate: format-check lint test test-qa
+validate: format-check lint typecheck test test-qa
 	@echo "Validation complete! Code is clean and tests pass."
 
 # Full CI/CD simulation with quality checks

@@ -58,6 +58,12 @@ and this project adheres to Semantic Versioning.
 
 ### Removed
 - Replit support (`.replit`) — deployment is Vercel-first with Docker for self-hosting.
+- Legacy compatibility shims (`aruco_generator/{exporters,models,extensions,calibration_web,validation_web}.py`) — import from subpackages directly.
+
+### Fixed
+- mypy now passes on `core/` and `export/` and is part of `make validate`.
+- `MAX_MARKER_PIXELS` lowered 5000→2000 to bound the superlinear rectangle-merge
+  cost (vector output quality unaffected; web flows use the 200px default).
 
 ## [2.5.1] - 2026-02-23
 ### Changed

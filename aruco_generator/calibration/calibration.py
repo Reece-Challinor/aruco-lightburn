@@ -592,12 +592,12 @@ class CalibrationPatternGenerator:
             }
 
         # Perform calibration
-        ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(
+        ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(  # type: ignore[call-overload]
             objpoints, imgpoints, image_size, None, None
         )
 
         # Calculate re-projection error
-        mean_error = 0
+        mean_error = 0.0
         for i in range(len(objpoints)):
             imgpoints2, _ = cv2.projectPoints(
                 objpoints[i], rvecs[i], tvecs[i], mtx, dist
@@ -707,7 +707,7 @@ class CalibrationPatternGenerator:
 
     def export_ros_format(self, calibration_data: Dict[str, Any]) -> Dict[str, Any]:
         """Export calibration data in ROS-compatible format."""
-        ros_data = {
+        ros_data: Dict[str, Any] = {
             "header": {
                 "stamp": datetime.now().isoformat(),
                 "frame_id": "camera_optical_frame",
