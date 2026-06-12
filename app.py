@@ -200,6 +200,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 
 from aruco_generator import __version__ as app_version
 from aruco_generator.core.observability import init_observability
+from aruco_generator.core.rate_limit import limiter
 from aruco_generator.core.utils import build_error_payload
 from aruco_generator.extensions import db
 
@@ -213,8 +214,17 @@ logger = logging.getLogger(__name__)
 def create_app() -> Flask:
     """Create and configure the Flask application."""
     app = Flask(__name__)
+    is_production = (
+        os.environ.get("VERCEL_ENV") == "production"
+        or os.environ.get("FLASK_ENV") == "production"
+    )
     session_secret = os.environ.get("SESSION_SECRET")
     if not session_secret:
+        if is_production:
+            raise RuntimeError(
+                "SESSION_SECRET must be set in production. "
+                "Generate one with: openssl rand -hex 32"
+            )
         session_secret = "dev-insecure-key-change-me"
         logger.warning(
             "SESSION_SECRET not set; using insecure default. "
@@ -259,15 +269,57 @@ def create_app() -> Flask:
         "pool_pre_ping": True,
     }
 
+    csp = (
+        "default-src 'self'; "
+        "script-src 'self'; "
+        "style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data: blob:; "
+        "font-src 'self'; "
+        "connect-src 'self'; "
+        "object-src 'none'; "
+        "base-uri 'self'; "
+        "form-action 'self'; "
+        "frame-ancestors 'none'"
+    )
+
     @app.after_request
     def add_security_headers(response):
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
         response.headers.setdefault("X-Frame-Options", "DENY")
-        response.headers.setdefault("X-XSS-Protection", "1; mode=block")
+        response.headers.setdefault("Content-Security-Policy", csp)
+        response.headers.setdefault(
+            "Strict-Transport-Security", "max-age=31536000; includeSubDomains"
+        )
+        response.headers.setdefault(
+            "Referrer-Policy", "strict-origin-when-cross-origin"
+        )
+        response.headers.setdefault(
+            "Permissions-Policy", "camera=(), microphone=(), geolocation=()"
+        )
         return response
 
     # Attach request tracing and metrics
     init_observability(app)
+
+    # Rate limiting (memory storage; per-instance on serverless, per-worker
+    # under Gunicorn — see aruco_generator/core/rate_limit.py).
+    # RATELIMIT_ENABLED must be resolved before init_app; the test suite
+    # disables it via the environment.
+    app.config.setdefault(
+        "RATELIMIT_ENABLED", os.environ.get("RATELIMIT_ENABLED", "1") != "0"
+    )
+    limiter.init_app(app)
+
+    @app.errorhandler(429)
+    def handle_rate_limit(error):  # type: ignore[override]
+        if request.path.startswith("/api/"):
+            payload = build_error_payload(
+                "Too many requests. Please slow down and try again shortly.",
+                429,
+                "rate_limited",
+            )
+            return payload, 429
+        return error
 
     @app.errorhandler(RequestEntityTooLarge)
     def handle_large_request(error):  # type: ignore[override]
@@ -330,4 +382,10 @@ app = create_app()
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    # Local development only — production runs under Gunicorn (app:app) or
+    # Vercel (api/index.py). Debug and non-localhost binding are opt-in.
+    app.run(
+        host=os.environ.get("FLASK_RUN_HOST", "127.0.0.1"),
+        port=int(os.environ.get("PORT", "5000")),
+        debug=os.environ.get("FLASK_DEBUG") == "1",
+    )

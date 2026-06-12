@@ -135,6 +135,11 @@
                     <key_features>Request ID propagation, error-rate warning, latency tracking</key_features>
                 </submodule>
 
+                <submodule name="rate_limit" file="core/rate_limit.py">
+                    <description>Shared Flask-Limiter instance (memory storage; per-instance on serverless)</description>
+                    <key_features>Per-endpoint limits on generation/export/upload/log endpoints; disabled in tests via RATELIMIT_ENABLED=0</key_features>
+                </submodule>
+
                 <submodule name="advanced_web" file="web/advanced_web.py">
                     <description>Advanced API endpoints with 3D coordinates and validation</description>
                     <endpoints>
@@ -179,7 +184,7 @@
         </module>
 
         <module name="frontend" type="web_assets" path="static/">
-            <description>Frontend JavaScript and CSS for user interface</description>
+            <description>Frontend JavaScript and CSS for user interface. All third-party assets are vendored in static/vendor/ (no CDNs — strict CSP). Any API-derived value placed in innerHTML MUST go through window.escapeHtml (defined in core/notifications.js).</description>
             <structure>
                 <directory name="js/core">
                     <file name="api.js">
@@ -300,6 +305,7 @@
             <test_file name="test_navigation.py" purpose="Navigation and routing" coverage="frontend routes"/>
             <test_file name="test_ui_pages.py" purpose="UI smoke tests" coverage="generate + calibration pages"/>
             <test_file name="test_utils.py" purpose="Utility functions" coverage="validation, error handling"/>
+            <test_file name="test_security.py" purpose="Security regressions" coverage="headers, CSP, secrets, info disclosure, rate limits"/>
         </test_files>
         <test_commands>
             <command>make validate</command>

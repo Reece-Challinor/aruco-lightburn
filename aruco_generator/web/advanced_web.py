@@ -42,6 +42,7 @@ from flask import Blueprint, current_app, request, send_file
 from sqlalchemy.exc import DatabaseError, IntegrityError
 
 from ..core.aruco import ArUCOGenerator
+from ..core.rate_limit import limiter
 from ..core.utils import (
     APIServiceUnavailableError,
     APIValidationError,
@@ -443,6 +444,7 @@ def export_stl():
 
 
 @advanced_bp.route("/api/validation/test_pattern", methods=["POST"])
+@limiter.limit("15 per minute")
 @handle_api_errors
 def generate_test_pattern():
     """Generate multi-scale test pattern for validation."""
@@ -535,6 +537,7 @@ def verify_marker_quality():
 
 
 @advanced_bp.route("/api/validation/detect", methods=["POST"])
+@limiter.limit("15 per minute")
 @handle_api_errors
 def detect_markers():
     """Detect ArUCO markers in an uploaded image."""
@@ -712,6 +715,7 @@ def generate_report():
 
 
 @advanced_bp.route("/api/validation/batch_test", methods=["POST"])
+@limiter.limit("10 per minute")
 @handle_api_errors
 def batch_validation_test():
     """Run batch validation tests on multiple patterns."""

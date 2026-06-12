@@ -18,6 +18,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to Semantic Versioning.
 
 ## [Unreleased]
+### Security
+- Escaped all API-derived values interpolated into `innerHTML` (XSS) and added a
+  shared `window.escapeHtml` helper.
+- Strict Content-Security-Policy, HSTS, Referrer-Policy, and Permissions-Policy
+  headers on every response (deprecated `X-XSS-Protection` removed).
+- Vendored Bootstrap 5.3.3 + Bootstrap Icons locally (`static/vendor/`) —
+  removes cdn.replit.com and cdn.jsdelivr.net dependencies entirely.
+- App now refuses to start in production without `SESSION_SECRET`.
+- Rate limiting (Flask-Limiter) on generation, export, upload, and log
+  endpoints with JSON 429 envelope.
+- Removed unauthenticated `/api/debug/status`; `/api/health` no longer reports
+  host platform or Python version.
+- Bandit pre-commit hook now also scans `app.py` and `api/`.
+
 ### Added
 - Vercel serverless entry point (`api/index.py`) with modern `vercel.json` rewrites.
 - Pinned `requirements.txt` exported from `uv.lock` for the Vercel build.

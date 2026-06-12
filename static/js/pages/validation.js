@@ -128,7 +128,7 @@ class ValidationManager {
                 detailCard.className = 'alert alert-secondary';
                 detailCard.innerHTML = `
                     <div class="d-flex justify-content-between align-items-center">
-                        <span><strong>Marker ID ${marker.id}</strong></span>
+                        <span><strong>Marker ID ${window.escapeHtml(marker.id)}</strong></span>
                         <span class="badge ${confidence >= 90 ? 'bg-success' : 'bg-warning'}">
                             ${confidence}% confidence
                         </span>
@@ -250,7 +250,7 @@ class ValidationManager {
             // Create container with internal button
             preview.innerHTML = `
                 <div class="text-center">
-                    <img src="data:image/png;base64,${result.image_base64}"
+                    <img src="data:image/png;base64,${window.escapeHtml(result.image_base64)}"
                          class="img-fluid border rounded"
                          style="max-height: 400px; background: white;">
                     <div class="mt-3">
@@ -326,7 +326,7 @@ class ValidationManager {
                 item.className = 'list-group-item bg-transparent';
                 item.innerHTML = `
                     <div class="d-flex justify-content-between">
-                        <span>Pattern ${metric.pattern_id || 'Unlinked'}</span>
+                        <span>Pattern ${window.escapeHtml(metric.pattern_id || 'Unlinked')}</span>
                         <span class="badge ${badgeClass}">${ratePct} detected</span>
                     </div>
                 `;

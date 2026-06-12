@@ -2,6 +2,17 @@
  * Notification Manager - Simple toast notifications
  */
 
+/**
+ * Escape a value for safe interpolation into HTML.
+ * Use for ANY value that originates from an API response or user input
+ * before placing it in an innerHTML template.
+ */
+window.escapeHtml = function escapeHtml(value) {
+    const div = document.createElement('div');
+    div.textContent = value === null || value === undefined ? '' : String(value);
+    return div.innerHTML;
+};
+
 class NotificationManager {
     constructor() {
         this.container = null;
@@ -31,7 +42,7 @@ class NotificationManager {
         const notification = document.createElement('div');
         notification.className = `alert alert-${type} alert-dismissible fade show`;
         notification.innerHTML = `
-            ${message}
+            ${window.escapeHtml(message)}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         `;
 
@@ -78,7 +89,7 @@ class NotificationManager {
                 <div class="spinner-border spinner-border-sm me-2" role="status">
                     <span class="visually-hidden">Loading...</span>
                 </div>
-                ${message}
+                ${window.escapeHtml(message)}
             </div>
         `;
 
