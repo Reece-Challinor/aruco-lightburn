@@ -29,22 +29,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
+          enable-cache: true
           python-version: '3.11'
-          cache: 'pip'
 
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgl1-mesa-glx libglib2.0-0
+          sudo apt-get install -y libglib2.0-0
 
-      - name: Install Python dependencies
-        run: |
-          pip install --upgrade pip
-          pip install -e .
-          make install-dev
+      - name: Install dependencies (locked)
+        run: uv sync --locked
 
       - name: Verify tag matches version and changelog
         env:

@@ -4,11 +4,8 @@ name: CI
 # <ai_agent_documentation>
 #   <file_meta>
 #     <name>ci.yml</name>
-#     <version>1.1.0</version>
 #     <type>github_actions_workflow</type>
-#     <purpose>Run validation and coverage on PRs and main branch pushes</purpose>
-#     <last_updated>2026-02-23</last_updated>
-#     <maintainer>ArUCO Generator Team</maintainer>
+#     <purpose>Quality gate: lint, tests, coverage, lockfile sync on PRs and main</purpose>
 #   </file_meta>
 # </ai_agent_documentation>
 # -->
@@ -19,30 +16,38 @@ on:
   push:
     branches: [ main ]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   ci:
-    name: Quality Gate
+    name: Quality Gate (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12']
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-          python-version: '3.11'
-          cache: 'pip'
+          enable-cache: true
+          python-version: ${{ matrix.python-version }}
 
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgl1-mesa-glx libglib2.0-0
+          sudo apt-get install -y libglib2.0-0
 
-      - name: Install Python dependencies
-        run: |
-          pip install --upgrade pip
-          pip install -e .
-          make install-dev
+      - name: Install dependencies (locked)
+        run: uv sync --locked
+
+      - name: Check requirements.txt is in sync with uv.lock
+        run: make check-requirements
 
       - name: Run validation suite
         run: make validate
@@ -51,6 +56,7 @@ jobs:
         run: make coverage
 
       - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.12'
         uses: codecov/codecov-action@v4
         with:
           file: ./coverage.xml
