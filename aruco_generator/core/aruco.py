@@ -294,7 +294,10 @@ except ImportError:
 
     OPENCV_AVAILABLE = False
 
-MAX_MARKER_PIXELS = 5000
+# Rectangle merging in DrawingContext is superlinear in pixel count; output
+# is vector (SVG/.lbrn2), so raster resolution only affects merge granularity,
+# not print quality. 2000px is far above the 200px default used everywhere.
+MAX_MARKER_PIXELS = 2000
 MAX_GRID_MARKERS = 10000
 
 
@@ -421,16 +424,16 @@ class ArUCOGenerator:
             elif isinstance(dict_data, dict):
                 # Fallback mode - use dictionary data directly
                 bits_per_side = dict_data["size"]
-                max_markers = dict_data["max_ids"]
+                max_ids = int(dict_data["max_ids"])
                 info[name] = {
                     "bits": f"{bits_per_side}X{bits_per_side}",
-                    "max_markers": max_markers,
+                    "max_markers": max_ids,
                     "description": (
                         f"{bits_per_side}x{bits_per_side} bits, "
-                        f"{max_markers} unique markers"
+                        f"{max_ids} unique markers"
                     ),
                     "size": bits_per_side,
-                    "recommended_use": self._get_usage_recommendation(max_markers),
+                    "recommended_use": self._get_usage_recommendation(max_ids),
                 }
         return info
 

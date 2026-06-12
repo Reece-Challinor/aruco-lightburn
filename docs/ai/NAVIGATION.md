@@ -40,5 +40,7 @@
 - `docs/deployment_checklist.md` (release checklist)
 - `docs/GENERATION_QUALITY.md` (quality standards)
 
-## Compatibility Shims
-- Legacy module paths in `aruco_generator/*.py` re-export the new package locations.
+## Module Layout
+- All modules live in subpackages (`core/`, `export/`, `web/`, `calibration/`,
+  `validation/`, `db/`). The legacy top-level compatibility shims were removed
+  in June 2026 — import from the subpackages directly.

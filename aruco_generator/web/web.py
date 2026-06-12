@@ -243,8 +243,8 @@ from ..core.drawing import DrawingContext
 from ..core.observability import get_metrics_snapshot
 from ..core.rate_limit import limiter
 from ..core.utils import handle_api_errors, validate_generation_params
+from ..db.extensions import db
 from ..export.lightburn import LightBurnExporter
-from ..extensions import db
 
 # Create Blueprint
 web_bp = Blueprint("web", __name__)

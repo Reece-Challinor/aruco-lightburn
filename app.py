@@ -14,7 +14,7 @@
     <description>Flask application initialization and configuration workflow</description>
     <steps>
       <step id="1">Import required modules → Flask, logging</step>
-      <step id="2">Import extensions → from aruco_generator.extensions import db</step>
+      <step id="2">Import extensions → from aruco_generator.db.extensions import db</step>
       <step id="3">Create Flask app instance → Configure basic settings</step>
       <step id="4">Configure database → PostgreSQL or SQLite based on environment</step>
       <step id="5">Initialize extensions → db.init_app(app)</step>
@@ -202,7 +202,7 @@ from aruco_generator import __version__ as app_version
 from aruco_generator.core.observability import init_observability
 from aruco_generator.core.rate_limit import limiter
 from aruco_generator.core.utils import build_error_payload
-from aruco_generator.extensions import db
+from aruco_generator.db.extensions import db
 
 # Simple logging setup
 logging.basicConfig(
@@ -352,7 +352,7 @@ def create_app() -> Flask:
         try:
             with app.app_context():
                 # Import models to ensure tables are created
-                from aruco_generator import models  # noqa: F401
+                from aruco_generator.db import models  # noqa: F401
                 from aruco_generator.db.schema import ensure_schema
 
                 db.create_all()
@@ -365,9 +365,9 @@ def create_app() -> Flask:
         logger.info("Running in Stateless Mode (No Database Persistence)")
 
     # Import and register blueprints
-    from aruco_generator.calibration_web import calibration_bp
     from aruco_generator.web import web_bp
     from aruco_generator.web.advanced_web import advanced_bp
+    from aruco_generator.web.calibration_web import calibration_bp
 
     app.register_blueprint(web_bp)
     app.register_blueprint(calibration_bp)
