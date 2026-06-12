@@ -25,12 +25,19 @@ Status: ACTIVE — Production Launch Program (see docs/ai/implementation_plan.md
 - Validated live deploy: /api/health (opencv 4.11.0 available) and /api/preview
   (full generation pipeline) working on Vercel.
 
-## Next up (Phase 1 remainder → Phase 2)
+## Done (2026-06-12, Phase 2 — security)
+- XSS purge: escaped all API-derived innerHTML interpolations; added window.escapeHtml.
+- Vendored Bootstrap 5.3.3 + icons locally; removed cdn.replit.com and jsdelivr.
+- CSP, HSTS, Referrer-Policy, Permissions-Policy headers; dropped deprecated X-XSS-Protection.
+- SESSION_SECRET fail-fast in production (VERCEL_ENV/FLASK_ENV).
+- Flask-Limiter rate limits on preview/download/batch/export/detect/log-error; JSON 429 envelope.
+- Removed /api/debug/status; health no longer fingerprints host.
+- New tests/test_security.py (headers, CSP, secrets, disclosure, 429s); bandit scope widened.
+
+## Next up
 - [ ] aruco.tools DNS at Namecheap (PM action — see plan).
 - [ ] Disable Deployment Protection for production (PM action).
-- [ ] Set SESSION_SECRET in Vercel envs.
-- [ ] Phase 2 security: XSS purge, CSP/HSTS, secret fail-fast, rate limiting,
-      remove /api/debug/status.
+- [ ] Phase 3: CI/CD + uv everywhere.
 
 ## Previous cycle (2026-02-23, complete)
 Archived — see git history of this file and docs/ai/walkthrough.md.

@@ -167,16 +167,10 @@ def test_quick_test_endpoint(client):
     assert "timestamp" in data
 
 
-def test_debug_status_endpoint(client):
-    """Test debug status endpoint"""
+def test_debug_status_endpoint_removed(client):
+    """The unauthenticated debug endpoint must not exist (security)."""
     response = client.get("/api/debug/status")
-    assert response.status_code == 200
-
-    data = json.loads(response.data)
-    assert data["status"] == "operational"
-    assert "opencv" in data
-    assert "dictionaries" in data
-    assert "timestamp" in data
+    assert response.status_code == 404
 
 
 def test_health_endpoint(client):

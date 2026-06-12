@@ -51,7 +51,7 @@ repos:
     hooks:
       - id: bandit
         args: [-ll, --skip=B101]  # Skip assert_used test
-        files: ^aruco_generator/.*\.py$
+        files: ^(aruco_generator/.*|app|api/.*)\.py$
         exclude: ^tests/
 
   - repo: local

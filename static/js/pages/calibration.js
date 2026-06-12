@@ -308,26 +308,27 @@ class CalibrationManager {
         const info = result.calibration_data;
         if (info && patternInfo) {
             const infoContent = document.getElementById('infoContent');
+            const esc = window.escapeHtml;
             let infoHtml = `
-                <p><strong>Pattern Type:</strong> ${info.pattern_type || this.currentPattern}</p>
+                <p><strong>Pattern Type:</strong> ${esc(info.pattern_type || this.currentPattern)}</p>
             `;
             if (Array.isArray(result.dimensions_mm) && result.dimensions_mm.length >= 2) {
                 infoHtml = `
-                    <p><strong>Dimensions:</strong> ${result.dimensions_mm[0].toFixed(1)} x ${result.dimensions_mm[1].toFixed(1)} mm</p>
+                    <p><strong>Dimensions:</strong> ${esc(result.dimensions_mm[0].toFixed(1))} x ${esc(result.dimensions_mm[1].toFixed(1))} mm</p>
                 ` + infoHtml;
             }
 
             if (info.total_markers || info.total_tags) {
-                infoHtml += `<p><strong>Total Markers:</strong> ${info.total_markers || info.total_tags}</p>`;
+                infoHtml += `<p><strong>Total Markers:</strong> ${esc(info.total_markers || info.total_tags)}</p>`;
             }
             if (info.dictionary) {
-                infoHtml += `<p><strong>Dictionary:</strong> ${info.dictionary}</p>`;
+                infoHtml += `<p><strong>Dictionary:</strong> ${esc(info.dictionary)}</p>`;
             }
             if (info.tag_family) {
-                infoHtml += `<p><strong>Tag Family:</strong> ${info.tag_family}</p>`;
+                infoHtml += `<p><strong>Tag Family:</strong> ${esc(info.tag_family)}</p>`;
             }
             if (info.grid_size) {
-                infoHtml += `<p><strong>Grid Size:</strong> ${info.grid_size[0]} x ${info.grid_size[1]}</p>`;
+                infoHtml += `<p><strong>Grid Size:</strong> ${esc(info.grid_size[0])} x ${esc(info.grid_size[1])}</p>`;
             }
 
             if (infoContent) {

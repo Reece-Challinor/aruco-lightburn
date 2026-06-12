@@ -222,8 +222,6 @@ Key API Patterns:
 
 import io
 import logging
-import platform
-import sys
 import time
 from datetime import datetime
 
@@ -243,6 +241,7 @@ from .. import __version__
 from ..core.aruco import ArUCOGenerator
 from ..core.drawing import DrawingContext
 from ..core.observability import get_metrics_snapshot
+from ..core.rate_limit import limiter
 from ..core.utils import handle_api_errors, validate_generation_params
 from ..export.lightburn import LightBurnExporter
 from ..extensions import db
@@ -297,6 +296,7 @@ def get_dictionaries():
 
 
 @web_bp.route("/api/preview", methods=["POST"])
+@limiter.limit("30 per minute")
 @handle_api_errors
 def generate_preview():
     """Generate SVG preview of markers"""
@@ -369,6 +369,7 @@ def generate_preview():
 
 
 @web_bp.route("/api/download", methods=["POST"])
+@limiter.limit("20 per minute")
 @handle_api_errors
 def download_lightburn():
     """Generate and download LightBurn file"""
@@ -429,6 +430,7 @@ def download_lightburn():
 
 
 @web_bp.route("/api/advanced_preview", methods=["POST"])
+@limiter.limit("30 per minute")
 @handle_api_errors
 def generate_advanced_preview():
     """Generate advanced preview with additional options"""
@@ -440,6 +442,7 @@ def generate_advanced_preview():
 
 
 @web_bp.route("/api/batch_generate", methods=["POST"])
+@limiter.limit("10 per minute")
 def batch_generate():
     """Generate multiple sets of markers"""
     try:
@@ -545,6 +548,7 @@ def get_presets():
 
 
 @web_bp.route("/api/export/svg", methods=["POST"])
+@limiter.limit("20 per minute")
 @handle_api_errors
 def export_svg():
     """Export markers as SVG file"""
@@ -589,6 +593,7 @@ def export_svg():
 
 
 @web_bp.route("/api/export/pdf", methods=["POST"])
+@limiter.limit("20 per minute")
 @handle_api_errors
 def export_pdf():
     """Export markers as PDF file"""
@@ -746,8 +751,6 @@ def health_check():
         "issues": issues,
         "version": __version__,
         "environment": "debug" if current_app.debug else "production",
-        "python": sys.version.split(" ")[0],
-        "platform": platform.platform(),
         "timestamp": datetime.now().isoformat(),
         "uptime_seconds": uptime_seconds,
         "request_id": getattr(g, "request_id", None),
@@ -773,32 +776,8 @@ def healthz():
     )
 
 
-# Debug endpoints (can be removed in production)
-@web_bp.route("/api/debug/status")
-def debug_status():
-    """Debug status endpoint"""
-    try:
-        import cv2
-
-        opencv_version = cv2.__version__
-    except Exception:
-        opencv_version = "Not available"
-
-    metrics = get_metrics_snapshot(current_app)
-
-    return jsonify(
-        {
-            "status": "operational",
-            "opencv": opencv_version,
-            "dictionaries": len(aruco_gen.dictionaries),
-            "metrics": metrics,
-            "request_id": getattr(g, "request_id", None),
-            "timestamp": datetime.now().isoformat(),
-        }
-    )
-
-
 @web_bp.route("/api/log-error", methods=["POST"])
+@limiter.limit("10 per minute")
 def log_error():
     """Log frontend errors"""
     try:

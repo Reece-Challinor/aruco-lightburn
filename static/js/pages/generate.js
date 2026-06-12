@@ -235,7 +235,7 @@ class GenerateManager {
         } catch (error) {
             preview.innerHTML = `
                 <div class="alert alert-danger">
-                    <i class="bi bi-exclamation-triangle me-2"></i>${error.message}
+                    <i class="bi bi-exclamation-triangle me-2"></i>${window.escapeHtml(error.message)}
                 </div>
             `;
             this.setAdvancedExportEnabled(false);

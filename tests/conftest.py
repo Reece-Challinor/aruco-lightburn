@@ -13,10 +13,16 @@
 -->
 """
 
+import os
+
 import pytest
 
-from app import app as flask_app
-from app import db as database
+# Must be set before importing app: rate limiting is resolved in create_app().
+# Limits themselves are exercised in test_security.py with fresh app instances.
+os.environ.setdefault("RATELIMIT_ENABLED", "0")
+
+from app import app as flask_app  # noqa: E402
+from app import db as database  # noqa: E402
 
 
 @pytest.fixture(scope="session")
