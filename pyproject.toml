@@ -24,7 +24,7 @@ dependencies = [
     "psycopg2-binary>=2.9.10",
     # Computer Vision
     "opencv-python-headless>=4.11.0.86",
-    "numpy==1.26.4",
+    "numpy==2.4.6",
     # Export formats
     "pyyaml>=6.0.2",
     # Server
