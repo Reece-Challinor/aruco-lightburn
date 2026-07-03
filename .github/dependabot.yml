@@ -9,7 +9,10 @@
 # -->
 version: 2
 updates:
-  - package-ecosystem: pip
+  # uv ecosystem: updates pyproject.toml + uv.lock together, so
+  # `uv sync --locked` stays valid on dependabot branches. The exported
+  # requirements.txt is regenerated on main by sync-requirements.yml.
+  - package-ecosystem: uv
     directory: /
     schedule:
       interval: weekly

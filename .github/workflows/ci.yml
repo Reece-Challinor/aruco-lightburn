@@ -46,7 +46,11 @@ jobs:
       - name: Install dependencies (locked)
         run: uv sync --locked
 
+      # Dependabot (uv ecosystem) updates pyproject + uv.lock but not the
+      # exported requirements.txt; sync-requirements.yml regenerates it on
+      # main after merge, so skip the drift gate on dependabot PRs only.
       - name: Check requirements.txt is in sync with uv.lock
+        if: github.actor != 'dependabot[bot]'
         run: make check-requirements
 
       - name: Run validation suite
@@ -55,9 +59,14 @@ jobs:
       - name: Generate coverage report
         run: make coverage
 
+      # Codecov v4 requires CODECOV_TOKEN (repo secret, from codecov.io).
+      # Coverage is already enforced by `make coverage` (--cov-fail-under);
+      # the upload is reporting only and must never block CI.
       - name: Upload coverage to Codecov
         if: matrix.python-version == '3.12'
         uses: codecov/codecov-action@v4
+        continue-on-error: true
         with:
           file: ./coverage.xml
-          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false

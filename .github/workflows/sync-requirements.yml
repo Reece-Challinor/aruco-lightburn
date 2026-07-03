@@ -1,0 +1,52 @@
+name: Sync requirements export
+
+# <!--
+# <ai_agent_documentation>
+#   <file_meta>
+#     <name>sync-requirements.yml</name>
+#     <type>github_actions_workflow</type>
+#     <purpose>Auto-regenerate requirements.txt on main whenever uv.lock changes (heals dependabot uv-ecosystem merges)</purpose>
+#   </file_meta>
+# </ai_agent_documentation>
+# -->
+#
+# requirements.txt is a generated artifact (uv export) consumed by the
+# Vercel build and Docker image. Dependabot's uv ecosystem updates
+# pyproject.toml + uv.lock but not this export, so this workflow keeps
+# main self-consistent after such merges. Pushes made with GITHUB_TOKEN
+# don't retrigger CI — acceptable for a generated file; the next PR's CI
+# validates it via make check-requirements.
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - uv.lock
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    name: Regenerate requirements.txt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Regenerate requirements.txt from uv.lock
+        run: make requirements
+
+      - name: Commit and push if changed
+        run: |
+          if git diff --quiet requirements.txt; then
+            echo "requirements.txt already in sync"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add requirements.txt
+          git commit -m "chore: sync requirements.txt with uv.lock"
+          git push

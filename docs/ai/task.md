@@ -65,8 +65,16 @@ docs/ai/IMPLEMENTATION_BRIDGE.md). The Production Launch Program
 - mypy green on core/ + export/, wired into make validate.
 - MAX_MARKER_PIXELS 5000→2000 (bounds rectangle-merge worst case).
 
+## Done (2026-07-03, CI repair)
+- Stable-base PR #13 merged to main; v2.6.0 tagged.
+- Fixed the two chronic CI failures: Codecov upload now non-blocking
+  (needs CODECOV_TOKEN secret to actually upload — optional PM action);
+  Dependabot switched to the uv ecosystem so uv.lock stays valid, with
+  sync-requirements.yml auto-healing the requirements.txt export on main.
+- docker.yml no longer fails without Docker Hub secrets (builds without
+  pushing; set DOCKER_USERNAME/DOCKER_PASSWORD to enable publishing).
+
 ## Next up
-- [ ] Founder: merge the stable-base PR to main; tag v2.6.0.
 - [ ] aruco.tools DNS at Namecheap (PM action — see plan).
 - [ ] Enable branch protection on main; disable Deployment Protection for
       production (PM actions).
