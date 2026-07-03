@@ -18,6 +18,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to Semantic Versioning.
 
 ## [Unreleased]
+### Added
+- TBD
+
+### Changed
+- TBD
+
+### Removed
+- TBD
+
+## [2.6.0] - 2026-07-03
 ### Security
 - Escaped all API-derived values interpolated into `innerHTML` (XSS) and added a
   shared `window.escapeHtml` helper.
@@ -33,6 +43,11 @@ and this project adheres to Semantic Versioning.
 - Bandit pre-commit hook now also scans `app.py` and `api/`.
 
 ### Added
+- Unified product specification (`docs/ai/PRODUCT_ROADMAP.md`: roadmap + PXA +
+  BRD) and implementation bridge (`docs/ai/IMPLEMENTATION_BRIDGE.md`) — the
+  v3.0 program; Phase 0 planning records (`docs/ai/phase0/`) with founder
+  decisions D-α…D-ζ recorded.
+- Regression test asserting `materials.json` loads independently of process CWD.
 - CodeQL (Python + JS) and Dependabot workflows; `make audit` (bandit + pip-audit).
 - `make release VERSION=x.y.z` — bumps every version location atomically
   (`scripts/release.py`), ending multi-file version drift.
@@ -61,6 +76,13 @@ and this project adheres to Semantic Versioning.
 - Legacy compatibility shims (`aruco_generator/{exporters,models,extensions,calibration_web,validation_web}.py`) — import from subpackages directly.
 
 ### Fixed
+- LightBurn export tests `test_lightburn_layers` and `test_lightburn_coordinates`
+  repaired and re-enabled (the tests mis-parsed the lbrn2 encoding); both now
+  assert the bridge acceptance criteria (≥2 distinct shape layers; a 40 mm
+  marker's geometry spans 40±0.1 mm in lbrn2 units).
+- `LightBurnExporter` resolves `materials.json` from the package root instead
+  of the process CWD — custom material settings now load on serverless deploys.
+- Coverage artifacts (`.coverage`, `htmlcov/`, `coverage.xml`) are gitignored.
 - mypy now passes on `core/` and `export/` and is part of `make validate`.
 - `MAX_MARKER_PIXELS` lowered 5000→2000 to bound the superlinear rectangle-merge
   cost (vector output quality unaffected; web flows use the 200px default).

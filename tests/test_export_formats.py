@@ -3,10 +3,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>test_export_formats.py</name>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
     <type>test_suite</type>
     <purpose>Validate SVG and LightBurn export format correctness</purpose>
-    <last_updated>2026-02-23</last_updated>
+    <last_updated>2026-07-03</last_updated>
     <maintainer>ArUCO Generator Team</maintainer>
   </file_meta>
 </ai_agent_documentation>
@@ -99,7 +99,9 @@ class TestSVGExport:
         ), f"Height mismatch: {actual_height} vs {expected_height}"
 
     @pytest.mark.skip(
-        reason="SVG overlapping optimization - acceptable for production use"
+        reason="Intentional (P-0.0 disposition): merged fill rectangles overlap "
+        "slightly by design (engraving bleed avoids hairline gaps); "
+        "overlap-free SVG is a non-goal"
     )
     def test_svg_no_overlapping_elements(self):
         """Test that SVG elements don't improperly overlap"""
@@ -192,7 +194,6 @@ class TestLightBurnExport:
         shapes = root.findall(".//Shape")
         assert len(shapes) > 0, "Should have shapes"
 
-    @pytest.mark.skip(reason="LightBurn layer system needs refinement")
     def test_lightburn_layers(self):
         """Test LightBurn layers are properly configured"""
         markers = self.generator.generate_grid(
@@ -209,19 +210,30 @@ class TestLightBurnExport:
         tree = ET.parse(output)
         root = tree.getroot()
 
-        # Check for different layer indices
+        # Check for different layer indices (stored as the Value attribute,
+        # e.g. <index Value="0"/>)
         cut_settings = root.findall(".//CutSetting")
         layer_indices = set()
 
         for setting in cut_settings:
-            index = setting.find(".//index")
-            if index is not None and index.text:
-                layer_indices.add(index.text)
+            index = setting.find("index")
+            if index is not None and index.get("Value"):
+                layer_indices.add(index.get("Value"))
 
         # Should have multiple layers (fill, border, text)
         assert len(layer_indices) >= 2, "Should have at least 2 layers"
 
-    @pytest.mark.skip(reason="LightBurn coordinate system needs refinement")
+        # Shapes must actually be assigned to at least 2 distinct layers
+        # (fill + border), via their CutIndex attribute
+        shape_layers = {
+            shape.get("CutIndex")
+            for shape in root.findall(".//Shape")
+            if shape.get("CutIndex") is not None
+        }
+        assert (
+            len(shape_layers) >= 2
+        ), f"Shapes should span at least 2 distinct layers, got {shape_layers}"
+
     def test_lightburn_coordinates(self):
         """Test LightBurn coordinate accuracy"""
         size_mm = 40.0
@@ -245,24 +257,52 @@ class TestLightBurnExport:
         # Find shape vertices
         vertices = tree.findall(".//VertList")
 
+        # Parse vertices; lbrn2 encodes them concatenated with no separator:
+        # "V{x:.3f} {y:.3f}c0x1c1x1V{x:.3f} {y:.3f}c0x1c1x1..."
+        all_x = []
+        all_y = []
         for vert_list in vertices:
             if vert_list.text:
-                # Parse vertices (format: x,y;x,y;...)
-                coords = vert_list.text.strip().split(";")
+                for x, y in re.findall(r"V(-?[0-9.]+) (-?[0-9.]+)", vert_list.text):
+                    x_val = float(x)
+                    y_val = float(y)
+                    all_x.append(x_val)
+                    all_y.append(y_val)
 
-                for coord in coords:
-                    if coord:
-                        x, y = coord.split(",")
-                        x_val = float(x)
-                        y_val = float(y)
+                    # Coordinates should be within expected bounds
+                    assert (
+                        x_val >= -1 and x_val <= size_mm + 1
+                    ), f"X coordinate {x_val} out of bounds"
+                    assert (
+                        y_val >= -1 and y_val <= size_mm + 1
+                    ), f"Y coordinate {y_val} out of bounds"
 
-                        # Coordinates should be within expected bounds
-                        assert (
-                            x_val >= -1 and x_val <= size_mm + 1
-                        ), f"X coordinate {x_val} out of bounds"
-                        assert (
-                            y_val >= -1 and y_val <= size_mm + 1
-                        ), f"Y coordinate {y_val} out of bounds"
+        assert all_x, "Should have parsed at least one vertex"
+
+        # lbrn2 units are mm: a 40mm marker's geometry must span 40mm ±0.1
+        x_span = max(all_x) - min(all_x)
+        y_span = max(all_y) - min(all_y)
+        assert abs(x_span - size_mm) <= 0.1, f"X span {x_span} != {size_mm}±0.1"
+        assert abs(y_span - size_mm) <= 0.1, f"Y span {y_span} != {size_mm}±0.1"
+
+    def test_materials_loaded_independent_of_cwd(self, tmp_path, monkeypatch):
+        """materials.json must resolve from the package, not the process CWD
+
+        Regression test: serverless entrypoints (Vercel api/index.py) don't
+        run from the repo root, so a CWD-relative path silently skipped the
+        custom material settings.
+        """
+        monkeypatch.chdir(tmp_path)
+        exporter = LightBurnExporter()
+
+        assert os.path.isabs(
+            exporter.materials_file
+        ), "materials_file must be an absolute path"
+        assert os.path.exists(
+            exporter.materials_file
+        ), "materials.json at the repo root must be found from any CWD"
+        # The default material must be present (merged from file or defaults)
+        assert "1_16_cast_acrylic" in exporter.material_settings
 
     def test_lightburn_material_settings(self):
         """Test material settings are properly included"""

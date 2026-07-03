@@ -15,7 +15,7 @@ resolution-markers = [
 
 [[package]]
 name = "aruco-generator"
-version = "2.5.1"
+version = "2.6.0"
 source = { editable = "." }
 dependencies = [
     { name = "flask" },
