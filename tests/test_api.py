@@ -184,13 +184,27 @@ def test_validation_error_schema(client):
     assert data["error"]["type"] == "validation_error"
 
 
-def test_validation_metrics_endpoint(client):
-    """Test validation metrics endpoint returns warning when DB disabled."""
-    response = client.get("/api/validation/metrics")
+def test_metrics_endpoints_removed(client):
+    """DB metrics endpoints are intentionally removed (roadmap F-10).
+
+    Persisted metrics were misleading in serverless production (the DB is
+    per-invocation in-memory). These 404s document the removal.
+    """
+    assert client.get("/api/validation/metrics").status_code == 404
+    assert client.post("/api/calibration/metrics", json={}).status_code == 404
+
+
+def test_detection_report_has_no_persistence(client):
+    """detection_report computes per request; nothing is stored (F-10)."""
+    response = client.post(
+        "/api/validation/detection_report",
+        data=json.dumps({"test_results": [], "pattern_metadata": {}}),
+        content_type="application/json",
+    )
     assert response.status_code == 200
     data = response.get_json()
     assert data["success"] is True
-    assert "summary" in data["data"]
+    assert "metric_id" not in data["data"]["report"]
 
 
 def test_upload_invalid_image(client):

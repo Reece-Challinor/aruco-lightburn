@@ -13,6 +13,6 @@
 """
 
 from .extensions import db  # noqa: F401
-from .models import CalibrationPattern, DetectionMetric, User  # noqa: F401
+from .models import CalibrationPattern, User  # noqa: F401
 
-__all__ = ["db", "CalibrationPattern", "DetectionMetric", "User"]
+__all__ = ["db", "CalibrationPattern", "User"]

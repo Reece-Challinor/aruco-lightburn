@@ -36,11 +36,12 @@ def test_calibration_page_has_pattern_cards(client):
     assert 'onclick="selectPattern' not in html
 
 
-def test_validation_page_has_metrics_placeholders(client):
+def test_validation_page_has_no_metrics_panel(client):
+    """The DB-backed performance-metrics panel was removed (roadmap F-10)."""
     response = client.get("/validation")
     assert response.status_code == 200
     html = response.data.decode("utf-8")
-    assert 'id="avgDetectionRate"' in html
-    assert 'id="avgPoseError"' in html
-    assert 'id="avgProcessingTime"' in html
-    assert 'id="recentTestsList"' in html
+    assert 'id="avgDetectionRate"' not in html
+    assert 'id="recentTestsList"' not in html
+    # The page's real features remain
+    assert 'id="uploadZone"' in html

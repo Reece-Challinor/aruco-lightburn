@@ -5,10 +5,10 @@ Advanced web routes for coordinate systems, professional exports, and validation
 <ai_agent_documentation>
   <file_meta>
     <name>advanced_web.py</name>
-    <version>2.7.0</version>
+    <version>2.8.0</version>
     <type>flask_blueprint</type>
     <purpose>Advanced previews, calibration exports, and validation utilities</purpose>
-    <last_updated>2026-02-23</last_updated>
+    <last_updated>2026-07-03</last_updated>
     <maintainer>ArUCO Generator Team</maintainer>
   </file_meta>
   <route_summary>
@@ -18,7 +18,6 @@ Advanced web routes for coordinate systems, professional exports, and validation
     <route path="/api/export/dxf" method="POST" purpose="DXF export"/>
     <route path="/api/export/stl" method="POST" purpose="STL export"/>
     <route path="/api/validation/detect" method="POST" purpose="Detect markers in uploaded image"/>
-    <route path="/api/validation/metrics" method="GET" purpose="Fetch recent validation metrics"/>
   </route_summary>
 </ai_agent_documentation>
 -->
@@ -39,7 +38,6 @@ except ImportError:
 
     OPENCV_AVAILABLE = False
 from flask import Blueprint, current_app, request, send_file
-from sqlalchemy.exc import DatabaseError, IntegrityError
 
 from ..core.aruco import ArUCOGenerator
 from ..core.rate_limit import limiter
@@ -50,8 +48,6 @@ from ..core.utils import (
     handle_api_errors,
     validate_generation_params,
 )
-from ..db.extensions import db
-from ..db.models import DetectionMetric
 from ..export.exporters import ProfessionalExporter
 from ..validation.validation import DetectionValidator
 
@@ -559,48 +555,6 @@ def detect_markers():
     return api_success({"detection": detection})
 
 
-@advanced_bp.route("/api/validation/metrics", methods=["GET"])
-@handle_api_errors
-def validation_metrics():
-    """Return recent validation metrics and summary statistics."""
-    if not current_app.config.get("USE_DB"):
-        return api_success(
-            {"summary": None, "recent": [], "total": 0},
-            warnings=[
-                {
-                    "code": "db_disabled",
-                    "message": "Database disabled - metrics unavailable",
-                }
-            ],
-        )
-
-    metrics = (
-        DetectionMetric.query.order_by(DetectionMetric.test_timestamp.desc())
-        .limit(5)
-        .all()
-    )
-
-    rates = [m.detection_rate for m in metrics if m.detection_rate is not None]
-    pose_errors = [m.avg_pose_error for m in metrics if m.avg_pose_error is not None]
-    times = [m.avg_detection_time for m in metrics if m.avg_detection_time is not None]
-
-    summary = {
-        "avg_detection_rate": round(sum(rates) / len(rates), 4) if rates else None,
-        "avg_pose_error_mm": (
-            round(sum(pose_errors) / len(pose_errors), 3) if pose_errors else None
-        ),
-        "avg_detection_time_ms": round(sum(times) / len(times), 2) if times else None,
-    }
-
-    return api_success(
-        {
-            "summary": summary,
-            "recent": [m.to_dict() for m in metrics],
-            "total": len(metrics),
-        }
-    )
-
-
 @advanced_bp.route("/api/validation/hamming_distance", methods=["POST"])
 @handle_api_errors
 def calculate_hamming():
@@ -643,75 +597,11 @@ def generate_report():
     test_results = data.get("test_results", [])
     pattern_metadata = data.get("pattern_metadata", {})
 
-    # Generate report
+    # Generate report (metrics persistence removed per roadmap F-10 —
+    # reports are computed per request, nothing is stored)
     report = validator.generate_detection_report(test_results, pattern_metadata)
 
-    # Save metrics to database if pattern_id provided
-    if "pattern_id" in data:
-        if current_app.config.get("USE_DB"):
-            try:
-                # Calculate summary metrics from report/test results
-                summary = report.get("summary", {})
-                total_tests = summary.get("total_tests", len(test_results))
-                successful = summary.get(
-                    "successful_detections",
-                    sum(1 for r in test_results if r.get("detected")),
-                )
-
-                pose_errors = [
-                    r.get("pose_error_mm")
-                    for r in test_results
-                    if r.get("pose_error_mm") is not None
-                ]
-                avg_pose_error = (
-                    sum(pose_errors) / len(pose_errors) if pose_errors else None
-                )
-
-                corner_errors = [
-                    r.get("corner_error")
-                    for r in test_results
-                    if r.get("corner_error") is not None
-                ]
-                avg_corner_error = (
-                    sum(corner_errors) / len(corner_errors) if corner_errors else None
-                )
-
-                perf = report.get("performance", {})
-                avg_detection_time = perf.get("avg_detection_time")
-
-                metric = DetectionMetric(
-                    pattern_id=data["pattern_id"],
-                    detected_markers=successful,
-                    expected_markers=total_tests,
-                    detection_rate=summary.get("detection_rate"),
-                    avg_corner_error=avg_corner_error,
-                    avg_pose_error=avg_pose_error,
-                    avg_detection_time=avg_detection_time,
-                    lighting_condition=data.get("lighting_conditions", "unknown"),
-                    distance_mm=data.get("distance_mm"),
-                    viewing_angle=data.get("viewing_angle"),
-                )
-                db.session.add(metric)
-                db.session.commit()
-
-                report["metric_id"] = metric.id
-            except (IntegrityError, DatabaseError) as exc:
-                db.session.rollback()
-                logger.warning("Metric persistence failed: %s", exc)
-                report["metric_id"] = None
-                report["metric_message"] = (
-                    "Metrics not persisted - database unavailable"
-                )
-        else:
-            report["metric_id"] = None
-            report["metric_message"] = "Database disabled - metrics not persisted"
-
-    warnings = []
-    if report.get("metric_message"):
-        warnings.append({"code": "db_disabled", "message": report["metric_message"]})
-        report.pop("metric_message", None)
-
-    return api_success({"report": report}, warnings=warnings)
+    return api_success({"report": report})
 
 
 @advanced_bp.route("/api/validation/batch_test", methods=["POST"])

@@ -3,10 +3,10 @@
  * <ai_agent_documentation>
  *   <file_meta>
  *     <name>validation.js</name>
- *     <version>2.4.0</version>
+ *     <version>2.5.0</version>
  *     <type>frontend_controller</type>
  *     <purpose>Validation page controller for marker detection and quality reporting</purpose>
- *     <last_updated>2026-02-08</last_updated>
+ *     <last_updated>2026-07-03</last_updated>
  *     <maintainer>ArUCO Generator Team</maintainer>
  *   </file_meta>
  * </ai_agent_documentation>
@@ -29,7 +29,6 @@ class ValidationManager {
         this.setupUploadZone();
         this.setupHammingCalculator();
         this.setupTestPatternGenerator();
-        this.loadMetrics();
     }
 
     setupUploadZone() {
@@ -271,68 +270,6 @@ class ValidationManager {
             }
         }
         this.updateRequestMeta('testPatternRequestMeta', result?.request_id);
-    }
-
-    async loadMetrics() {
-        try {
-            const result = await window.arucoAPI.getValidationMetrics();
-            this.renderMetrics(result);
-            this.showWarnings(result);
-        } catch (error) {
-            window.notificationManager.showWarning('Unable to load validation metrics');
-        }
-    }
-
-    renderMetrics(result) {
-        const summary = result?.summary;
-        const avgDetectionRate = document.getElementById('avgDetectionRate');
-        const avgPoseError = document.getElementById('avgPoseError');
-        const avgProcessingTime = document.getElementById('avgProcessingTime');
-        const recentList = document.getElementById('recentTestsList');
-
-        if (summary) {
-            if (avgDetectionRate) {
-                const rate = summary.avg_detection_rate;
-                avgDetectionRate.textContent = rate !== null && rate !== undefined
-                    ? `${(rate * 100).toFixed(1)}%`
-                    : '-';
-            }
-            if (avgPoseError) {
-                const pose = summary.avg_pose_error_mm;
-                avgPoseError.textContent = pose !== null && pose !== undefined ? `${pose}mm` : '-';
-            }
-            if (avgProcessingTime) {
-                const time = summary.avg_detection_time_ms;
-                avgProcessingTime.textContent = time !== null && time !== undefined ? `${time}ms` : '-';
-            }
-        }
-
-        if (recentList) {
-            recentList.innerHTML = '';
-            const recent = result?.recent || [];
-            if (!recent.length) {
-                const emptyItem = document.createElement('div');
-                emptyItem.className = 'list-group-item bg-transparent text-muted';
-                emptyItem.textContent = 'No recent validation runs.';
-                recentList.appendChild(emptyItem);
-                return;
-            }
-
-            recent.forEach(metric => {
-                const rate = metric.detection_rate;
-                const ratePct = rate !== null && rate !== undefined ? `${Math.round(rate * 100)}%` : 'n/a';
-                const badgeClass = rate !== null && rate >= 0.95 ? 'bg-success' : (rate !== null && rate >= 0.8 ? 'bg-warning' : 'bg-danger');
-                const item = document.createElement('div');
-                item.className = 'list-group-item bg-transparent';
-                item.innerHTML = `
-                    <div class="d-flex justify-content-between">
-                        <span>Pattern ${window.escapeHtml(metric.pattern_id || 'Unlinked')}</span>
-                        <span class="badge ${badgeClass}">${ratePct} detected</span>
-                    </div>
-                `;
-                recentList.appendChild(item);
-            });
-        }
     }
 
     downloadTestPattern() {

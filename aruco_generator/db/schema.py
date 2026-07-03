@@ -21,7 +21,7 @@ import logging
 
 from sqlalchemy import inspect, text
 
-from .models import CalibrationPattern, DetectionMetric
+from .models import CalibrationPattern
 
 logger = logging.getLogger(__name__)
 
@@ -45,8 +45,6 @@ def ensure_schema(db) -> None:
         return
 
     _ensure_columns(engine, inspector, CalibrationPattern.__table__)
-    if "detection_metrics" in tables:
-        _ensure_columns(engine, inspector, DetectionMetric.__table__)
 
     _backfill_legacy_columns(engine, inspector)
 

@@ -95,8 +95,8 @@
                 </submodule>
 
                 <submodule name="models" file="db/models.py">
-                    <description>Database models for calibration patterns and metrics</description>
-                    <models>CalibrationPattern, DetectionMetric, User</models>
+                    <description>Database models for calibration patterns (FROZEN surface per roadmap F-10)</description>
+                    <models>CalibrationPattern, User</models>
                 </submodule>
                 <submodule name="schema" file="db/schema.py">
                     <description>Schema guardrails and legacy column backfill helpers</description>
@@ -154,10 +154,6 @@
                     <endpoint path="/api/validation/detect" method="POST" line="539">
                             <description>Detect markers from uploaded images</description>
                             <use_case>Real-world detection validation</use_case>
-                        </endpoint>
-                    <endpoint path="/api/validation/metrics" method="GET" line="559">
-                            <description>Fetch recent validation metrics and summary statistics</description>
-                            <use_case>Validation dashboard insights</use_case>
                         </endpoint>
                     </endpoints>
                 </submodule>
@@ -231,7 +227,7 @@
         </module>
 
         <module name="database" type="sqlalchemy" path="aruco_generator/db/models.py">
-            <description>Database models for calibration patterns and metrics</description>
+            <description>Database models for calibration patterns (FROZEN per roadmap F-10; DetectionMetric removed)</description>
             <models>
                 <model name="CalibrationPattern" line="56">
                     <description>Stores calibration pattern configurations</description>
@@ -249,17 +245,6 @@
                         <field name="first_marker_id" type="Integer" description="Starting marker ID"/>
                         <field name="calibration_data" type="JSON" description="Configuration data"/>
                         <field name="image_checksum" type="String" description="Image checksum"/>
-                    </fields>
-                </model>
-                <model name="DetectionMetric" line="116">
-                    <description>Stores detection performance metrics</description>
-                    <fields>
-                        <field name="detected_markers" type="Integer" description="Detected markers"/>
-                        <field name="expected_markers" type="Integer" description="Expected markers"/>
-                        <field name="detection_rate" type="Float" description="Success rate percentage"/>
-                        <field name="avg_corner_error" type="Float" description="Average corner error"/>
-                        <field name="avg_pose_error" type="Float" description="Pose estimation error"/>
-                        <field name="avg_detection_time" type="Float" description="Detection time (ms)"/>
                     </fields>
                 </model>
             </models>

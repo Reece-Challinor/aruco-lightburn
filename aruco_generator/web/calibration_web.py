@@ -51,8 +51,13 @@ from ..core.utils import (
     handle_api_errors,
 )
 from ..db.extensions import db
-from ..db.models import CalibrationPattern, DetectionMetric
+from ..db.models import CalibrationPattern
 from ..export.exporters import ProfessionalExporter
+
+# NOTE (roadmap F-10, 2026-07-03): pattern persistence endpoints in this
+# module are FROZEN — kept for compatibility, no new capabilities. The
+# detection-metrics write path was removed entirely (serverless production
+# runs a per-invocation in-memory DB, so persisted metrics were misleading).
 
 # Create Blueprint
 calibration_bp = Blueprint("calibration", __name__)
@@ -854,7 +859,7 @@ def export_calibration_data(pattern_id):
             fields={"pattern_id": "Persist a pattern before export"},
         )
 
-    pattern = CalibrationPattern.query.get(pattern_id)
+    pattern = db.session.get(CalibrationPattern, pattern_id)
     if not pattern:
         raise NotFound(f"Calibration pattern {pattern_id} not found")
     export_format = request.args.get("format", "yaml")
@@ -909,7 +914,7 @@ def export_calibration_bundle(pattern_id):
             fields={"pattern_id": "Persist a pattern before export"},
         )
 
-    pattern = CalibrationPattern.query.get(pattern_id)
+    pattern = db.session.get(CalibrationPattern, pattern_id)
     if not pattern:
         raise NotFound(f"Calibration pattern {pattern_id} not found")
     calibration_data = pattern.calibration_data or {}
@@ -1009,60 +1014,3 @@ def list_calibration_patterns():
     return api_success(
         {"patterns": [p.to_dict() for p in patterns], "total": len(patterns)}
     )
-
-
-@calibration_bp.route("/api/calibration/metrics", methods=["POST"])
-@handle_api_errors
-def save_detection_metrics():
-    """Save detection performance metrics."""
-    if not current_app.config.get("USE_DB", False):
-        return api_success(
-            {"metric_id": None, "persisted": False},
-            warnings=[
-                {
-                    "code": "db_disabled",
-                    "message": "Metrics not persisted - database unavailable",
-                }
-            ],
-        )
-
-    data = _get_json_payload()
-    pattern_id = _parse_int(
-        data, "pattern_id", None, "Pattern ID", min_value=1, required=False
-    )
-    detected_markers = _parse_int(
-        data, "detected_markers", 0, "Detected markers", min_value=0
-    )
-    expected_markers = _parse_int(
-        data, "expected_markers", detected_markers, "Expected markers", min_value=0
-    )
-
-    metric = DetectionMetric(
-        pattern_id=pattern_id,
-        detected_markers=detected_markers,
-        expected_markers=expected_markers,
-        detection_rate=data.get("detection_rate"),
-        avg_corner_error=data.get("avg_corner_error"),
-        avg_pose_error=data.get("pose_error_mm") or data.get("avg_pose_error"),
-        avg_detection_time=data.get("avg_detection_time"),
-        lighting_condition=data.get("lighting_conditions")
-        or data.get("lighting_condition"),
-        distance_mm=data.get("distance_mm"),
-        viewing_angle=data.get("viewing_angle"),
-    )
-
-    try:
-        db.session.add(metric)
-        db.session.commit()
-        return api_success({"metric_id": metric.id, "persisted": True})
-    except Exception:
-        db.session.rollback()
-        return api_success(
-            {"metric_id": None, "persisted": False},
-            warnings=[
-                {
-                    "code": "db_unavailable",
-                    "message": "Metrics not persisted - database unavailable",
-                }
-            ],
-        )

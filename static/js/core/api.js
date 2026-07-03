@@ -91,7 +91,6 @@
  *           <method name="calculateHammingDistance" endpoint="/validation/hamming_distance" parameters="hamming_params"/>
  *           <method name="verifyQuality" endpoint="/validation/verify_quality" parameters="image_file, metadata"/>
  *           <method name="detectMarkers" endpoint="/validation/detect" parameters="image_file, metadata"/>
- *           <method name="getValidationMetrics" endpoint="/validation/metrics" parameters="none"/>
  *         </category>
  *         <category name="export_methods">
  *           <method name="exportLightBurn" endpoint="/download" file_type=".lbrn2"/>
@@ -709,10 +708,6 @@ class ArUCOAPI extends APIClient {
 
     async generateDetectionReport(params) {
         return this.post('/validation/detection_report', params);
-    }
-
-    async getValidationMetrics() {
-        return this.get('/validation/metrics');
     }
 
     async importCalibrationPattern(file, params = {}) {

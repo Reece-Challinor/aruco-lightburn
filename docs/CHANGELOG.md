@@ -22,10 +22,17 @@ and this project adheres to Semantic Versioning.
 - TBD
 
 ### Changed
-- TBD
+- Pattern persistence endpoints are frozen (kept for compatibility, no new
+  capabilities) — roadmap F-10.
+- SQLAlchemy 2.0 style `db.session.get()` replaces legacy `.query.get()`;
+  model timestamps are timezone-aware (deprecated `datetime.utcnow` removed).
 
 ### Removed
-- TBD
+- DB detection-metrics surface (roadmap F-10): `POST /api/calibration/metrics`,
+  `GET /api/validation/metrics`, the `DetectionMetric` model, the
+  detection-report persistence path, and the validation page's
+  performance-metrics panel. Persisted metrics were misleading — serverless
+  production runs a per-invocation in-memory database.
 
 ## [2.6.0] - 2026-07-03
 ### Security
