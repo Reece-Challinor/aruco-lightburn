@@ -13,8 +13,8 @@
 <INSTRUCTIONS>
 # AGENTS.md - Engineering Guide
 
-**Current Implementation**: `v2.4.0`
-**Last Updated**: 2026-02-09
+**Current Implementation**: `v2.6.0`
+**Last Updated**: 2026-07-03
 
 ---
 

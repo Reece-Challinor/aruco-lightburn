@@ -3,10 +3,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>lightburn.py</name>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
     <type>export_module</type>
     <purpose>Export ArUCO markers to LightBurn .lbrn2 format for laser cutting</purpose>
-    <last_updated>2026-02-23</last_updated>
+    <last_updated>2026-07-03</last_updated>
     <maintainer>ArUCO Generator Team</maintainer>
   </file_meta>
 </ai_agent_documentation>
@@ -40,16 +40,21 @@
 import logging
 import xml.etree.ElementTree as ET
 from io import BytesIO
+from pathlib import Path
 from typing import Any, Dict
 
 from ..core.drawing import DrawingContext
 
 logger = logging.getLogger(__name__)
 
+# materials.json lives at the repo root; resolve from this file so loading
+# works regardless of process CWD (serverless entrypoints don't run from root)
+_MATERIALS_FILE = Path(__file__).resolve().parents[2] / "materials.json"
+
 
 class LightBurnExporter:
     def __init__(self):
-        self.materials_file = "materials.json"
+        self.materials_file = str(_MATERIALS_FILE)
 
         # Default settings
         self.material_settings = {

@@ -2,10 +2,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>task.md</name>
-    <version>2.0.0</version>
+    <version>2.1.0</version>
     <type>task_tracker</type>
-    <purpose>Track immediate engineering tasks for the production launch program</purpose>
-    <last_updated>2026-06-12</last_updated>
+    <purpose>Track immediate engineering tasks for the roadmap program (successor to the production launch program)</purpose>
+    <last_updated>2026-07-03</last_updated>
     <maintainer>Claude (Senior Engineer)</maintainer>
   </file_meta>
 </ai_agent_documentation>
@@ -13,7 +13,23 @@
 
 # Task Status
 
-Status: ACTIVE — Production Launch Program (see docs/ai/implementation_plan.md)
+Status: ACTIVE — Roadmap Program (docs/ai/PRODUCT_ROADMAP.md via
+docs/ai/IMPLEMENTATION_BRIDGE.md). The Production Launch Program
+(docs/ai/implementation_plan.md) was reconciled into it on 2026-07-03
+(decision D-ζ, docs/ai/phase0/DECISION_LOG.md).
+
+## Done (2026-07-03, Phase 5 stable base → v2.6.0)
+- Bridge P-0.0: repaired both un-skipped LightBurn tests (test-side lbrn2
+  parsing — vertices are "V{x} {y}c0x1c1x1" concatenated; layer index is the
+  Value attribute); strengthened them per the bridge ACs (≥2 shape layers;
+  40mm marker spans 40±0.1mm).
+- Fixed materials.json CWD-relative load in export/lightburn.py (now resolves
+  from the package; regression test added).
+- Test hygiene: coverage artifacts gitignored; the one remaining skip
+  (SVG overlap) documented as an intentional decision.
+- Committed Phase 0 planning docs; recorded founder decisions D-α…D-ζ;
+  annotated implementation_plan.md with per-phase dispositions.
+- Version bump 2.5.1 → 2.6.0 (stable-base release).
 
 ## Done (2026-06-12)
 - Full production-readiness audit + scorecard (baseline recorded in plan).
@@ -50,9 +66,13 @@ Status: ACTIVE — Production Launch Program (see docs/ai/implementation_plan.md
 - MAX_MARKER_PIXELS 5000→2000 (bounds rectangle-merge worst case).
 
 ## Next up
+- [ ] Founder: merge the stable-base PR to main; tag v2.6.0.
 - [ ] aruco.tools DNS at Namecheap (PM action — see plan).
-- [ ] Disable Deployment Protection for production (PM action).
-- [ ] Phase 5: testing (coverage floor, calibration_web tests).
+- [ ] Enable branch protection on main; disable Deployment Protection for
+      production (PM actions).
+- [ ] Bridge P-0.S: OpenCV.js viability spike (∥ with M0; gates M1).
+- [ ] Bridge P-0.1 (F-10: remove DB metrics) — first M0 prompt; one branch +
+      PR per prompt (D-β).
 
 ## Previous cycle (2026-02-23, complete)
 Archived — see git history of this file and docs/ai/walkthrough.md.

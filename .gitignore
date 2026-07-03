@@ -75,6 +75,12 @@ temp/
 *.tmp
 *.temp
 
+# Coverage artifacts
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
 # ArUCO Generator specific
 attached_assets/
 test_outputs/

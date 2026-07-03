@@ -2,10 +2,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>implementation_plan.md</name>
-    <version>2.0.0</version>
+    <version>2.1.0</version>
     <type>plan_document</type>
     <purpose>Production launch program: scorecard-to-A plan, Vercel-first deployment, aruco.tools</purpose>
-    <last_updated>2026-06-12</last_updated>
+    <last_updated>2026-07-03</last_updated>
     <maintainer>Claude (Senior Engineer) + Reece (PM)</maintainer>
   </file_meta>
 </ai_agent_documentation>
@@ -13,7 +13,14 @@
 
 # Production Launch Program — ArUCO.tools
 
-Status: ACTIVE (started 2026-06-12). Supersedes the 2026-02 audit-remediation plan
+Status: **RECONCILED into the roadmap program (2026-07-03, decision D-ζ)**.
+Phases 1–4 delivered; Phase 5 delivered at minimal "stable base" scope
+(v2.6.0). **Successor program:** `docs/ai/PRODUCT_ROADMAP.md` (v3.0.0 unified
+spec) executed via `docs/ai/IMPLEMENTATION_BRIDGE.md` (phases Pre, M0–M3).
+Residual scope from Phases 5–8 folds into the roadmap as annotated per phase
+below (decision record: `docs/ai/phase0/DECISION_LOG.md`).
+
+Started 2026-06-12. Supersedes the 2026-02 audit-remediation plan
 (see git history for the completed phases 1-11 of the previous refactor).
 
 ## Mission
@@ -170,6 +177,15 @@ Trunk-based, two-person team:
 
 ## Phase 5 — Testing to A− (~1 day)
 
+> **Disposition (2026-07-03, D-ζ):** delivered at minimal "stable base" scope
+> in the v2.6.0 release — item 4 done (both tests repaired and passing, plus
+> the materials.json CWD fix; the one remaining SVG-overlap skip is documented
+> as an intentional decision). Items 1–3 and 5 fold into roadmap execution:
+> coverage rises ride along bridge prompts touching each module, with the
+> floor ratcheted at each milestone release (65 → 70 at v2.7.0 → 75 at
+> v2.8/2.9 → 80 at v3.0.0); envelope contract tests land with the
+> `/api/batch_generate` error-handling fix (M0 parallel window).
+
 1. Raise coverage floor 65 → 75 (then 80 after #2): pyproject + Makefile.
 2. Target the gap: `web/calibration_web.py` (1,068 lines, thinnest coverage).
 3. Security regression tests: header presence, escaping helpers, upload
@@ -179,6 +195,9 @@ Trunk-based, two-person team:
 5. Response-envelope contract tests (jsonschema) for `/api/*`.
 
 ## Phase 6 — Observability to A− (~0.5 day)
+
+> **Disposition (2026-07-03, D-ζ):** folds into roadmap M1 — items 1–3 ride
+> the P-1.6 diagnostics-drawer session; items 4–5 are PM actions (unchanged).
 
 1. Structured JSON logging when `VERCEL_ENV`/`LOG_FORMAT=json` (request_id,
    path, status, duration) — greppable in Vercel log viewer; add a Log Drain
@@ -191,6 +210,11 @@ Trunk-based, two-person team:
 5. Enable Vercel Web Analytics (free, privacy-friendly) for PM usage insight.
 
 ## Phase 7 — Documentation & AI tooling to A− (~1 day)
+
+> **Disposition (2026-07-03, D-ζ):** folds into roadmap M0 — item 1 as an M0
+> micro-PR (version single-sourcing), item 2 into the P-0.11 M0 gate
+> (`scripts/validate_docs.py` + CI check); items 3–6 land with P-3.5 launch
+> prep.
 
 1. **Version single-sourcing**: `__init__.py` reads
    `importlib.metadata.version("aruco-generator")`; remove version claims
@@ -210,6 +234,10 @@ Trunk-based, two-person team:
    model above; delete Vercel-legacy/Replit references in docs/devops/.
 
 ## Phase 8 — Product launch polish (~0.5 day + PM input)
+
+> **Disposition (2026-07-03, D-ζ):** SUPERSEDED by the roadmap — homepage v2
+> is bridge P-1.5; the launch checklist, SEO/OG work, and feedback channel
+> are bridge P-3.5.
 
 - Home page copy + OG/meta tags + favicon; "free & open source" positioning.
 - GitHub repo: description, topics, social card, link to aruco.tools.

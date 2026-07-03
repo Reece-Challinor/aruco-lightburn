@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-ArUCO Generator (v2.4.0) — Flask web app for generating ArUCO markers, ChArUco calibration boards, and AprilTags with native LightBurn (.lbrn2) laser cutting export. Supports multiple export formats (SVG, PDF, DXF, STL, YAML).
+ArUCO Generator (v2.6.0) — Flask web app for generating ArUCO markers, ChArUco calibration boards, and AprilTags with native LightBurn (.lbrn2) laser cutting export. Supports multiple export formats (SVG, PDF, DXF, STL, YAML).
 
 ## Commands
 

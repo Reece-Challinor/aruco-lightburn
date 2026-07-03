@@ -10,7 +10,7 @@
 # </ai_agent_documentation>
 [project]
 name = "aruco-generator"
-version = "2.5.1"
+version = "2.6.0"
 description = "Professional ArUCO marker generator with calibration patterns and multi-format export"
 requires-python = ">=3.11"
 
