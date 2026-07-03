@@ -1,0 +1,113 @@
+/*
+ * Workbench Design Tokens
+ * As specified in PRODUCT_ROADMAP.md §6.2 - §6.5
+ */
+
+:root {
+  /* Neutral bench (dark theme values) */
+  --bench-bg: #0f1117;          /* app background */
+  --bench-surface: #161a22;     /* panels, cards */
+  --bench-surface-2: #1e2430;   /* nested surfaces, hover */
+  --bench-border: #2a3140;
+  --bench-text: #e6e9ef;        /* 13.9:1 on surface */
+  --bench-text-dim: #9aa3b2;    /* 5.2:1 — minimum for body text */
+  --bench-text-faint: #6b7383;  /* large/disabled text only */
+
+  /* Accent — one only */
+  --accent: #4d9fff;            /* primary actions, focus, active nav */
+  --accent-pressed: #3a86e0;
+  --accent-surface: #14283f;    /* selected/active backgrounds */
+
+  /* Semantic status (UI states) */
+  --ok: #3ecf8e;
+  --ok-surface: #0f2b20;
+  --warn: #f5b83d;
+  --warn-surface: #2e2410;
+  --error: #f0564a;
+  --error-surface: #2e1513;
+  --info: #4d9fff;
+  --info-surface: #14283f;   /* shares accent hue */
+
+  /* Confidence ramp — RESERVED: only C-10 and verdict tiers may use these */
+  --conf-high: #3ecf8e;   /* ≥90 Production-ready */
+  --conf-mid:  #f5b83d;   /* 70–89 Usable */
+  --conf-low:  #f0564a;   /* <70 Fix/recapture */
+
+  /* Detection overlay (canvas only — chosen for visibility over live video) */
+  --det-accepted: #00e676;   /* detected marker outlines/corners */
+  --det-rejected: #ff9100;   /* rejected candidates (F-05's hero color) */
+  --det-id-label-text: #ffffff;
+  --det-id-label-bg: rgba(0, 0, 0, 0.65);
+  --det-measure: #b388ff;    /* measurements, distances, pose distance */
+
+  /* Pose axes follow CV convention */
+  --pose-x: #ff5252;
+  --pose-y: #69f0ae;
+  --pose-z: #448aff;
+
+  /* Typography */
+  --font-ui: Inter, -apple-system, "Segoe UI", sans-serif;
+  --font-data: "JetBrains Mono", "SF Mono", Consolas, monospace;
+
+  --text-xs: 12px; --line-xs: 16px;   /* captions, chip labels, axis labels */
+  --text-sm: 14px; --line-sm: 20px;   /* body, controls (UI default) */
+  --text-md: 16px; --line-md: 24px;   /* Learn prose, callouts */
+  --text-lg: 20px; --line-lg: 28px;   /* panel titles, verdict lines */
+  --text-xl: 24px; --line-xl: 32px;   /* workspace titles */
+  --text-hero: 32px; --line-hero: 40px; /* confidence score number, homepage h1 */
+
+  /* Spacing and grid (4px base) */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+  --s7: 48px;
+  --s8: 64px;
+
+  /* Elevation and surfaces */
+  --r-sm: 4px;   /* chips, inputs */
+  --r-md: 8px;   /* cards, panels */
+  --r-lg: 12px;  /* modals */
+
+  /* Shadows */
+  --shadow-popover: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="light"] {
+  /* Neutral bench (light theme values) */
+  --bench-bg: #f8f9fa;
+  --bench-surface: #ffffff;
+  --bench-surface-2: #f1f3f5;
+  --bench-border: #dee2e6;
+  --bench-text: #212529;        /* ~15:1 on surface */
+  --bench-text-dim: #495057;    /* ~7:1 on surface */
+  --bench-text-faint: #adb5bd;
+
+  /* Accent */
+  --accent: #228be6;
+  --accent-pressed: #1c7ed6;
+  --accent-surface: #e7f5ff;
+
+  /* Semantic status (UI states) */
+  --ok: #2b8a3e;
+  --ok-surface: #ebfbee;
+  --warn: #e67700;
+  --warn-surface: #fff9db;
+  --error: #e03131;
+  --error-surface: #fff5f5;
+  --info: #228be6;
+  --info-surface: #e7f5ff;
+
+  /* Confidence ramp */
+  --conf-high: #2b8a3e;
+  --conf-mid:  #e67700;
+  --conf-low:  #e03131;
+
+  /* Shadows */
+  --shadow-popover: 0 8px 24px rgba(0, 0, 0, 0.1);
+
+  /* Note: Detection overlay and Pose axes remain unchanged in light mode
+     as they need to be highly visible over webcam feeds, not UI backgrounds. */
+}

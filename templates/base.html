@@ -5,6 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}ArUCO Generator - Professional Computer Vision Markers{% endblock %}</title>
 
+    <script>
+        (function() {
+            try {
+                var stateStr = localStorage.getItem('aruco_app_state');
+                var theme = 'dark';
+                if (stateStr) {
+                    var state = JSON.parse(stateStr);
+                    if (state && state.theme) {
+                        theme = state.theme;
+                    }
+                }
+                document.documentElement.setAttribute('data-theme', theme);
+                document.documentElement.setAttribute('data-bs-theme', theme);
+            } catch(e) {}
+        })();
+    </script>
+
+    <!-- Design Tokens (loaded before Bootstrap) -->
+    <link href="{{ url_for('static', filename='css/tokens.css') }}" rel="stylesheet">
+
     <!-- Bootstrap 5 CSS (vendored locally — no CDN, strict CSP) -->
     <link href="{{ url_for('static', filename='vendor/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='vendor/bootstrap-icons.css') }}" rel="stylesheet">
@@ -100,6 +120,7 @@
     <script src="{{ url_for('static', filename='js/core/navigation-simple.js') }}"></script>
     <script src="{{ url_for('static', filename='js/core/notifications.js') }}"></script>
     <script src="{{ url_for('static', filename='js/core/state.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/core/theme.js') }}"></script>
     <script src="{{ url_for('static', filename='js/core/api.js') }}"></script>
 
     {% block extra_js %}{% endblock %}

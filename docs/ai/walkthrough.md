@@ -40,6 +40,8 @@ Date: 2026-07-03
   scope; 6–7 fold into roadmap M0/M1; 8 superseded); founder decision packet
   D-α…D-ζ recorded as DECIDED in `docs/ai/phase0/DECISION_LOG.md`; Phase 0
   docs committed; stale v2.4.0 references in CLAUDE.md/AGENTS.md corrected.
+- Bridge P-0.1: Removed DB metrics (`DetectionMetric`) and froze pattern persistence (F-10).
+- Bridge P-0.2: Added `tokens.css` with dark-first theme defaults and semantic colors, and `theme.js` to manage state-persisted toggling.
 
 ## Changes
 - `tests/test_export_formats.py`: fixed lbrn2 parsing in both repaired tests;
@@ -59,8 +61,7 @@ Date: 2026-07-03
 - `CLAUDE.md`, `AGENTS.md`: stale v2.4.0 → v2.6.0.
 - `docs/ai/phase0/{BASELINE_REPORT,KNOWLEDGE_BASE}.md`: committed (previously
   untracked Phase 0 deliverables).
-- Version bump 2.5.1 → 2.6.0 via `scripts/release.py` (pyproject,
-  `__init__.py`, CHANGELOG, AI_NAVIGATION).
+- `aruco_generator/db/models.py`, `aruco_generator/web/calibration_web.py`, UI/tests: stripped out metrics.
 
 ## Tests
 - `make validate` (format-check + lint + typecheck + test + test-qa) — green.

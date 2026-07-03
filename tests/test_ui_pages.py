@@ -45,3 +45,12 @@ def test_validation_page_has_no_metrics_panel(client):
     assert 'id="recentTestsList"' not in html
     # The page's real features remain
     assert 'id="uploadZone"' in html
+
+
+def test_design_tokens_stylesheet_served(client):
+    """Ensure tokens.css and theme.js are injected into the base template."""
+    response = client.get("/")
+    assert response.status_code == 200
+    html = response.data.decode("utf-8")
+    assert "tokens.css" in html
+    assert "theme.js" in html

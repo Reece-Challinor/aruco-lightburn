@@ -74,13 +74,17 @@ docs/ai/IMPLEMENTATION_BRIDGE.md). The Production Launch Program
 - docker.yml no longer fails without Docker Hub secrets (builds without
   pushing; set DOCKER_USERNAME/DOCKER_PASSWORD to enable publishing).
 
+## Done (2026-07-03, P-0.1, P-0.2)
+- Bridge P-0.1: Removed DB metrics (F-10) and froze pattern persistence.
+- Bridge P-0.2: Implemented tokens.css and theme.js (dark-first theme base).
+
 ## Next up
 - [ ] aruco.tools DNS at Namecheap (PM action — see plan).
 - [ ] Enable branch protection on main; disable Deployment Protection for
       production (PM actions).
 - [ ] Bridge P-0.S: OpenCV.js viability spike (∥ with M0; gates M1).
-- [ ] Bridge P-0.1 (F-10: remove DB metrics) — first M0 prompt; one branch +
-      PR per prompt (D-β).
+- [ ] Bridge P-0.3: F-90b AppShell + 6 workspaces.
+- [ ] Bridge P-0.4: F-90c core component library.
 
 ## Previous cycle (2026-02-23, complete)
 Archived — see git history of this file and docs/ai/walkthrough.md.
