@@ -70,7 +70,9 @@ jobs:
 
           changelog = pathlib.Path("docs/CHANGELOG.md").read_text()
           lines = changelog.splitlines()
-          heading_pattern = re.compile(rf"^## \\[{re.escape(version)}\\] - ")
+          # NB: raw f-string — \[ matches a literal bracket; \\[ would
+          # match a backslash + bracket and never find the heading.
+          heading_pattern = re.compile(rf"^## \[{re.escape(version)}\] - ")
           start_idx = next((i for i, line in enumerate(lines) if heading_pattern.match(line)), None)
           if start_idx is None:
               raise SystemExit(f"Changelog missing section for {version}.")
