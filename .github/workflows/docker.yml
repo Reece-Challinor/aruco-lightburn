@@ -13,10 +13,12 @@ name: Docker Build
 # </ai_agent_documentation>
 # -->
 
+# Manual-only: Docker is the optional self-host distribution path
+# (deployment is Vercel-first). Run from the Actions tab when a Docker
+# image is actually wanted; set DOCKER_USERNAME/DOCKER_PASSWORD secrets
+# to publish to Docker Hub.
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
 
 jobs:
   docker:
