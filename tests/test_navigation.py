@@ -39,9 +39,9 @@ def test_calibration_page(client):
     assert b"ChArUco" in response.data
 
 
-def test_validation_page(client):
-    """Test validation page renders correctly"""
-    response = client.get("/validation")
+def test_debug_page(client):
+    """Test debug page renders correctly"""
+    response = client.get("/debug")
     assert response.status_code == 200
     assert b"Validation Center" in response.data
     assert b"Hamming Distance" in response.data
@@ -63,7 +63,7 @@ def test_navigation_links(client):
     # Check for navigation links
     assert b'href="/generate"' in response.data
     assert b'href="/calibration"' in response.data
-    assert b'href="/validation"' in response.data
+    assert b'href="/debug"' in response.data
     assert b'href="/documentation"' in response.data
 
 
@@ -158,12 +158,11 @@ def test_tab_navigation_urls(client):
 
 def test_base_template_inheritance(client):
     """Test all pages inherit from base template"""
-    pages = ["/", "/generate", "/calibration", "/validation", "/documentation"]
+    pages = ["/", "/generate", "/calibration", "/debug", "/documentation"]
 
     for page in pages:
         response = client.get(page)
         assert response.status_code == 200
         # Check for base template elements
-        assert b"navbar" in response.data
+        assert b"app-shell" in response.data
         assert b"ArUCO Generator" in response.data
-        assert b"footer" in response.data

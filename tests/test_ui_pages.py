@@ -36,9 +36,9 @@ def test_calibration_page_has_pattern_cards(client):
     assert 'onclick="selectPattern' not in html
 
 
-def test_validation_page_has_no_metrics_panel(client):
+def test_debug_page_has_no_metrics_panel(client):
     """The DB-backed performance-metrics panel was removed (roadmap F-10)."""
-    response = client.get("/validation")
+    response = client.get("/debug")
     assert response.status_code == 200
     html = response.data.decode("utf-8")
     assert 'id="avgDetectionRate"' not in html
@@ -54,3 +54,23 @@ def test_design_tokens_stylesheet_served(client):
     html = response.data.decode("utf-8")
     assert "tokens.css" in html
     assert "theme.js" in html
+
+def test_dev_components_gallery(client, app):
+    """Ensure /dev/components renders when debug is true."""
+    app.debug = True
+    response = client.get("/dev/components")
+    assert response.status_code == 200
+    html = response.data.decode("utf-8")
+    assert "Components Gallery" in html
+    
+    app.debug = False
+    response = client.get("/dev/components")
+    assert response.status_code == 404
+
+def test_marker_size_calculator_page(client):
+    """Ensure the marker size calculator page renders correctly."""
+    response = client.get("/learn/marker-size-calculator")
+    assert response.status_code == 200
+    html = response.data.decode("utf-8")
+    assert "Marker Size Calculator" in html
+    assert "app-shell" in html

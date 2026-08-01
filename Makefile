@@ -62,7 +62,7 @@ install-dev:
 	uv sync
 
 # Run all tests
-test: unit-test integration
+test: unit-test integration test-js
 
 # Run unit tests
 unit-test:
@@ -95,6 +95,11 @@ test-ui:
 
 # Run integration tests
 integration: test-api test-ui
+
+# Run JS tests
+test-js:
+	@echo "Running JS tests..."
+	node --test static/js/**/*.test.js
 
 # Run generation quality tests
 test-quality:

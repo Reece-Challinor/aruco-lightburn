@@ -276,16 +276,43 @@ def generate_page():
 # Calibration route is defined in calibration_web.py
 
 
-@web_bp.route("/validation")
-def validation_page():
-    """Validation page"""
-    return render_template("validation.html")
+@web_bp.route("/debug")
+def debug_page():
+    """Debug page"""
+    return render_template("debug.html")
+
+
+@web_bp.route("/live")
+def live_page():
+    """Live page"""
+    return render_template("live.html")
+
+
+@web_bp.route("/convert")
+def convert_page():
+    """Convert page"""
+    return render_template("convert.html")
 
 
 @web_bp.route("/documentation")
 def documentation_page():
     """Documentation page"""
     return render_template("documentation.html")
+
+
+@web_bp.route("/learn/marker-size-calculator")
+def marker_size_calculator_page():
+    """Marker Size Calculator page"""
+    return render_template("learn/marker-size-calculator.html")
+
+
+@web_bp.route("/dev/components")
+def dev_components_page():
+    """Hidden components gallery (dev only)"""
+    if not current_app.debug:
+        from flask import abort
+        abort(404)
+    return render_template("dev_components.html")
 
 
 # API endpoints - simplified without service layer

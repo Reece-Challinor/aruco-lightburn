@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "app_shell.html" %}
 {#
 <ai_agent_documentation>
   <file_meta>
@@ -13,16 +13,13 @@
 #}
 
 {% block title %}Generate Markers - ArUCO Generator{% endblock %}
-
-{% block breadcrumb_items %}
-<li class="breadcrumb-item active">Generate</li>
-{% endblock %}
+{% block workspace_title %}Generate{% endblock %}
 
 {% block extra_css %}
 <link href="{{ url_for('static', filename='css/workflow.css') }}" rel="stylesheet">
 {% endblock %}
 
-{% block content %}
+{% block workspace_content %}
 <div class="container-fluid py-4">
     <!-- Page Header -->
     <div class="row mb-4">
@@ -113,6 +110,7 @@
                                         <label class="form-label">Size (mm)</label>
                                         <input type="number" class="form-control" id="singleMarkerSize" value="50"
                                             min="10" max="200">
+                                        <div class="mt-1 small text-muted size-advisor" id="simple-size-advisor"></div>
                                     </div>
                                 </div>
                                 <button class="btn btn-primary w-100" id="generateSingle">
@@ -285,6 +283,7 @@
                                                 value="50" min="5" max="500" required>
                                             <span class="input-group-text">mm</span>
                                         </div>
+                                        <div class="mt-1 small text-muted size-advisor" id="adv-size-advisor"></div>
                                     </div>
                                     <div class="col-6">
                                         <label class="form-label">Spacing</label>

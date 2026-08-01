@@ -1,0 +1,257 @@
+/* Components CSS using Design Tokens */
+
+/* C-03 WorkspacePanel */
+.workspace-station {
+    display: grid;
+    grid-template-columns: 320px 1fr 320px;
+    gap: var(--space-md);
+    height: 100%;
+    align-items: stretch;
+}
+.workspace-panel {
+    background-color: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: width var(--motion-slow), opacity var(--motion-slow);
+}
+.workspace-panel.collapsed {
+    width: 0;
+    opacity: 0;
+    border: none;
+    margin: 0;
+    padding: 0;
+}
+.workspace-panel-header {
+    padding: var(--space-md);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.workspace-panel-content {
+    padding: var(--space-md);
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+/* Mode Segmented Control */
+.segmented-control {
+    display: inline-flex;
+    background-color: var(--dark-bg);
+    border-radius: var(--radius-md);
+    padding: var(--space-xs);
+}
+.segmented-control input[type="radio"] {
+    display: none;
+}
+.segmented-control label {
+    padding: var(--space-sm) var(--space-md);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    transition: background-color var(--motion-fast), color var(--motion-fast);
+}
+.segmented-control input[type="radio"]:checked + label {
+    background-color: var(--surface);
+    color: var(--text);
+    box-shadow: var(--shadow-sm);
+}
+
+/* C-09 VerdictCard */
+.verdict-card {
+    background-color: var(--surface);
+    border: 1px solid var(--border-color);
+    border-left: 4px solid transparent;
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+}
+.verdict-card.tier-pass { border-left-color: var(--ok); }
+.verdict-card.tier-warn { border-left-color: var(--warn); }
+.verdict-card.tier-fail { border-left-color: var(--error); }
+
+.verdict-line {
+    font-size: var(--text-lg);
+    font-weight: 600;
+    margin-bottom: var(--space-xs);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.verdict-cause {
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+    margin-bottom: var(--space-md);
+}
+.verdict-details {
+    display: none;
+    border-top: 1px solid var(--border-color);
+    padding-top: var(--space-md);
+    margin-top: var(--space-md);
+}
+.verdict-card.expanded .verdict-details {
+    display: block;
+}
+.verdict-table {
+    width: 100%;
+    font-family: var(--font-data);
+    font-size: var(--text-sm);
+}
+.verdict-table td {
+    padding: var(--space-xs) 0;
+}
+.verdict-table td:last-child {
+    text-align: right;
+}
+
+/* C-12 Loading/Empty states */
+.state-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: var(--space-xl);
+    height: 100%;
+    color: var(--text-muted);
+}
+.skeleton-box {
+    background: linear-gradient(90deg, var(--dark-bg) 25%, var(--surface) 50%, var(--dark-bg) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+    border-radius: var(--radius-sm);
+}
+@keyframes skeleton-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+.progress-container {
+    width: 100%;
+    max-width: 300px;
+    height: 8px;
+    background-color: var(--dark-bg);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    margin: var(--space-md) 0;
+}
+.progress-bar {
+    height: 100%;
+    background-color: var(--accent);
+    transition: width var(--motion-slow);
+}
+
+/* C-13 FixItPanel */
+.fixit-panel {
+    background-color: var(--error-surface);
+    border: 1px solid var(--error);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+}
+.fixit-panel.warning {
+    background-color: var(--warn-surface);
+    border-color: var(--warn);
+}
+.fixit-header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-sm);
+}
+.fixit-title {
+    font-weight: 600;
+    color: var(--text);
+}
+.fixit-cause {
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+    margin-bottom: var(--space-md);
+}
+.fixit-actions {
+    display: flex;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+    align-items: center;
+}
+.fixit-actions .btn-quiet {
+    margin-left: auto;
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+.fixit-actions .btn-quiet:hover {
+    color: var(--text);
+    text-decoration: underline;
+}
+
+/* C-14 EducationalCallout */
+.edu-callout {
+    background-color: var(--info-surface);
+    border-left: 4px solid var(--accent);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+    display: flex;
+    gap: var(--space-md);
+    align-items: flex-start;
+    position: relative;
+}
+.edu-callout-icon {
+    color: var(--accent);
+    font-size: 1.25rem;
+}
+.edu-callout-content {
+    flex-grow: 1;
+    font-size: var(--text-sm);
+    color: var(--text);
+}
+.edu-callout-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+.edu-callout-close:hover {
+    color: var(--text);
+}
+
+/* C-17 Toast */
+.toast-container-fixed {
+    position: fixed;
+    bottom: var(--space-lg);
+    right: var(--space-lg);
+    z-index: 1055;
+    pointer-events: none;
+}
+.toast-msg {
+    background-color: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    margin-top: var(--space-sm);
+    box-shadow: var(--shadow-md);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    pointer-events: auto;
+    animation: toast-in var(--motion-fast);
+}
+.toast-msg.toast-out {
+    animation: toast-out var(--motion-fast) forwards;
+}
+@keyframes toast-in {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes toast-out {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(20px); }
+}

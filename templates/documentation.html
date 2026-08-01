@@ -10,13 +10,10 @@
   </file_meta>
 </ai_agent_documentation>
 #}
-{% extends "base.html" %}
+{% extends "app_shell.html" %}
 
 {% block title %}Documentation - ArUCO Generator{% endblock %}
-
-{% block breadcrumb_items %}
-<li class="breadcrumb-item active">Documentation</li>
-{% endblock %}
+{% block workspace_title %}Documentation{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -67,7 +64,7 @@
 </style>
 {% endblock %}
 
-{% block content %}
+{% block workspace_content %}
 <div class="container-fluid py-4">
     <div class="row">
         <!-- Sidebar Navigation -->

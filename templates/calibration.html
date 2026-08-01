@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "app_shell.html" %}
 {#
 <ai_agent_documentation>
   <file_meta>
@@ -13,16 +13,13 @@
 #}
 
 {% block title %}Calibration Patterns - ArUCO Generator{% endblock %}
-
-{% block breadcrumb_items %}
-<li class="breadcrumb-item active">Calibration</li>
-{% endblock %}
+{% block workspace_title %}Calibrate{% endblock %}
 
 {% block extra_css %}
 <link href="{{ url_for('static', filename='css/calibration.css') }}" rel="stylesheet">
 {% endblock %}
 
-{% block content %}
+{% block workspace_content %}
 <div class="container-fluid py-4 calibration-patterns">
     <!-- Page Header -->
     <div class="row mb-4">

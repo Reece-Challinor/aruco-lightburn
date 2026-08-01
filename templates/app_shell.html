@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<style>
+/* 
+ * AppShell Layout
+ * - Left rail: Navigation
+ * - Top bar: Title, Theme toggle, Action slot
+ * - Main: Content slot
+ */
+.app-shell {
+    display: flex;
+    min-height: 100vh;
+    background-color: var(--bench-bg);
+    color: var(--bench-text);
+    font-family: var(--font-ui);
+}
+
+.app-rail {
+    width: 64px;
+    background-color: var(--bench-surface);
+    border-right: 1px solid var(--bench-border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: var(--s4);
+    z-index: 1000;
+}
+@media (min-width: 800px) {
+    .app-rail {
+        width: 240px;
+        align-items: stretch;
+    }
+}
+
+.rail-brand {
+    display: flex;
+    align-items: center;
+    padding: 0 var(--s4);
+    margin-bottom: var(--s6);
+    color: var(--accent);
+    text-decoration: none;
+}
+.rail-brand-icon {
+    font-size: 24px;
+}
+.rail-brand-text {
+    display: none;
+    margin-left: var(--s3);
+    font-weight: 600;
+}
+@media (min-width: 800px) {
+    .rail-brand-text { display: block; }
+}
+
+.rail-nav {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+}
+.rail-item {
+    width: 100%;
+}
+.rail-link {
+    display: flex;
+    align-items: center;
+    padding: var(--s3) var(--s4);
+    color: var(--bench-text-dim);
+    text-decoration: none;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+}
+.rail-link:hover {
+    color: var(--bench-text);
+    background-color: var(--bench-surface-2);
+}
+.rail-link.active {
+    color: var(--accent);
+    background-color: var(--accent-surface);
+    border-left-color: var(--accent);
+}
+.rail-icon {
+    font-size: 20px;
+    margin: 0 auto;
+}
+.rail-text {
+    display: none;
+    margin-left: var(--s3);
+    font-weight: 500;
+}
+@media (min-width: 800px) {
+    .rail-icon { margin: 0; }
+    .rail-text { display: block; }
+}
+
+.app-main {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.app-bar {
+    height: 64px;
+    background-color: var(--bench-surface);
+    border-bottom: 1px solid var(--bench-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--s5);
+    flex-shrink: 0;
+}
+.app-title {
+    font-size: var(--text-lg);
+    font-weight: 600;
+    margin: 0;
+}
+.app-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--s3);
+}
+.theme-toggle {
+    background: none;
+    border: none;
+    color: var(--bench-text-dim);
+    cursor: pointer;
+    padding: var(--s2);
+    border-radius: var(--r-sm);
+    transition: color 0.2s, background-color 0.2s;
+}
+.theme-toggle:hover {
+    color: var(--bench-text);
+    background-color: var(--bench-surface-2);
+}
+.content-slot {
+    flex-grow: 1;
+    overflow-y: auto;
+    background-color: var(--bench-bg);
+}
+
+/* Hide legacy global nav from base.html */
+.global-nav { display: none !important; }
+.breadcrumb-nav { display: none !important; }
+.footer { display: none !important; }
+body { margin: 0; padding: 0; overflow: hidden; }
+</style>
+{% block shell_css %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+<div class="app-shell">
+    <nav class="app-rail">
+        <a href="/" class="rail-brand">
+            <i class="bi bi-qr-code rail-brand-icon"></i>
+            <span class="rail-brand-text">ArUCO</span>
+        </a>
+        <ul class="rail-nav">
+            <li class="rail-item">
+                <a href="/" class="rail-link {% if request.endpoint == 'web.index' %}active{% endif %}" title="Learn">
+                    <i class="bi bi-book rail-icon"></i>
+                    <span class="rail-text">Learn</span>
+                </a>
+            </li>
+            <li class="rail-item">
+                <a href="/generate" class="rail-link {% if request.endpoint == 'web.generate_page' %}active{% endif %}" title="Generate">
+                    <i class="bi bi-magic rail-icon"></i>
+                    <span class="rail-text">Generate</span>
+                </a>
+            </li>
+            <li class="rail-item">
+                <a href="/calibration" class="rail-link {% if request.endpoint == 'calibration.calibration_page' %}active{% endif %}" title="Calibrate">
+                    <i class="bi bi-camera-video rail-icon"></i>
+                    <span class="rail-text">Calibrate</span>
+                </a>
+            </li>
+            <li class="rail-item">
+                <a href="/live" class="rail-link {% if request.endpoint == 'web.live_page' %}active{% endif %}" title="Live">
+                    <i class="bi bi-webcam rail-icon"></i>
+                    <span class="rail-text">Live</span>
+                </a>
+            </li>
+            <li class="rail-item">
+                <a href="/debug" class="rail-link {% if request.endpoint == 'web.debug_page' %}active{% endif %}" title="Debug">
+                    <i class="bi bi-bug rail-icon"></i>
+                    <span class="rail-text">Debug</span>
+                </a>
+            </li>
+            <li class="rail-item">
+                <a href="/convert" class="rail-link {% if request.endpoint == 'web.convert_page' %}active{% endif %}" title="Convert">
+                    <i class="bi bi-arrow-left-right rail-icon"></i>
+                    <span class="rail-text">Convert</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="app-main">
+        <header class="app-bar">
+            <h1 class="app-title">{% block workspace_title %}Workspace{% endblock %}</h1>
+            <div class="app-actions">
+                {% block workspace_actions %}{% endblock %}
+                <button class="theme-toggle" onclick="window.toggleTheme()" aria-label="Toggle theme">
+                    <i class="bi bi-moon-stars"></i>
+                </button>
+            </div>
+        </header>
+        
+        <main class="content-slot">
+            <div class="container-fluid p-4">
+                {% block workspace_content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}

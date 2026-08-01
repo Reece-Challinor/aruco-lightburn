@@ -10,19 +10,16 @@
   </file_meta>
 </ai_agent_documentation>
 #}
-{% extends "base.html" %}
+{% extends "app_shell.html" %}
 
-{% block title %}Validation Center - ArUCO Generator{% endblock %}
-
-{% block breadcrumb_items %}
-<li class="breadcrumb-item active">Validation</li>
-{% endblock %}
+{% block title %}Debug - ArUCO Generator{% endblock %}
+{% block workspace_title %}Debug{% endblock %}
 
 {% block extra_css %}
 <link href="{{ url_for('static', filename='css/validation.css') }}" rel="stylesheet">
 {% endblock %}
 
-{% block content %}
+{% block workspace_content %}
 <div class="container-fluid py-4">
     <!-- Page Header -->
     <div class="row mb-4">

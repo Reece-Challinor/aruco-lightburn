@@ -46,6 +46,11 @@ jobs:
       - name: Install dependencies (locked)
         run: uv sync --locked
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       # Dependabot (uv ecosystem) updates pyproject + uv.lock but not the
       # exported requirements.txt; sync-requirements.yml regenerates it on
       # main after merge, so skip the drift gate on dependabot PRs only.

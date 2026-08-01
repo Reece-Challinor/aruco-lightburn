@@ -1,0 +1,179 @@
+{% extends "app_shell.html" %}
+
+{% block title %}Dev Components Gallery{% endblock %}
+{% block workspace_title %}Dev Components{% endblock %}
+
+{% block workspace_content %}
+<div class="container-fluid py-4" id="gallery-container">
+    <h1 class="mb-4">Components Gallery</h1>
+    
+    <div class="row">
+        <div class="col-12 mb-5" id="c03-gallery">
+            <h3>C-03 WorkspacePanel Set & Segmented Control</h3>
+            <hr>
+        </div>
+        
+        <div class="col-12 mb-5" id="c09-gallery">
+            <h3>C-09 VerdictCard</h3>
+            <hr>
+        </div>
+        
+        <div class="col-12 mb-5" id="c12-gallery">
+            <h3>C-12 Loading/Empty States</h3>
+            <hr>
+        </div>
+        
+        <div class="col-12 mb-5" id="c13-gallery">
+            <h3>C-13 FixItPanel</h3>
+            <hr>
+        </div>
+        
+        <div class="col-12 mb-5" id="c14-gallery">
+            <h3>C-14 EducationalCallout</h3>
+            <hr>
+        </div>
+        
+        <div class="col-12 mb-5" id="c17-gallery">
+            <h3>C-17 Toast</h3>
+            <hr>
+            <button class="btn btn-primary" id="btn-toast-1">Show Info Toast</button>
+            <button class="btn btn-success" id="btn-toast-2">Show Success Toast</button>
+            <button class="btn btn-secondary" id="btn-toast-3">Spam Toasts (Test Queue)</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script type="module">
+    import { createWorkspacePanel, createSegmentedControl } from '/static/js/components/workspace-panel.js';
+    import { createVerdictCard } from '/static/js/components/verdict-card.js';
+    import { createLoadingState } from '/static/js/components/loading-state.js';
+    import { createFixItPanel } from '/static/js/components/fixit-panel.js';
+    import { createEducationalCallout } from '/static/js/components/educational-callout.js';
+    import { showToast } from '/static/js/components/toast.js';
+
+    // C-03
+    const c03 = document.getElementById('c03-gallery');
+    
+    const segCtrl = createSegmentedControl({
+        name: 'test-mode',
+        modes: [
+            {value: 'single', label: 'Single'},
+            {value: 'grid', label: 'Grid'},
+            {value: 'advanced', label: 'Advanced'}
+        ],
+        initialValue: 'single',
+        onChange: (v) => console.log('Mode:', v)
+    });
+    c03.appendChild(segCtrl);
+    
+    const station = document.createElement('div');
+    station.className = 'workspace-station mt-3';
+    
+    const p1 = createWorkspacePanel({
+        id: 'panel-left',
+        title: 'Parameters',
+        content: '<p class="text-muted">Settings go here</p>'
+    });
+    const p2 = createWorkspacePanel({
+        id: 'panel-center',
+        title: 'Canvas',
+        content: '<div style="height:200px;background:#333;border-radius:4px;display:flex;align-items:center;justify-content:center;">Canvas Area</div>'
+    });
+    const p3 = createWorkspacePanel({
+        id: 'panel-right',
+        title: 'Inspector',
+        content: '<p class="text-muted">Inspector goes here</p>'
+    });
+    
+    station.appendChild(p1);
+    station.appendChild(p2);
+    station.appendChild(p3);
+    c03.appendChild(station);
+    
+    // C-09
+    const c09 = document.getElementById('c09-gallery');
+    c09.appendChild(createVerdictCard({
+        verdict: 'Excellent',
+        tier: 'pass',
+        cause: 'High contrast and sharp edges',
+        numerics: [
+            {label: 'Contrast', value: '8.5 / 10'},
+            {label: 'Quiet Zone', value: 'Pass'}
+        ]
+    }));
+    c09.appendChild(createVerdictCard({
+        verdict: 'Usable',
+        tier: 'warn',
+        cause: 'Slightly blurry, but detectable',
+        numerics: []
+    }));
+    c09.appendChild(createVerdictCard({
+        verdict: 'Failed',
+        tier: 'fail',
+        cause: 'Insufficient quiet zone',
+        numerics: [
+            {label: 'Quiet Zone', value: '0 px (Failed)'}
+        ],
+        methodologyLink: '#'
+    }));
+
+    // C-12
+    const c12 = document.getElementById('c12-gallery');
+    c12.appendChild(createLoadingState({ type: 'instant' }));
+    c12.appendChild(createLoadingState({ type: 'working', label: 'Detecting corners...', progress: 45 }));
+    c12.appendChild(createLoadingState({ type: 'long', label: 'Solving pose (~10s)...', progress: 10, onCancel: () => alert('Cancelled') }));
+    c12.appendChild(createLoadingState({ type: 'byte-honest', sizeString: '8.2 MB', progress: 70 }));
+    c12.appendChild(createLoadingState({ 
+        type: 'empty', 
+        label: 'No images uploaded.', 
+        emptyActions: {
+            sampleDataAction: () => alert('Loaded'),
+            handoffLabel: 'Capture from Camera',
+            handoffAction: () => alert('Handoff')
+        }
+    }));
+
+    // C-13
+    const c13 = document.getElementById('c13-gallery');
+    c13.appendChild(createFixItPanel({
+        title: 'Detection Failed',
+        cause: 'Insufficient quiet zone around markers.',
+        actions: [
+            {label: 'Add border', primary: true, onClick: () => alert('Fix')},
+            {label: 'Ignore', onClick: () => alert('Exit')}
+        ],
+        onCopyDiagnostics: () => alert('Copied')
+    }));
+    c13.appendChild(createFixItPanel({
+        title: 'Low Framerate',
+        cause: 'Processing too many pixels per frame.',
+        actions: [
+            {label: 'Downscale', primary: true, onClick: () => alert('Fix')}
+        ],
+        isWarning: true
+    }));
+
+    // C-14
+    const c14 = document.getElementById('c14-gallery');
+    // Clear localStorage for test to ensure it shows
+    localStorage.removeItem('aruco_dismissed_test1');
+    const callout = createEducationalCallout({
+        id: 'test1',
+        content: 'ChArUco boards combine checkerboards and ArUco markers for better calibration.',
+        linkUrl: '#'
+    });
+    if (callout) c14.appendChild(callout);
+
+    // C-17
+    document.getElementById('btn-toast-1').onclick = () => showToast('Configuration saved.');
+    document.getElementById('btn-toast-2').onclick = () => showToast('Export completed!', 'bi-check-circle');
+    document.getElementById('btn-toast-3').onclick = () => {
+        showToast('First toast');
+        showToast('Second toast');
+        showToast('Third toast (drops First)');
+        showToast('Fourth toast (drops Second)');
+    };
+</script>
+{% endblock %}

@@ -32,6 +32,12 @@ class GenerateManager {
         this.setupEventListeners();
         this.setupAdvancedMode();
         this.restoreTabState();
+        
+        // Initialize size advisors
+        import('/static/js/lib/marker-math.js').then(module => {
+            this.markerMath = module;
+            this.updateAdvisors();
+        }).catch(err => console.error('Failed to load marker-math.js', err));
     }
 
     async loadDictionaries() {
@@ -94,7 +100,81 @@ class GenerateManager {
             outerBorderCheck.addEventListener('change', () => this.toggleBorderWidth());
         }
 
+        // Size inputs for advisor
+        const singleSize = document.getElementById('singleMarkerSize');
+        if (singleSize) singleSize.addEventListener('input', () => this.updateAdvisors());
+        
+        const advSize = document.getElementById('markerSize');
+        if (advSize) advSize.addEventListener('input', () => this.updateAdvisors());
+        
+        const dictSelect = document.getElementById('quickDictionary');
+        if (dictSelect) dictSelect.addEventListener('change', () => this.updateAdvisors());
+        
+        const advDictSelect = document.getElementById('dictionary');
+        if (advDictSelect) advDictSelect.addEventListener('change', () => this.updateAdvisors());
+
         this.setupBatchListeners();
+    }
+
+    updateAdvisors() {
+        if (!this.markerMath) return;
+        
+        // Use 1080p webcam as default for the advisor
+        const defaultParams = { resolution_h: 1920, hfov_deg: 70 };
+        
+        const updateStrip = (sizeId, dictId, stripId) => {
+            const sizeInput = document.getElementById(sizeId);
+            const dictInput = document.getElementById(dictId);
+            const strip = document.getElementById(stripId);
+            if (!sizeInput || !dictInput || !strip) return;
+            
+            const size = parseFloat(sizeInput.value);
+            if (!size || size <= 0) {
+                strip.innerHTML = '';
+                return;
+            }
+            
+            const dictName = dictInput.value || '';
+            // extract bits from name e.g. "4X4_50" -> 4 data bits + 2 border = 6
+            let dictBits = 6;
+            const match = dictName.match(/^(\d)X\d/);
+            if (match) {
+                dictBits = parseInt(match[1]) + 2; // +2 for border
+            }
+            
+            const params = {
+                ...defaultParams,
+                marker_mm: size,
+                dict_bits: dictBits
+            };
+            
+            const dists = this.markerMath.calculateDistances(params);
+            const comfortable = (dists.comfortable_distance_mm / 1000).toFixed(1);
+            
+            strip.innerHTML = `At ${size} mm … ~${comfortable} m <a href="/learn/marker-size-calculator" class="text-decoration-none" title="Marker Size Calculator">ⓘ</a>
+                <button type="button" class="btn btn-link btn-sm p-0 ms-2 text-decoration-none advisor-fix-it">Fix it</button>`;
+                
+            strip.querySelector('.advisor-fix-it').addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetDistM = prompt("Enter target detection distance in meters (e.g. 2.0):", comfortable);
+                if (targetDistM) {
+                    const targetDistMm = parseFloat(targetDistM) * 1000;
+                    if (targetDistMm > 0) {
+                        const requiredSize = this.markerMath.calculateRequiredSize({
+                            ...defaultParams,
+                            distance_mm: targetDistMm,
+                            dict_bits: dictBits,
+                            target_px_per_bit: 4
+                        });
+                        sizeInput.value = Math.ceil(requiredSize);
+                        this.updateAdvisors();
+                    }
+                }
+            });
+        };
+        
+        updateStrip('singleMarkerSize', 'quickDictionary', 'simple-size-advisor');
+        updateStrip('markerSize', 'dictionary', 'adv-size-advisor');
     }
 
     setupAdvancedMode() {

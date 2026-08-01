@@ -1,0 +1,237 @@
+{% extends "app_shell.html" %}
+
+{% block title %}Marker Size Calculator - ArUCO Generator{% endblock %}
+{% block workspace_title %}Learn{% endblock %}
+
+{% block workspace_content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>Marker Size Calculator</h1>
+            <p class="text-muted">Calculate the required marker size for your detection distance, or check the detection limits for a given marker size.</p>
+            <p class="small text-muted"><i class="bi bi-info-circle me-1"></i>Assuming rectilinear lens, flat marker parallel to camera, near optical center.</p>
+        </div>
+    </div>
+
+    <div class="workspace-station">
+        <!-- Parameters Panel (C-03) -->
+        <section class="workspace-panel" id="panel-params" aria-label="Parameters">
+            <header class="workspace-panel-header">
+                <h2 class="h6 mb-0">Camera & Dictionary</h2>
+            </header>
+            <div class="workspace-panel-content">
+                <div class="mb-3">
+                    <label class="form-label text-sm">Camera Preset</label>
+                    <select class="form-select form-select-sm bg-dark text-light border-secondary" id="camera-preset">
+                        <option value="1080p">1080p WebCam (1920x1080, ~70° HFOV)</option>
+                        <option value="720p">720p Laptop (1280x720, ~60° HFOV)</option>
+                        <option value="4k">4K Camera (3840x2160, ~80° HFOV)</option>
+                        <option value="custom">Custom...</option>
+                    </select>
+                </div>
+                
+                <div class="row g-2 mb-3" id="custom-camera-fields" style="display: none;">
+                    <div class="col-6">
+                        <label class="form-label text-sm">Horiz. Res (px)</label>
+                        <input type="number" class="form-control form-control-sm bg-dark text-light border-secondary" id="res-h" value="1920">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label text-sm">HFOV (deg)</label>
+                        <input type="number" class="form-control form-control-sm bg-dark text-light border-secondary" id="hfov" value="70">
+                    </div>
+                </div>
+
+                <div class="mb-3" id="fisheye-warning" style="display: none;">
+                    <div class="edu-callout">
+                        <div class="edu-callout-icon"><i class="bi bi-exclamation-triangle"></i></div>
+                        <div class="edu-callout-content text-warning">
+                            Fisheye HFOV > 120°: The standard model loses accuracy here. Proceed with caution.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-sm">Dictionary</label>
+                    <select class="form-select form-select-sm bg-dark text-light border-secondary" id="dict-bits">
+                        <option value="6">4x4 (6 bits across incl. border)</option>
+                        <option value="7">5x5 (7 bits across incl. border)</option>
+                        <option value="8">6x6 (8 bits across incl. border)</option>
+                        <option value="9">7x7 (9 bits across incl. border)</option>
+                    </select>
+                </div>
+
+                <hr class="border-secondary">
+
+                <div class="segmented-control w-100 mb-3" role="radiogroup">
+                    <input type="radio" name="calc-mode" id="mode-find-dist" value="find-dist" checked>
+                    <label for="mode-find-dist" class="w-50 text-center">Find Distance</label>
+                    <input type="radio" name="calc-mode" id="mode-find-size" value="find-size">
+                    <label for="mode-find-size" class="w-50 text-center">Find Size</label>
+                </div>
+
+                <div id="field-marker-size">
+                    <label class="form-label text-sm">Marker Size (mm)</label>
+                    <input type="number" class="form-control form-control-sm bg-dark text-light border-secondary" id="marker-size" value="100">
+                </div>
+
+                <div id="field-target-dist" style="display: none;">
+                    <label class="form-label text-sm">Target Distance (mm)</label>
+                    <input type="number" class="form-control form-control-sm bg-dark text-light border-secondary" id="target-dist" value="5000">
+                </div>
+            </div>
+        </section>
+
+        <!-- Results Panel (Center) -->
+        <section class="workspace-panel" id="panel-results" aria-label="Results" style="grid-column: 2 / span 2;">
+            <header class="workspace-panel-header">
+                <h2 class="h6 mb-0">Calculated Results</h2>
+            </header>
+            <div class="workspace-panel-content">
+                <div id="results-find-dist">
+                    <h3 class="h5 mb-4">Detection Limits</h3>
+                    <!-- C-20 Comparison Table Style -->
+                    <table class="table table-dark table-borderless verdict-table" style="max-width: 600px;">
+                        <tbody>
+                            <tr>
+                                <td class="text-muted">Comfortable Distance</td>
+                                <td><strong class="text-success fs-5" id="res-comfortable-dist">-- m</strong></td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="text-muted small pb-3">Recommended limit for robust detection (≥ 4 px/bit).</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Maximum Distance</td>
+                                <td><strong class="text-warning fs-5" id="res-max-dist">-- m</strong></td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="text-muted small">Absolute limit; detection will be flaky (≥ 2 px/bit).</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="results-find-size" style="display: none;">
+                    <h3 class="h5 mb-4">Required Marker Size</h3>
+                    <table class="table table-dark table-borderless verdict-table" style="max-width: 600px;">
+                        <tbody>
+                            <tr>
+                                <td class="text-muted">Minimum Size (Comfortable)</td>
+                                <td><strong class="text-success fs-5" id="res-req-size">-- mm</strong></td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="text-muted small">Size needed for robust detection at target distance (4 px/bit).</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script type="module">
+    import { calculateDistances, calculateRequiredSize } from '/static/js/lib/marker-math.js';
+
+    const presets = {
+        '1080p': { res_h: 1920, hfov: 70 },
+        '720p': { res_h: 1280, hfov: 60 },
+        '4k': { res_h: 3840, hfov: 80 }
+    };
+
+    const els = {
+        preset: document.getElementById('camera-preset'),
+        customFields: document.getElementById('custom-camera-fields'),
+        res_h: document.getElementById('res-h'),
+        hfov: document.getElementById('hfov'),
+        fisheyeWarn: document.getElementById('fisheye-warning'),
+        dictBits: document.getElementById('dict-bits'),
+        modeFindDist: document.getElementById('mode-find-dist'),
+        modeFindSize: document.getElementById('mode-find-size'),
+        fieldMarkerSize: document.getElementById('field-marker-size'),
+        fieldTargetDist: document.getElementById('field-target-dist'),
+        markerSize: document.getElementById('marker-size'),
+        targetDist: document.getElementById('target-dist'),
+        
+        viewFindDist: document.getElementById('results-find-dist'),
+        viewFindSize: document.getElementById('results-find-size'),
+        
+        resComfortable: document.getElementById('res-comfortable-dist'),
+        resMax: document.getElementById('res-max-dist'),
+        resReqSize: document.getElementById('res-req-size'),
+    };
+
+    function updateParams() {
+        const p = els.preset.value;
+        if (presets[p]) {
+            els.res_h.value = presets[p].res_h;
+            els.hfov.value = presets[p].hfov;
+            els.customFields.style.display = 'none';
+        } else {
+            els.customFields.style.display = 'flex';
+        }
+
+        const hfov = parseFloat(els.hfov.value) || 70;
+        els.fisheyeWarn.style.display = hfov > 120 ? 'block' : 'none';
+        
+        calculate();
+    }
+
+    function switchMode() {
+        if (els.modeFindDist.checked) {
+            els.fieldMarkerSize.style.display = 'block';
+            els.fieldTargetDist.style.display = 'none';
+            els.viewFindDist.style.display = 'block';
+            els.viewFindSize.style.display = 'none';
+        } else {
+            els.fieldMarkerSize.style.display = 'none';
+            els.fieldTargetDist.style.display = 'block';
+            els.viewFindDist.style.display = 'none';
+            els.viewFindSize.style.display = 'block';
+        }
+        calculate();
+    }
+
+    function calculate() {
+        const params = {
+            resolution_h: parseFloat(els.res_h.value) || 1920,
+            hfov_deg: parseFloat(els.hfov.value) || 70,
+            dict_bits: parseInt(els.dictBits.value) || 6
+        };
+
+        if (els.modeFindDist.checked) {
+            params.marker_mm = parseFloat(els.markerSize.value) || 100;
+            if (params.marker_mm > 0 && params.hfov_deg > 0 && params.hfov_deg < 180) {
+                const dists = calculateDistances(params);
+                els.resComfortable.textContent = (dists.comfortable_distance_mm / 1000).toFixed(2) + ' m';
+                els.resMax.textContent = (dists.max_distance_mm / 1000).toFixed(2) + ' m';
+            } else {
+                els.resComfortable.textContent = '-- m';
+                els.resMax.textContent = '-- m';
+            }
+        } else {
+            params.distance_mm = parseFloat(els.targetDist.value) || 5000;
+            if (params.distance_mm > 0 && params.hfov_deg > 0 && params.hfov_deg < 180) {
+                const size = calculateRequiredSize(params);
+                els.resReqSize.textContent = size.toFixed(1) + ' mm';
+            } else {
+                els.resReqSize.textContent = '-- mm';
+            }
+        }
+    }
+
+    els.preset.addEventListener('change', updateParams);
+    els.res_h.addEventListener('input', updateParams);
+    els.hfov.addEventListener('input', updateParams);
+    els.dictBits.addEventListener('change', calculate);
+    els.markerSize.addEventListener('input', calculate);
+    els.targetDist.addEventListener('input', calculate);
+    
+    els.modeFindDist.addEventListener('change', switchMode);
+    els.modeFindSize.addEventListener('change', switchMode);
+
+    // Init
+    updateParams();
+</script>
+{% endblock %}

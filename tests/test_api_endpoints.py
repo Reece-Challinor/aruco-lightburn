@@ -36,9 +36,9 @@ def test_calibration_page(client):
     assert response.status_code == 200
 
 
-def test_validation_page(client):
-    """Test validation page loads"""
-    response = client.get("/validation")
+def test_debug_page(client):
+    """Test debug page loads"""
+    response = client.get("/debug")
     assert response.status_code == 200
 
 
