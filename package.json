@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  },
+  "description": "JS test toolchain for ArUCO Generator front-end libraries (browser code is vendored, not bundled)",
+  "name": "aruco-lightburn",
+  "private": true,
+  "scripts": {
+    "test": "node --test 'static/js/**/*.test.js'"
+  },
+  "type": "module",
+  "version": "2.6.0"
+}

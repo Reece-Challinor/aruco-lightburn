@@ -19,7 +19,20 @@ and this project adheres to Semantic Versioning.
 
 ## [Unreleased]
 ### Added
-- TBD
+- Design-token system (`static/css/tokens.css`) with dark-first theme and
+  persisted light/dark toggle (`static/js/core/theme.js`) — F-90a.
+- AppShell workspace layout (`templates/app_shell.html`) with new Live,
+  Debug, and Convert workspaces — F-90b (IA cutover; redirects pending gate).
+- Core component library (`static/js/components/`): WorkspacePanel,
+  VerdictCard, Loading/Empty states, FixItPanel, EducationalCallout, Toast +
+  dev-only `/dev/components` gallery — F-90c.
+- Marker size/distance calculator (`static/js/lib/marker-math.js`,
+  `/learn/marker-size-calculator`) with advisor strip on Generate — F-03.
+- Client-side calibration format converter (Convert workspace): OpenCV YAML ↔
+  ROS JSON/YAML ↔ Kalibr with auto-detect, preview, download/copy — F-04.
+  Fully client-side; YAML parsing via vendored js-yaml.
+- JS test toolchain: `make test-js` (`node --test`) wired into `make test`
+  and CI (`actions/setup-node`).
 
 ### Changed
 - Pattern persistence endpoints are frozen (kept for compatibility, no new

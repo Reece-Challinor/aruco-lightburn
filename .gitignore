@@ -81,6 +81,9 @@ temp/
 htmlcov/
 coverage.xml
 
+# Node (JS test toolchain)
+node_modules/
+
 # ArUCO Generator specific
 attached_assets/
 test_outputs/

@@ -55,6 +55,7 @@ def test_design_tokens_stylesheet_served(client):
     assert "tokens.css" in html
     assert "theme.js" in html
 
+
 def test_dev_components_gallery(client, app):
     """Ensure /dev/components renders when debug is true."""
     app.debug = True
@@ -62,10 +63,24 @@ def test_dev_components_gallery(client, app):
     assert response.status_code == 200
     html = response.data.decode("utf-8")
     assert "Components Gallery" in html
-    
+
     app.debug = False
     response = client.get("/dev/components")
     assert response.status_code == 404
+
+
+def test_convert_page_has_converter_ui(client):
+    """Convert workspace (F-04): client-side calibration format converter."""
+    response = client.get("/convert")
+    assert response.status_code == 200
+    html = response.data.decode("utf-8")
+    assert 'id="upload-zone"' in html
+    assert 'id="paste-area"' in html
+    assert 'id="export-format"' in html
+    # fully client-side: the page ships the vendored YAML parser + adapters
+    assert "js-yaml.min.js" in html
+    assert "convert.js" in html
+
 
 def test_marker_size_calculator_page(client):
     """Ensure the marker size calculator page renders correctly."""

@@ -311,6 +311,7 @@ def dev_components_page():
     """Hidden components gallery (dev only)"""
     if not current_app.debug:
         from flask import abort
+
         abort(404)
     return render_template("dev_components.html")
 

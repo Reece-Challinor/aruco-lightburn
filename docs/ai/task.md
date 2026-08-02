@@ -78,7 +78,24 @@ docs/ai/IMPLEMENTATION_BRIDGE.md). The Production Launch Program
 - Bridge P-0.1: Removed DB metrics (F-10) and froze pattern persistence.
 - Bridge P-0.2: Implemented tokens.css and theme.js (dark-first theme base).
 
+## Done (2026-08-01, M0 foundation — shared branch feat/m0-foundation)
+- P-0.1..P-0.5 verified against bridge ACs (P-0.1 F-10, P-0.2 tokens,
+  P-0.3 shell/IA partial, P-0.4 components, P-0.5 calculator + JS CI).
+- P-0.6 (F-04) complete: Convert workspace UI finished on top of the
+  format-adapters lib; smoke test added; fully client-side.
+- Hygiene: node_modules gitignored, package.json normalized, scratch
+  test-yaml.js removed.
+- KNOWN GAP for P-0.11 gate (deferred, do not lose): P-0.3 301 redirects
+  missing (/validation → 404; /calibration not renamed /calibrate; no
+  /learn workspace page); keyboard g+key nav not implemented.
+
 ## Next up
+- [ ] P-0.7 (F-07a print ruler — amend per plan: move reportlab to runtime
+      deps first) ∥ P-0.8 (F-11 diamonds) → P-0.9 (F-08 advisor) →
+      P-0.10 (F-09) → P-0.11 gate (+ fix the P-0.3 redirect gap there).
+- [ ] P-0.S spike rerun (previous attempt hit API limits; partial finding:
+      Techstark opencv-js 5.0.0 npm build has the full new-style
+      aruco/charuco API — promising GO signal, needs benchmarks).
 - [ ] aruco.tools DNS at Namecheap (PM action — see plan).
 - [ ] Enable branch protection on main; disable Deployment Protection for
       production (PM actions).
