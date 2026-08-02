@@ -3,10 +3,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>test_export_formats.py</name>
-    <version>1.2.0</version>
+    <version>1.3.0</version>
     <type>test_suite</type>
-    <purpose>Validate SVG and LightBurn export format correctness</purpose>
-    <last_updated>2026-07-03</last_updated>
+    <purpose>Validate SVG, LightBurn, PDF, and print-scale ruler correctness</purpose>
+    <last_updated>2026-08-01</last_updated>
     <maintainer>ArUCO Generator Team</maintainer>
   </file_meta>
 </ai_agent_documentation>
@@ -15,10 +15,12 @@ Tests for various export format quality and correctness.
 Validates SVG, LightBurn, and other export formats.
 """
 
+import base64
 import os
 import re
 import sys
 import xml.etree.ElementTree as ET
+import zlib
 
 import pytest
 
@@ -26,8 +28,32 @@ import pytest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from aruco_generator.core.aruco import ArUCOGenerator  # noqa: E402
-from aruco_generator.core.drawing import DrawingContext  # noqa: E402
+from aruco_generator.core.drawing import (  # noqa: E402
+    SCALE_RULER_CAPTION,
+    DrawingContext,
+)
+from aruco_generator.export.exporters import (  # noqa: E402
+    PDFExporter,
+    ProfessionalExporter,
+)
 from aruco_generator.export.lightburn import LightBurnExporter  # noqa: E402
+
+RULER_CAPTION_PREFIX = b"Verify: this bar must measure exactly 100 mm"
+
+
+def _pdf_streams(pdf_bytes: bytes) -> bytes:
+    """Return decoded PDF stream contents for semantic geometry assertions."""
+    chunks = []
+    for match in re.finditer(rb"stream\r?\n(.*?)endstream", pdf_bytes, re.DOTALL):
+        data = match.group(1).strip()
+        try:
+            if data.endswith(b"~>"):
+                data = base64.a85decode(data[:-2])
+            data = zlib.decompress(data)
+        except (ValueError, zlib.error):
+            pass
+        chunks.append(data)
+    return b"\n".join(chunks)
 
 
 class TestSVGExport:
@@ -416,6 +442,251 @@ class TestExportConsistency:
 
         assert abs(width - expected_width) < 0.1, "LightBurn width mismatch"
         assert abs(height - expected_height) < 0.1, "LightBurn height mismatch"
+
+
+class TestPDFExport:
+    """Test production PDF availability and compact print-scale output."""
+
+    def setup_method(self):
+        self.generator = ArUCOGenerator()
+        self.exporter = PDFExporter()
+
+    def test_pdf_exporter_is_a_runtime_capability(self):
+        """Production installs must never reach the route's legacy 501 path."""
+        assert self.exporter.available is True
+
+    def test_pdf_uses_merged_rectangles(self, monkeypatch):
+        """A marker must use merged rects, not tens of thousands of pixels."""
+        from reportlab.pdfgen import canvas as reportlab_canvas
+
+        calls = {"rect": 0}
+        original_rect = reportlab_canvas.Canvas.rect
+
+        def counting_rect(canvas_self, *args, **kwargs):
+            calls["rect"] += 1
+            return original_rect(canvas_self, *args, **kwargs)
+
+        monkeypatch.setattr(reportlab_canvas.Canvas, "rect", counting_rect)
+        markers = self.generator.generate_grid(
+            start_id=0, dict_name="4X4_50", rows=1, cols=1, size_mm=30, spacing_mm=0
+        )
+
+        pdf = self.exporter.generate_pdf(markers, 30, include_labels=False)
+
+        assert pdf.startswith(b"%PDF")
+        assert 0 < calls["rect"] < 100
+        assert len(pdf) < 10_000, "Per-pixel PDF rendering has regressed"
+
+    def test_pdf_ruler_is_default_and_exactly_100_mm(self):
+        markers = self.generator.generate_grid(
+            start_id=0,
+            dict_name="4X4_50",
+            rows=1,
+            cols=1,
+            size_mm=110,
+            spacing_mm=0,
+        )
+
+        streams = _pdf_streams(self.exporter.generate_pdf(markers, 110))
+
+        assert RULER_CAPTION_PREFIX in streams
+        expected_points = 100.0 * 72.0 / 25.4
+        lines = re.findall(rb"([-\d.]+) ([-\d.]+) m ([-\d.]+) ([-\d.]+) l", streams)
+        spans = [
+            abs(float(x1) - float(x0))
+            for x0, y0, x1, y1 in lines
+            if abs(float(y1) - float(y0)) < 0.001
+        ]
+        assert any(abs(span - expected_points) < 0.001 for span in spans)
+
+    def test_pdf_ruler_can_be_explicitly_disabled(self):
+        markers = self.generator.generate_grid(
+            start_id=0,
+            dict_name="4X4_50",
+            rows=1,
+            cols=1,
+            size_mm=110,
+            spacing_mm=0,
+        )
+
+        pdf = self.exporter.generate_pdf(markers, 110, include_ruler=False)
+
+        assert RULER_CAPTION_PREFIX not in _pdf_streams(pdf)
+
+    def test_pdf_ruler_skips_small_content(self):
+        markers = self.generator.generate_grid(
+            start_id=0, dict_name="4X4_50", rows=1, cols=1, size_mm=20, spacing_mm=0
+        )
+
+        assert RULER_CAPTION_PREFIX not in _pdf_streams(
+            self.exporter.generate_pdf(markers, 20)
+        )
+
+    def test_pdf_ruler_skips_when_clear_margin_is_under_15_mm(self):
+        markers = self.generator.generate_grid(
+            start_id=0,
+            dict_name="4X4_50",
+            rows=1,
+            cols=8,
+            size_mm=30,
+            spacing_mm=5,
+        )
+
+        assert RULER_CAPTION_PREFIX not in _pdf_streams(
+            self.exporter.generate_pdf(markers, 30)
+        )
+
+
+class TestScaleRulerSVG:
+    """Test the F-07a SVG ruler geometry and placement rule."""
+
+    def setup_method(self):
+        self.generator = ArUCOGenerator()
+
+    def _wide_context(self):
+        markers = self.generator.generate_grid(
+            start_id=0,
+            dict_name="4X4_50",
+            rows=1,
+            cols=1,
+            size_mm=110,
+            spacing_mm=0,
+        )
+        context = DrawingContext()
+        context.add_marker_grid(markers, include_borders=True)
+        return context
+
+    def test_svg_ruler_path_is_exactly_100_mm(self):
+        context = self._wide_context()
+        assert context.add_scale_ruler() is True
+
+        svg = context.get_svg()
+        bar = re.search(
+            r'<path d="M ([-0-9.]+) ([-0-9.]+) H ([-0-9.]+)"\s+'
+            r'class="scale-ruler-bar"',
+            svg,
+        )
+
+        assert bar is not None
+        assert float(bar.group(3)) - float(bar.group(1)) == pytest.approx(100.0)
+        assert RULER_CAPTION_PREFIX.decode("ascii") in svg
+
+    def test_svg_ruler_uses_clear_15_mm_band(self):
+        context = self._wide_context()
+        content_max_y = context.bounds["max_y"]
+
+        assert context.add_scale_ruler() is True
+        assert context.bounds["max_y"] == pytest.approx(content_max_y + 15.0)
+
+    def test_svg_ruler_skips_small_content_without_mutation(self):
+        markers = self.generator.generate_grid(
+            start_id=0, dict_name="4X4_50", rows=1, cols=1, size_mm=20, spacing_mm=0
+        )
+        context = DrawingContext()
+        context.add_marker_grid(markers, include_borders=True)
+        elements_before = list(context.elements)
+        bounds_before = dict(context.bounds)
+
+        assert context.add_scale_ruler() is False
+        assert context.elements == elements_before
+        assert context.bounds == bounds_before
+
+    def test_svg_ruler_skips_margin_under_15_mm(self):
+        context = self._wide_context()
+
+        assert context.add_scale_ruler(clear_margin_mm=14.99) is False
+
+
+class TestScaleRulerAPI:
+    """Test default route wiring for eligible print exports."""
+
+    @staticmethod
+    def _eligible_payload():
+        return {
+            "dictionary": "4X4_50",
+            "rows": 1,
+            "cols": 1,
+            "size_mm": 110,
+            "spacing_mm": 0,
+            "start_id": 0,
+            "include_labels": True,
+        }
+
+    def test_svg_export_includes_ruler_by_default(self, client):
+        response = client.post("/api/export/svg", json=self._eligible_payload())
+
+        assert response.status_code == 200
+        assert b'class="scale-ruler-bar"' in response.data
+        assert RULER_CAPTION_PREFIX in response.data
+
+    def test_pdf_export_includes_ruler_by_default(self, client):
+        response = client.post("/api/export/pdf", json=self._eligible_payload())
+
+        assert response.status_code == 200
+        assert RULER_CAPTION_PREFIX in _pdf_streams(response.data)
+
+
+class TestRulerNeverCut:
+    """The ruler is print-only and must never enter LightBurn or DXF output."""
+
+    def setup_method(self):
+        self.generator = ArUCOGenerator()
+
+    def test_lightburn_ignores_scale_ruler_element(self):
+        markers = self.generator.generate_grid(
+            start_id=0,
+            dict_name="4X4_50",
+            rows=1,
+            cols=1,
+            size_mm=110,
+            spacing_mm=0,
+        )
+        exporter = LightBurnExporter()
+        metadata = {"dictionary": "4X4_50", "rows": 1, "cols": 1}
+
+        plain_context = DrawingContext()
+        plain_context.add_marker_grid(markers, include_borders=True)
+        plain = exporter.export(plain_context, metadata).getvalue()
+
+        ruler_context = DrawingContext()
+        ruler_context.add_marker_grid(markers, include_borders=True)
+        assert ruler_context.add_scale_ruler() is True
+        with_ruler = exporter.export(ruler_context, metadata).getvalue()
+
+        assert with_ruler == plain
+        assert b"scale-ruler" not in with_ruler
+        assert RULER_CAPTION_PREFIX not in with_ruler
+
+    def test_dxf_contains_only_pattern_geometry(self):
+        calibration_data = {
+            "physical_width_mm": 150.0,
+            "physical_height_mm": 120.0,
+            "markers": [
+                {
+                    "id": 0,
+                    "position": [30.0, 30.0, 0.0],
+                    "corners": [
+                        [10.0, 10.0, 0.0],
+                        [50.0, 10.0, 0.0],
+                        [50.0, 50.0, 0.0],
+                        [10.0, 50.0, 0.0],
+                    ],
+                }
+            ],
+        }
+
+        content = (
+            ProfessionalExporter()
+            .export_dxf(calibration_data)
+            .getvalue()
+            .decode("utf-8")
+        )
+
+        assert "scale-ruler" not in content
+        assert SCALE_RULER_CAPTION not in content
+        text_entities = re.findall(r"0\nTEXT\n.*?\n1\n([^\n]+)\n", content, re.DOTALL)
+        assert text_entities
+        assert all(text.startswith("ID:") for text in text_entities)
 
 
 if __name__ == "__main__":

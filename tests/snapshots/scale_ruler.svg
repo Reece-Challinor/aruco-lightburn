@@ -1,0 +1,36 @@
+<svg width="110.1mm" height="125.1mm"
+                       viewBox="0.0 0.0 110.1 125.1"
+                       xmlns="http://www.w3.org/2000/svg">
+                  <style>
+                    .cut { fill: black; stroke: none; }
+                    .mark { fill: none; stroke: blue; stroke-width: 0.1; }
+                    .text { fill: red; font-family: Arial; font-size: 3px; }
+                    .marker { fill: black; stroke: none; }
+                    .marker-bg { fill: white; stroke: black; stroke-width: 0.1; }
+                  </style><rect x="0.000" y="0.000"
+                               width="110.000" height="110.000"
+                               class="mark" /><rect x="0.000" y="0.000"
+                               width="110.050" height="18.750"
+                               class="cut" /><rect x="0.000" y="18.700"
+                               width="18.750" height="91.350"
+                               class="cut" /><rect x="36.850" y="18.700"
+                               width="18.200" height="18.200"
+                               class="cut" /><rect x="91.850" y="18.700"
+                               width="18.200" height="91.350"
+                               class="cut" /><rect x="18.700" y="36.850"
+                               width="18.200" height="73.200"
+                               class="cut" /><rect x="55.000" y="36.850"
+                               width="18.750" height="18.200"
+                               class="cut" /><rect x="36.850" y="55.000"
+                               width="18.200" height="55.050"
+                               class="cut" /><rect x="73.700" y="73.700"
+                               width="18.200" height="36.350"
+                               class="cut" /><rect x="55.000" y="91.850"
+                               width="18.750" height="18.200"
+                               class="cut" /><path d="M 5.025 116.050 H 105.025"
+                               class="scale-ruler-bar" fill="none" stroke="black"
+                               stroke-width="0.8" stroke-linecap="butt" /><path d="M 5.025 116.050 V 119.050 M 15.025 116.050 V 119.050 M 25.025 116.050 V 119.050 M 35.025 116.050 V 119.050 M 45.025 116.050 V 119.050 M 55.025 116.050 V 119.050 M 65.025 116.050 V 119.050 M 75.025 116.050 V 119.050 M 85.025 116.050 V 119.050 M 95.025 116.050 V 119.050 M 105.025 116.050 V 119.050"
+                               class="scale-ruler-ticks" fill="none" stroke="black"
+                               stroke-width="0.3" /><text x="55.025" y="123.050"
+                               class="scale-ruler-caption" text-anchor="middle"
+                               style="fill: #333333; font-family: Arial; font-size: 3px;">Verify: this bar must measure exactly 100 mm / &#x27;fit to page&#x27; breaks scale</text></svg>

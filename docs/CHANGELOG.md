@@ -2,10 +2,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>CHANGELOG.md</name>
-    <version>1.3.0</version>
+    <version>1.4.0</version>
     <type>changelog</type>
     <purpose>Track user-facing changes and releases</purpose>
-    <last_updated>2026-02-23</last_updated>
+    <last_updated>2026-08-01</last_updated>
   </file_meta>
 </ai_agent_documentation>
 -->
@@ -33,12 +33,18 @@ and this project adheres to Semantic Versioning.
   Fully client-side; YAML parsing via vendored js-yaml.
 - JS test toolchain: `make test-js` (`node --test`) wired into `make test`
   and CI (`actions/setup-node`).
+- Calibrated 100 mm verification ruler and print-scaling warning on eligible
+  PDF/SVG exports, with a shared no-overlap placement rule — F-07a.
 
 ### Changed
 - Pattern persistence endpoints are frozen (kept for compatibility, no new
   capabilities) — roadmap F-10.
 - SQLAlchemy 2.0 style `db.session.get()` replaces legacy `.query.get()`;
   model timestamps are timezone-aware (deprecated `datetime.utcnow` removed).
+- PDF markers use compact merged vector rectangles instead of one rectangle
+  per raster pixel, dramatically reducing generation work and output size.
+- ReportLab is a runtime dependency, restoring `/api/export/pdf` in production
+  deployments where dev dependencies are not installed.
 
 ### Removed
 - DB detection-metrics surface (roadmap F-10): `POST /api/calibration/metrics`,

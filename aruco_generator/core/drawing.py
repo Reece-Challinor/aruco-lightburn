@@ -3,23 +3,28 @@
 <ai_agent_documentation>
   <file_meta>
     <name>drawing.py</name>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
     <type>core_drawing_module</type>
-    <purpose>SVG drawing and rendering system for ArUCO markers</purpose>
-    <last_updated>2026-02-23</last_updated>
+    <purpose>SVG drawing, shared vector geometry, and print-scale ruler rendering</purpose>
+    <last_updated>2026-08-01</last_updated>
     <maintainer>ArUCO Generator Team</maintainer>
   </file_meta>
 </ai_agent_documentation>
 -->
 {
   "file_type": "svg_drawing_context",
-  "purpose": "SVG drawing and rendering system for ArUCO markers",
-  "last_updated": "2026-02-23",
+  "purpose": "SVG drawing, shared vector geometry, and print-scale ruler rendering",
+  "last_updated": "2026-08-01",
   "dependencies": ["numpy"],
   "main_class": "DrawingContext",
+  "key_functions": {
+    "find_merged_rectangles": "Merge binary-image pixels into compact vector rectangles",
+    "scale_ruler_fits": "Apply the shared 100mm ruler placement rule"
+  },
   "key_methods": {
     "add_rectangle": "Add rectangle shapes to drawing context",
     "add_marker_grid": "Add ArUCO markers as filled rectangles",
+    "add_scale_ruler": "Add a print-only 100mm verification ruler",
     "add_text": "Add a text element at a specific position",
     "add_text_labels": "Add text labels below markers",
     "get_svg": "Generate SVG preview output"
@@ -35,6 +40,71 @@
 from typing import Any, Dict, List
 
 import numpy as np
+
+SCALE_RULER_LENGTH_MM = 100.0
+SCALE_RULER_MIN_MARGIN_MM = 15.0
+SCALE_RULER_SIDE_CLEARANCE_MM = 1.0
+SCALE_RULER_CAPTION = (
+    "Verify: this bar must measure exactly 100 mm / 'fit to page' breaks scale"
+)
+
+
+def scale_ruler_fits(
+    content_width_mm: float,
+    clear_margin_mm: float,
+    length_mm: float = SCALE_RULER_LENGTH_MM,
+) -> bool:
+    """Return whether a ruler fits without overhanging or touching content."""
+    return (
+        content_width_mm + 1e-9 >= length_mm + (2 * SCALE_RULER_SIDE_CLEARANCE_MM)
+        and clear_margin_mm + 1e-9 >= SCALE_RULER_MIN_MARGIN_MM
+    )
+
+
+def find_merged_rectangles(image: np.ndarray) -> List[Dict[str, int]]:
+    """Merge contiguous black pixels of a binary image into rectangles.
+
+    The shared implementation keeps SVG, LightBurn, and PDF vector geometry
+    compact. In particular, PDF exports no longer emit one rectangle for each
+    pixel in the marker raster.
+    """
+    rectangles = []
+    visited = np.zeros_like(image, dtype=bool)
+
+    for row in range(image.shape[0]):
+        for col in range(image.shape[1]):
+            if image[row, col] == 0 and not visited[row, col]:
+                max_width = image.shape[1] - col
+                max_height = image.shape[0] - row
+
+                width = 0
+                while (
+                    width < max_width
+                    and image[row, col + width] == 0
+                    and not visited[row, col + width]
+                ):
+                    width += 1
+
+                height = 1
+                while height < max_height:
+                    row_valid = True
+                    for offset in range(width):
+                        if (
+                            image[row + height, col + offset] != 0
+                            or visited[row + height, col + offset]
+                        ):
+                            row_valid = False
+                            break
+                    if not row_valid:
+                        break
+                    height += 1
+
+                visited[row : row + height, col : col + width] = True
+                rectangles.append(
+                    {"row": row, "col": col, "width": width, "height": height}
+                )
+
+    return rectangles
 
 
 class DrawingContext:
@@ -224,6 +294,39 @@ class DrawingContext:
             }
         )
 
+    def add_scale_ruler(
+        self,
+        clear_margin_mm: float = SCALE_RULER_MIN_MARGIN_MM,
+        length_mm: float = SCALE_RULER_LENGTH_MM,
+    ) -> bool:
+        """Add a calibrated print-only ruler below the current content.
+
+        A ruler is added only when both the content width and the clear margin
+        meet the shared placement rule. The dedicated element type is rendered
+        by SVG only; LightBurn ignores it, so reference geometry cannot leak
+        into a cut path.
+        """
+        if self.bounds["min_x"] == float("inf"):
+            return False
+
+        content_width = self.bounds["max_x"] - self.bounds["min_x"]
+        if not scale_ruler_fits(content_width, clear_margin_mm, length_mm):
+            return False
+
+        x = self.bounds["min_x"] + (content_width - length_mm) / 2
+        y = self.bounds["max_y"]
+        self.elements.append(
+            {
+                "type": "scale_ruler",
+                "x": x,
+                "y": y,
+                "length": length_mm,
+                "caption": SCALE_RULER_CAPTION,
+            }
+        )
+        self._update_bounds(x, y, length_mm, clear_margin_mm)
+        return True
+
     def _update_bounds(self, x: float, y: float, width: float, height: float):
         """Update drawing bounds"""
         self.bounds["min_x"] = min(self.bounds["min_x"], x)
@@ -233,54 +336,7 @@ class DrawingContext:
 
     def _find_merged_rectangles(self, image: np.ndarray) -> List[Dict[str, int]]:
         """Find merged rectangles in binary image using 2D merging"""
-        rectangles = []
-        visited = np.zeros_like(image, dtype=bool)
-
-        for row in range(image.shape[0]):
-            for col in range(image.shape[1]):
-                if (
-                    image[row, col] == 0 and not visited[row, col]
-                ):  # Black and unvisited
-                    # Find the largest rectangle starting from this point
-                    max_width = image.shape[1] - col
-                    max_height = image.shape[0] - row
-
-                    # Find maximum width for this row
-                    width = 0
-                    while (
-                        width < max_width
-                        and image[row, col + width] == 0
-                        and not visited[row, col + width]
-                    ):
-                        width += 1
-
-                    # Find maximum height maintaining this width
-                    height = 1
-                    while height < max_height:
-                        # Check if the entire row at this height is black
-                        row_valid = True
-                        for w in range(width):
-                            if (
-                                image[row + height, col + w] != 0
-                                or visited[row + height, col + w]
-                            ):
-                                row_valid = False
-                                break
-                        if not row_valid:
-                            break
-                        height += 1
-
-                    # Mark all pixels in this rectangle as visited
-                    for r in range(height):
-                        for c in range(width):
-                            visited[row + r, col + c] = True
-
-                    # Add the rectangle
-                    rectangles.append(
-                        {"row": row, "col": col, "width": width, "height": height}
-                    )
-
-        return rectangles
+        return find_merged_rectangles(image)
 
     def get_svg(self) -> str:
         """Generate SVG preview"""
@@ -340,6 +396,30 @@ class DrawingContext:
                 svg += f"""<text x="{center_x:.3f}" y="{center_y:.3f}"
                                text-anchor="middle" dominant-baseline="central"
                                style="fill: red; font-family: Arial; font-size: {size / 10:.1f}px; font-weight: bold;">{marker_id}</text>"""
+
+            elif element["type"] == "scale_ruler":
+                import html
+
+                x = element["x"]
+                y = element["y"]
+                length = element["length"]
+                bar_y = y + 6.0
+                caption_y = y + 13.0
+                tick_path = " ".join(
+                    f"M {x + tick:.3f} {bar_y:.3f} V {bar_y + 3.0:.3f}"
+                    for tick in range(0, int(length) + 1, 10)
+                )
+                caption = html.escape(str(element["caption"]))
+
+                svg += f"""<path d="M {x:.3f} {bar_y:.3f} H {x + length:.3f}"
+                               class="scale-ruler-bar" fill="none" stroke="black"
+                               stroke-width="0.8" stroke-linecap="butt" />"""
+                svg += f"""<path d="{tick_path}"
+                               class="scale-ruler-ticks" fill="none" stroke="black"
+                               stroke-width="0.3" />"""
+                svg += f"""<text x="{x + length / 2:.3f}" y="{caption_y:.3f}"
+                               class="scale-ruler-caption" text-anchor="middle"
+                               style="fill: #333333; font-family: Arial; font-size: 3px;">{caption}</text>"""
 
             elif element["type"] == "text":
                 svg += f"""<text x="{element['x']:.3f}" y="{element['y']:.3f}"

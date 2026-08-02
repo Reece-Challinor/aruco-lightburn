@@ -5,10 +5,10 @@ Professional export formats for calibration and manufacturing.
 <ai_agent_documentation>
   <file_meta>
     <name>exporters.py</name>
-    <version>2.3.1</version>
+    <version>2.4.0</version>
     <type>export_module</type>
-    <purpose>Provide export pipelines for calibration and manufacturing outputs</purpose>
-    <last_updated>2026-02-07</last_updated>
+    <purpose>Provide compact export pipelines, including calibrated PDF print output</purpose>
+    <last_updated>2026-08-01</last_updated>
     <maintainer>ArUCO Generator Team</maintainer>
   </file_meta>
 </ai_agent_documentation>
@@ -23,6 +23,13 @@ from typing import Any, Dict, List, Optional
 
 import numpy as np
 import yaml
+
+from ..core.drawing import (
+    SCALE_RULER_CAPTION,
+    SCALE_RULER_LENGTH_MM,
+    find_merged_rectangles,
+    scale_ruler_fits,
+)
 
 
 class ProfessionalExporter:
@@ -469,6 +476,7 @@ class PDFExporter:
         include_labels: bool = True,
         include_outer_border: bool = False,
         border_width: float = 2.0,
+        include_ruler: bool = True,
     ) -> bytes:
         """
         Generate PDF with marker grid.
@@ -479,6 +487,7 @@ class PDFExporter:
             include_labels: Whether to include ID labels
             include_outer_border: Whether to render an outer border around the grid
             border_width: Width of the outer border margin in mm
+            include_ruler: Whether to add the default 100 mm print-scale ruler
 
         Returns:
             bytes: PDF file content
@@ -564,6 +573,14 @@ class PDFExporter:
             border_y = page_size[1] - margin_y - content_h
             c.rect(border_x, border_y, content_w, content_h, stroke=1, fill=0)
 
+        if include_ruler:
+            self._draw_scale_ruler(
+                c,
+                content_x=margin_x,
+                content_width=content_w,
+                clear_margin=margin_y,
+            )
+
         c.showPage()
         c.save()
 
@@ -572,29 +589,58 @@ class PDFExporter:
     def _draw_marker_vector(
         self, c, image: np.ndarray, x: float, y: float, size: float
     ):
-        """Draw marker using vector rectangles for sharpness."""
-        # Image is a binary numpy array (0=white, 255=black) or similar
-        # If it's pure black/white, we only draw black (255?) squares?
-        # Usually ArUCO: 0=black, 255=white. Let's check `aruco.py` generate_marker docstring:
-        # "0=white, 255=black" based on standard image conventions?
-        # Wait, cv2.aruco.generateImageMarker returns 0 for black and 255 for white usually.
-        # Let's verify standard assumption: Markers have black borders.
-        # If I look at `aruco.py` fallback: "final_pattern[i, j] = 255 if value > 127 else 0"
-        # And it says "Create border (always black)".
-        # Let's assume convention: 0 is black, 255 is white.
-        # Actually in `aruco.py` fallback: "pattern[i + 1, j + 1] = 255 if bit_value else 0". border is 0.
-        # So 0 is BLACK, 255 is WHITE.
-
-        rows, cols = image.shape
-        pixel_size = size / cols
+        """Draw a marker as compact merged vector rectangles."""
+        pixel_size = size / image.shape[1]
 
         c.setFillColorRGB(0, 0, 0)
 
-        for r in range(rows):
-            for col in range(cols):
-                val = image[r, col]
-                if val < 127:  # Black pixel
-                    # PDF Y is bottom-left, so row 0 is at top (y + size - pixel_size)
-                    px = x + col * pixel_size
-                    py = y + size - (r + 1) * pixel_size
-                    c.rect(px, py, pixel_size, pixel_size, fill=1, stroke=0)
+        for rect in find_merged_rectangles(image):
+            px = x + rect["col"] * pixel_size
+            py = y + size - (rect["row"] + rect["height"]) * pixel_size
+            c.rect(
+                px,
+                py,
+                rect["width"] * pixel_size,
+                rect["height"] * pixel_size,
+                fill=1,
+                stroke=0,
+            )
+
+    def _draw_scale_ruler(
+        self,
+        c,
+        content_x: float,
+        content_width: float,
+        clear_margin: float,
+    ) -> bool:
+        """Draw a 100 mm ruler in the clear margin below PDF content."""
+        from reportlab.lib.units import mm
+
+        content_width_mm = content_width / mm
+        clear_margin_mm = clear_margin / mm
+        if not scale_ruler_fits(content_width_mm, clear_margin_mm):
+            return False
+
+        length = SCALE_RULER_LENGTH_MM * mm
+        x = content_x + (content_width - length) / 2
+        bar_y = clear_margin - 6 * mm
+
+        c.saveState()
+        c.setStrokeColorRGB(0, 0, 0)
+        c.setLineCap(0)
+        c.setLineWidth(0.8 * mm)
+        c.line(x, bar_y, x + length, bar_y)
+        c.setLineWidth(0.3 * mm)
+        for tick_mm in range(0, int(SCALE_RULER_LENGTH_MM) + 1, 10):
+            tick_x = x + tick_mm * mm
+            c.line(tick_x, bar_y, tick_x, bar_y - 3 * mm)
+
+        c.setFillColorRGB(0, 0, 0)
+        c.setFont("Helvetica", 7)
+        c.drawCentredString(
+            x + length / 2,
+            clear_margin - 13 * mm,
+            SCALE_RULER_CAPTION,
+        )
+        c.restoreState()
+        return True

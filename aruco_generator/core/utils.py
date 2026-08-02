@@ -3,10 +3,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>utils.py</name>
-    <version>1.2.0</version>
+    <version>1.3.0</version>
     <type>core_utility_module</type>
-    <purpose>Shared validation, error handling helpers, and API response shaping</purpose>
-    <last_updated>2026-02-08</last_updated>
+    <purpose>Shared validation, export-option handling, and API response shaping</purpose>
+    <last_updated>2026-08-01</last_updated>
     <maintainer>ArUCO Generator Team</maintainer>
   </file_meta>
 </ai_agent_documentation>
@@ -134,6 +134,9 @@ def validate_generation_params(
             # Pass through other potential params
             "include_alignment": data.get("include_alignment", False),
             "include_rulers": data.get("include_rulers", False),
+            # Print exports carry the F-07a scale check by default. Callers
+            # may explicitly disable it, while preview and cut routes ignore it.
+            "include_ruler": bool(data.get("include_ruler", True)),
         }
 
     except APIValidationError:

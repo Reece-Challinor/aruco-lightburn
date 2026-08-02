@@ -2,10 +2,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>implementation_plan.md</name>
-    <version>2.1.0</version>
+    <version>2.2.0</version>
     <type>plan_document</type>
-    <purpose>Production launch program: scorecard-to-A plan, Vercel-first deployment, aruco.tools</purpose>
-    <last_updated>2026-07-03</last_updated>
+    <purpose>Reconciled production-launch plan with current roadmap execution status</purpose>
+    <last_updated>2026-08-01</last_updated>
     <maintainer>Claude (Senior Engineer) + Reece (PM)</maintainer>
   </file_meta>
 </ai_agent_documentation>
@@ -22,6 +22,23 @@ below (decision record: `docs/ai/phase0/DECISION_LOG.md`).
 
 Started 2026-06-12. Supersedes the 2026-02 audit-remediation plan
 (see git history for the completed phases 1-11 of the previous refactor).
+
+## Roadmap execution update — 2026-08-01
+
+- The shared `feat/m0-foundation` branch is implemented through bridge P-0.7.
+  P-0.7 restores PDF export in production by moving ReportLab into runtime
+  dependencies, replaces the per-pixel PDF renderer with shared merged-vector
+  geometry, and adds the calibrated 100 mm print ruler to eligible PDF/SVG
+  exports. Focused format, route, placement, cut-isolation, and snapshot tests
+  are green.
+- P-0.8 has an isolated implementation commit (`d1e4725`) but is not integrated
+  into the shared branch in this cycle. Integrate and validate it next, then run
+  P-0.9 → P-0.10 → P-0.11.
+- M0 exit remains gated by the deferred P-0.3 IA corrections: redirects for
+  `/validation` and `/calibration`, the `/learn` workspace, and keyboard
+  navigation. P-0.11 owns that closure.
+- The OpenCV.js P-0.S spike still needs its benchmark rerun. It blocks M1, not
+  P-0.7 or the remaining M0 implementation prompts.
 
 ## Mission
 
@@ -141,10 +158,11 @@ Trunk-based, two-person team:
    `uv sync` / `uv sync --group dev`; CI uses `astral-sh/setup-uv` with cache;
    Dockerfile builder stage uses `uv sync --locked --no-dev`. Commit `uv.lock`
    as the single source of dependency truth.
-2. **pyproject**: move all dev tools (isort, pre-commit, bandit, reportlab,
-   mypy, pip-audit) into `[dependency-groups] dev`; pin `flask-login>=0.6.3`
-   (or remove it + the vestigial `User` model — decision: remove, no auth in
-   a free demo).
+2. **pyproject**: move dev tools (isort, pre-commit, bandit, mypy, pip-audit)
+   into `[dependency-groups] dev`; pin `flask-login>=0.6.3` (or remove it + the
+   vestigial `User` model — decision: remove, no auth in a free demo).
+   ReportLab was initially grouped as dev tooling, then correctly promoted to
+   runtime by bridge P-0.7 because production serves `/api/export/pdf`.
 3. **ci.yml**: Python 3.11 + 3.12 matrix, uv-cached installs, `make validate`,
    coverage gate, `concurrency: cancel-in-progress`, junit artifact upload.
 4. **requirements.txt sync gate**: CI step fails if

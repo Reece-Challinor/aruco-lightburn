@@ -3,10 +3,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>web.py</name>
-    <version>3.5.0</version>
+    <version>3.6.0</version>
     <type>flask_web_module</type>
-    <purpose>Main Flask API endpoints for ArUCO marker generation and management</purpose>
-    <last_updated>2026-02-23</last_updated>
+    <purpose>Main Flask API endpoints for ArUCO generation and scale-verified print exports</purpose>
+    <last_updated>2026-08-01</last_updated>
     <maintainer>ArUCO Generator Team</maintainer>
   </file_meta>
 
@@ -61,8 +61,8 @@
       <route path="/api/advanced_preview" method="POST" function="generate_advanced_preview" returns="JSON with advanced SVG" description="Advanced preview with additional features"/>
       <route path="/api/batch_generate" method="POST" function="batch_generate" returns="JSON with multiple marker sets" description="Generate multiple sets of markers"/>
       <route path="/api/presets" method="GET" function="get_presets" returns="JSON preset configurations" description="Predefined marker configurations"/>
-      <route path="/api/export/svg" method="POST" function="export_svg" returns="SVG file download" description="Export markers as SVG file"/>
-      <route path="/api/export/pdf" method="POST" function="export_pdf" returns="PDF file" description="Export marker grid as PDF with optional outer border"/>
+      <route path="/api/export/svg" method="POST" function="export_svg" returns="SVG file download" description="Export markers as SVG with a 100mm print-scale ruler when placement allows"/>
+      <route path="/api/export/pdf" method="POST" function="export_pdf" returns="PDF file" description="Export marker grid as PDF with optional border and a 100mm print-scale ruler when placement allows"/>
       <route path="/api/quick-test" method="GET" function="quick_test" returns="JSON test results" description="API health check endpoint"/>
       <route path="/api/health" method="GET" function="health_check" returns="JSON system health" description="Comprehensive health and readiness report"/>
       <route path="/api/healthz" method="GET" function="healthz" returns="JSON status" description="Lightweight health probe"/>
@@ -579,7 +579,7 @@ def get_presets():
 @limiter.limit("20 per minute")
 @handle_api_errors
 def export_svg():
-    """Export markers as SVG file"""
+    """Export markers as SVG with a print-scale ruler when placement allows."""
     data = request.get_json(silent=True) or {}
     params = validate_generation_params(data, list(aruco_gen.dictionaries.keys()))
 
@@ -605,6 +605,9 @@ def export_svg():
     if params["include_labels"]:
         ctx.add_text_labels(markers)
 
+    if params["include_ruler"]:
+        ctx.add_scale_ruler()
+
     svg_content = ctx.get_svg()
 
     # Generate filename
@@ -624,7 +627,7 @@ def export_svg():
 @limiter.limit("20 per minute")
 @handle_api_errors
 def export_pdf():
-    """Export markers as PDF file"""
+    """Export markers as PDF with a print-scale ruler when placement allows."""
     try:
         from ..export.exporters import PDFExporter
 
@@ -650,6 +653,7 @@ def export_pdf():
             include_labels=params["include_labels"],
             include_outer_border=params["include_outer_border"],
             border_width=params["border_width"],
+            include_ruler=params["include_ruler"],
         )
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")

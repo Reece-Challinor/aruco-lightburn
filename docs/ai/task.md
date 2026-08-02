@@ -2,10 +2,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>task.md</name>
-    <version>2.1.0</version>
+    <version>2.2.0</version>
     <type>task_tracker</type>
-    <purpose>Track immediate engineering tasks for the roadmap program (successor to the production launch program)</purpose>
-    <last_updated>2026-07-03</last_updated>
+    <purpose>Track completed M0 prompts, next integration steps, and milestone blockers</purpose>
+    <last_updated>2026-08-01</last_updated>
     <maintainer>Claude (Senior Engineer)</maintainer>
   </file_meta>
 </ai_agent_documentation>
@@ -88,20 +88,38 @@ docs/ai/IMPLEMENTATION_BRIDGE.md). The Production Launch Program
 - KNOWN GAP for P-0.11 gate (deferred, do not lose): P-0.3 301 redirects
   missing (/validation → 404; /calibration not renamed /calibrate; no
   /learn workspace page); keyboard g+key nav not implemented.
+- P-0.7 (F-07a) complete in the shared worktree: eligible PDF/SVG exports now
+  carry a default 100 mm print-scale ruler and caption; the shared placement
+  rule skips content that cannot provide 15 mm clear margin plus side
+  clearance. lbrn2 and DXF remain ruler-free by explicit regression tests.
+- PDF production repair included in P-0.7: ReportLab moved from dev-only to
+  runtime dependencies, and marker vectors now reuse merged rectangles instead
+  of emitting tens of thousands of per-pixel PDF rectangles. Runtime manifest,
+  lockfile, and `requirements.txt` are synchronized.
+- P-0.7 focused evidence: 27 passed, 1 intentional skip across export-format
+  and snapshot suites; PDF/SVG ruler snapshots added.
 
 ## Next up
-- [ ] P-0.7 (F-07a print ruler — amend per plan: move reportlab to runtime
-      deps first) ∥ P-0.8 (F-11 diamonds) → P-0.9 (F-08 advisor) →
-      P-0.10 (F-09) → P-0.11 gate (+ fix the P-0.3 redirect gap there).
+- [ ] Integrate isolated P-0.8 (F-11 diamonds) commit `d1e4725` into
+      `feat/m0-foundation`, resolve any overlap, run `make validate`, and push.
+- [ ] P-0.9 (F-08 advisor) → P-0.10 (F-09) → P-0.11 M0 gate.
+- [ ] P-0.11 must fix the deferred P-0.3 redirects, `/learn` workspace, and
+      keyboard navigation before M0 can close.
 - [ ] P-0.S spike rerun (previous attempt hit API limits; partial finding:
       Techstark opencv-js 5.0.0 npm build has the full new-style
       aruco/charuco API — promising GO signal, needs benchmarks).
 - [ ] aruco.tools DNS at Namecheap (PM action — see plan).
 - [ ] Enable branch protection on main; disable Deployment Protection for
       production (PM actions).
-- [ ] Bridge P-0.S: OpenCV.js viability spike (∥ with M0; gates M1).
-- [ ] Bridge P-0.3: F-90b AppShell + 6 workspaces.
-- [ ] Bridge P-0.4: F-90c core component library.
+
+## Blocking / gates
+
+- **P-0.7:** no implementation blocker.
+- **M0 exit:** blocked until P-0.11 repairs the known P-0.3 IA gap.
+- **M1 start:** blocked until P-0.S supplies a reproducible OpenCV.js API and
+  performance verdict. The spike does not block P-0.8 through P-0.11.
+- **External launch setup:** DNS, branch protection, and Vercel deployment
+  protection remain PM-owned actions; they do not block local M0 engineering.
 
 ## Previous cycle (2026-02-23, complete)
 Archived — see git history of this file and docs/ai/walkthrough.md.

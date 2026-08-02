@@ -2,10 +2,10 @@
 <ai_agent_documentation>
   <file_meta>
     <name>IMPLEMENTATION_BRIDGE.md</name>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <type>gap_analysis_execution_plan</type>
-    <purpose>Bridge between the current codebase and the target state in PRODUCT_ROADMAP.md: current-state assessment, roadmap-to-code gap analysis, phased implementation bridge, and copy-paste execution prompts for AI coding agents.</purpose>
-    <last_updated>2026-06-12</last_updated>
+    <purpose>Roadmap-to-code gap analysis, phased execution bridge, and current milestone status</purpose>
+    <last_updated>2026-08-01</last_updated>
     <maintainer>Solo founder + Claude Code</maintainer>
   </file_meta>
 </ai_agent_documentation>
@@ -29,6 +29,19 @@ rationale — it cites it (`F-nn`, `PX-n`, `C-nn`, `§n` references resolve ther
 
 All file references verified against the codebase as of 2026-06-12
 (main + `feat/phase-5-testing`, which differ only by `docs/ai/PRODUCT_ROADMAP.md`).
+
+### Execution status — 2026-08-01
+
+- **Complete through P-0.7** on the shared `feat/m0-foundation` worktree.
+  P-0.7 includes default-on eligible PDF/SVG rulers, the shared 15 mm clear
+  margin + 1 mm side-clearance rule, explicit lbrn2/DXF isolation, PDF/SVG
+  ruler snapshots, the merged-vector PDF renderer, and ReportLab as a runtime
+  dependency.
+- **Next:** integrate the isolated P-0.8 commit (`d1e4725`) and re-run the full
+  gate, then execute P-0.9, P-0.10, and P-0.11.
+- **M0 gate blocker:** P-0.3's missing legacy redirects, `/learn` workspace, and
+  keyboard navigation must be repaired in P-0.11.
+- **M1 blocker only:** P-0.S still needs the OpenCV.js performance/API rerun.
 
 ---
 
@@ -71,10 +84,9 @@ All file references verified against the codebase as of 2026-06-12
   `verify_marker_quality` (quiet zone 445, bit errors 498, corner quality 516,
   contrast 545, sharpness 559), Hamming distance (219), detection report (242),
   failure analysis (423).
-- `aruco_generator/export/exporters.py` (600 lines): `ProfessionalExporter`
-  (OpenCV YAML 34, ROS 127, DXF 195, STL 291) + `PDFExporter` (454). Note:
-  exporters are dependency-light (no reportlab/ezdxf in `pyproject.toml` deps —
-  PDF/DXF are generated directly), which is why they run on Vercel.
+- `aruco_generator/export/exporters.py`: `ProfessionalExporter` (OpenCV YAML,
+  ROS, DXF, STL) + `PDFExporter` (461). ReportLab is a runtime dependency as of
+  P-0.7 so PDF is available on Vercel; DXF remains generated directly.
 - `aruco_generator/export/lightburn.py` (354 lines): .lbrn2 XML — **the moat**.
 
 **Database.** Three modes (DATABASE_URL → Postgres; USE_SQLITE → file; neither →
@@ -97,7 +109,7 @@ state), `notifications.js`, `navigation-simple.js`; one module per page in
 exports, generation quality, security, navigation); `tests/conftest.py` provides
 `app`/`client` fixtures with `RATELIMIT_ENABLED=0`; pre-commit (black, isort,
 flake8, bandit, custom import/quality/export checks); `make validate` / `make ci`;
-`AI_NAVIGATION.xml` v2.6.2 as the structure map; per-file
+`AI_NAVIGATION.xml` v2.6.0 as the structure map; per-file
 `<ai_agent_documentation>` headers.
 
 ### 1.2 Roadmap requirement status matrix
@@ -105,13 +117,13 @@ flake8, bandit, custom import/quality/export checks); `make validate` / `make ci
 | Roadmap item | Status | Evidence |
 |---|---|---|
 | FR-1 Generation (markers/boards/tags, 7 export formats) | ✅ Exists | §1.1 engine + exporters; protected by snapshot tests |
-| F-07a print ruler | ❌ Missing | `PDFExporter` (exporters.py:454) has no scale bar |
-| F-11 ChArUco diamonds | ❌ Missing | No `drawCharucoDiamond` usage in calibration.py |
-| F-03 calculator | ❌ Missing | No size/distance math anywhere |
-| F-04 converter | ❌ Missing | Calibration *export* exists (calibration.py:619-740) — reusable as format reference; no import/convert UI or client adapters |
+| F-07a print ruler | ✅ Implemented (P-0.7) | Shared 100 mm PDF/SVG ruler, placement skips, cut-isolation + snapshots |
+| F-11 ChArUco diamonds | ◐ Isolated implementation | P-0.8 commit `d1e4725`; shared-branch integration pending |
+| F-03 calculator | ✅ Implemented (P-0.5) | `marker-math.js`, calculator page, advisor strip, Node tests |
+| F-04 converter | ✅ Implemented (P-0.6) | Client adapters, fixtures, Convert workspace, round-trip/auto-detect tests |
 | F-08 advisor | ◐ Partial | Hamming endpoint exists (`/api/validation/hamming_distance`, advanced_web.py:604); no decision logic or UI |
 | F-09 surface validation engine | ◐ Partial | Engine complete (validation.py); endpoints exist (detect/verify_quality/detection_report/batch_test); `templates/validation.html` + `pages/validation.js` expose only a fraction |
-| F-90 Workbench (tokens/shell/components/IA) | ❌ Missing | Bootstrap defaults; 5-page IA (Home/Generate/Calibration/Validation/Documentation) vs target six workspaces; zero shared components |
+| F-90 Workbench (tokens/shell/components/IA) | ◐ Partial (P-0.2–P-0.4) | Tokens, shell, workspaces, and components exist; P-0.3 redirects, `/learn`, and keyboard navigation are deferred to P-0.11 |
 | F-00 vision-core (OpenCV.js/worker/camera) | ❌ Missing | No wasm, no worker, no getUserMedia anywhere in static/ |
 | F-02 Live Detection Validator | ❌ Missing | Server-side detect exists for uploads only (15/min rate limit makes it unusable for live) |
 | F-01 Calibration Studio | ◐ Partial (backend seed) | `calibrate_camera()` (calibration.py:526) — checkerboard-only, unrouted; calibration export formats done; zero capture/gates/confidence/UI |
@@ -178,53 +190,40 @@ Per feature: **Target** (desired end state, cites roadmap spec) → **Current** 
 
 ### F-10 — Remove DB metrics, freeze pattern persistence
 - **Target:** No misleading persistence surface (roadmap §9.6, PX-9).
-- **Current:** `POST /api/calibration/metrics` (calibration_web.py:1014-1069)
-  writes `DetectionMetric`; pattern CRUD persists when USE_DB.
-- **Gap:** Delete the metrics write path; freeze (don't extend) pattern storage.
-- **Changes:** `calibration_web.py` (remove route + imports), `db/models.py`
-  (remove `DetectionMetric` usage; keep table def commented or drop), tests
-  referencing metrics (grep `detection_metric`/`metrics` in tests/),
-  `AI_NAVIGATION.xml`, `static/js/core/api.js` if it has a metrics method.
+- **Current (P-0.1 complete):** Detection metrics model, routes, UI, and writes
+  are removed; pattern persistence remains frozen for compatibility.
+- **Gap:** none for F-10.
+- **Delivered changes:** database model/route cleanup, frontend removal, 404
+  regression coverage, and freeze notes.
 
 ### F-90 — Workbench foundation (tokens, shell, components, IA cutover)
 - **Target:** Roadmap §5 (six workspaces, shell layout), §6 (tokens), §7 (C-01…20
   subset: C-01/02/03/09/12/13/14/17), dark-first.
-- **Current:** Bootstrap-default light theme; 5-page IA; `base.html` navbar with
-  Home/Generate/Calibration/Validation/Documentation; no components; page-scoped
-  CSS/JS; breadcrumbs + skip-nav exist.
-- **Gap:** Entire experience substrate.
-- **Changes:** NEW `static/css/tokens.css`; NEW `static/js/components/` (8 modules
-  M0); rewrite `templates/base.html` → C-01 shell (keep skip-nav; drop
-  breadcrumbs — workspaces are flat); route changes in `web.py` +
-  `calibration_web.py` (page routes: add `/live`, `/debug`, `/convert`, `/learn`;
-  `/calibration`→`/calibrate`; 301s from `/validation`→`/debug`,
-  `/documentation`→`/learn`); templates renamed/added per workspace; update
-  `tests/test_navigation.py`, `tests/test_ui_pages.py`; `navigation.css` absorbed
-  into tokens+shell.
+- **Current (P-0.2–P-0.4 partial):** dark-first tokens/theme, AppShell/workspace
+  routes, six core components, and the dev gallery are implemented.
+- **Gap:** P-0.3 did not finish `/validation` and `/calibration` redirects, the
+  `/learn` workspace, or keyboard navigation. P-0.11 owns these M0-gate fixes.
+- **Delivered changes:** `tokens.css`, `theme.js`, `app_shell.html`, workspace
+  routes/templates, `static/js/components/`, component tests, and gallery.
 
 ### F-03 — Size/distance calculator
 - **Target:** Roadmap §10.3 (standalone Learn page + inline Generate strip;
   qualified outputs per PX-9).
-- **Current:** Nothing.
-- **Gap:** Pure-JS math module + two surfaces.
-- **Changes:** NEW `static/js/lib/marker-math.js` (+ Node-runnable unit tests);
-  NEW `templates/learn/calculator.html` route under Learn; `templates/generate.html`
-  + `pages/generate.js` gain the advisor strip (C-14 + live recompute on the
-  existing size field).
+- **Current (P-0.5 complete):** `marker-math.js`, hand-computed Node tests,
+  `/learn/marker-size-calculator`, and Generate advisor strips are live.
+- **Gap:** none for F-03.
+- **Delivered changes:** pure-JS math, standalone page, inline advisors, and JS
+  test/CI wiring.
 
 ### F-04 — Calibration file converter
 - **Target:** Roadmap §10.4: client-side, 5 formats, auto-detect, round-trip
   tested, C-20 preview.
-- **Current:** Server has *emit-only* knowledge of OpenCV YAML/ROS/JSON
-  (calibration.py:619-740, exporters.py:34-194) — use as format ground truth and
-  to generate fixtures. No import, no kalibr, no UI.
-- **Gap:** Client adapter library + Convert workspace UI + fixture corpus.
-- **Changes:** NEW `static/js/vision/formats/` ({opencv-yaml,ros1,ros2,kalibr,
-  json}.js + `detect.js`), vendored js-yaml (`static/vendor/`), custom schema for
-  `!!opencv-matrix`; NEW `templates/convert.html` + `static/js/workspaces/convert.js`
-  (C-08 paste/drop, C-20 preview, C-18 export); NEW `tests/fixtures/calibration_formats/`
-  (real files from cv2, ROS1/2, kalibr); Node round-trip property tests wired into
-  `make test` (add an npm-less node test runner or simple `node --test`).
+- **Current (P-0.6 complete):** `format-adapters.js` handles OpenCV YAML, ROS
+  JSON/YAML, and Kalibr with auto-detection and round-trip tests;
+  `convert.html`/`convert.js` provide the fully client-side workspace.
+- **Gap:** none for the delivered P-0.6 acceptance scope.
+- **Delivered changes:** adapters, vendored js-yaml, Convert UI, smoke coverage,
+  and Node round-trip tests.
 
 ### F-08 — Dictionary advisor
 - **Target:** Roadmap §10.8: 3 inputs → ranked C-20 recommendation + rationale;
@@ -241,12 +240,14 @@ Per feature: **Target** (desired end state, cites roadmap spec) → **Current** 
 ### F-07a — Print-scale ruler
 - **Target:** 100 mm bar + instruction on PDF/SVG; outside cut paths in lbrn2/DXF
   (roadmap §10.7 AC1).
-- **Current:** `PDFExporter.generate_pdf` (exporters.py:465),
-  `_draw_marker_vector` (572); SVG via `DrawingContext`; snapshot tests in
-  `tests/test_export_snapshots.py`.
-- **Gap:** Ruler drawing + placement rules + snapshot updates.
-- **Changes:** `exporters.py` (PDF), `core/drawing.py` (SVG ruler primitive),
-  verify `lightburn.py`/DXF untouched by ruler (assert absence), update snapshots.
+- **Current (P-0.7 complete):** `PDFExporter.generate_pdf`
+  (`exporters.py:472`) and `DrawingContext.add_scale_ruler`
+  (`drawing.py:297`) apply the shared placement rule. Format tests cover exact
+  dimensions, route defaults, compact PDF geometry, placement skips, and cut
+  isolation; snapshot tests cover both PDF and SVG rulers.
+- **Gap:** none for F-07a. Active measurement remains the separate F-07b scope.
+- **Delivered changes:** PDF/SVG renderers, shared ruler and rectangle
+  primitives, runtime manifests, route defaults, and snapshots.
 
 ### F-09 — Surface validation engine
 - **Target:** Debug workspace renders quality/detection reports as C-09 verdicts
@@ -589,6 +590,13 @@ run ∥ with M0; produces a written verdict, minimal code)*
 ---
 
 **P-0.7 ∥ — F-07a: print-scale ruler on exports** *(1 session)*
+
+> **Status (2026-08-01): COMPLETE.** Eligible PDF/SVG exports include the
+> ruler by default; the shared placement rule skips content narrower than the
+> ruler plus side clearance and margins under 15 mm. ReportLab is now a runtime
+> dependency (fixing production 501s), and PDF markers use merged rectangles
+> instead of per-pixel geometry. PDF/SVG snapshots and explicit lbrn2/DXF
+> isolation tests are green.
 
 > **Objective:** roadmap §10.7 AC1. Add a 100 mm calibrated bar + caption
 > ("Verify: this bar must measure exactly 100 mm / 'fit to page' breaks scale")

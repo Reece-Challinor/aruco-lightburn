@@ -1,3 +1,14 @@
+# <ai_agent_documentation>
+#   <file_meta>
+#     <name>.gitignore</name>
+#     <version>1.1.0</version>
+#     <type>repository_config</type>
+#     <purpose>Exclude generated artifacts and local agent/tool workspaces</purpose>
+#     <last_updated>2026-08-01</last_updated>
+#     <maintainer>ArUCO Generator Team</maintainer>
+#   </file_meta>
+# </ai_agent_documentation>
+
 # Python
 __pycache__/
 *.py[cod]
@@ -89,3 +100,6 @@ attached_assets/
 test_outputs/
 generated_files/
 .vercel
+
+# Local agent worktrees (managed outside the shared source tree)
+.claude/

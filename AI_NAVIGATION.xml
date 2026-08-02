@@ -5,8 +5,8 @@
     <name>AI_NAVIGATION.xml</name>
     <version>2.6.0</version>
     <type>navigation_map</type>
-    <purpose>Authoritative map of code structure, key line references, and architecture</purpose>
-    <last_updated>2026-07-03</last_updated>
+    <purpose>Authoritative map of code structure, exports, key line references, and architecture</purpose>
+    <last_updated>2026-08-01</last_updated>
     <maintainer>ArUCO Generator Team</maintainer>
   </file_meta>
 </ai_agent_documentation>
@@ -15,16 +15,16 @@
     <metadata>
         <project>ArUCO Generator for LightBurn</project>
         <version>2.6.0</version>
-        <description>Computer vision ArUCO marker generation with LightBurn laser cutting integration</description>
-        <last_updated>2026-07-03</last_updated>
+        <description>Computer vision ArUCO generation with scale-verified print and LightBurn export</description>
+        <last_updated>2026-08-01</last_updated>
         <documentation_standard>Google/NumPy docstrings with ASCII diagrams</documentation_standard>
     </metadata>
 
     <!-- Core Application Structure -->
     <application_structure>
         <entry_points>
-            <entry_point type="web" file="app.py" line="213" description="Flask application factory"/>
-            <entry_point type="core_logic" file="aruco_generator/core/aruco.py" line="301" description="ArUCO generation engine"/>
+            <entry_point type="web" file="app.py" line="214" description="Flask application factory"/>
+            <entry_point type="core_logic" file="aruco_generator/core/aruco.py" line="304" description="ArUCO generation engine"/>
         </entry_points>
 
         <architecture_pattern>
@@ -40,28 +40,28 @@
         <module name="aruco_generator" type="python_package" path="aruco_generator/">
             <description>Core ArUCO marker generation and processing package</description>
             <primary_class>ArUCOGenerator</primary_class>
-            <initialization_line>298</initialization_line>
+            <initialization_line>304</initialization_line>
 
             <classes>
-                <class name="ArUCOGenerator" file="core/aruco.py" line="301">
+                <class name="ArUCOGenerator" file="core/aruco.py" line="304">
                     <description>Main ArUCO marker generation engine with OpenCV integration</description>
                     <methods>
-                        <method name="__init__" line="302" complexity="low">
+                        <method name="__init__" line="305" complexity="low">
                             <description>Initialize with OpenCV or fallback dictionaries</description>
                             <performance>O(1) - Dictionary setup</performance>
                         </method>
-                        <method name="get_dictionary_info" line="369" complexity="low">
+                        <method name="get_dictionary_info" line="372" complexity="low">
                             <description>Return comprehensive dictionary metadata for UI</description>
                             <performance>O(n) where n = number of dictionaries</performance>
                             <returns>Dict[str, Dict[str, Any]]</returns>
                         </method>
-                        <method name="generate_marker" line="446" complexity="medium">
+                        <method name="generate_marker" line="449" complexity="medium">
                             <description>Generate single ArUCO marker with ASCII diagrams</description>
                             <performance>OpenCV: ~0.1ms, Fallback: ~1ms</performance>
                             <returns>np.ndarray</returns>
                             <validation>dict_name, marker_id range checking</validation>
                         </method>
-                        <method name="generate_grid" line="575" complexity="high">
+                        <method name="generate_grid" line="578" complexity="high">
                             <description>Generate positioned grid of markers</description>
                             <performance>O(rows * cols) marker generation</performance>
                             <returns>List[Dict[str, Any]]</returns>
@@ -73,16 +73,33 @@
                     </methods>
                 </class>
 
-                <class name="DrawingContext" file="core/drawing.py" line="40">
-                    <description>SVG drawing and rendering system for ArUCO markers</description>
+                <class name="DrawingContext" file="core/drawing.py" line="110">
+                    <description>SVG drawing, shared vector geometry, and print-scale ruler rendering</description>
                     <methods>
-                        <method name="add_marker_grid" line="76" complexity="high">
+                        <method name="add_marker_grid" line="146" complexity="high">
                             <description>Add ArUCO markers with 2D rectangle optimization</description>
                             <performance>O(marker_pixels) with rectangle merging</performance>
                         </method>
-                        <method name="get_svg" line="285" complexity="medium">
+                        <method name="add_scale_ruler" line="297" complexity="low">
+                            <description>Add a print-only 100 mm ruler when shared clearance rules pass</description>
+                            <returns>bool - ruler added or safely skipped</returns>
+                        </method>
+                        <method name="get_svg" line="341" complexity="medium">
                             <description>Generate SVG output with bounds calculation</description>
                             <returns>str - SVG XML content</returns>
+                        </method>
+                    </methods>
+                </class>
+
+                <class name="PDFExporter" file="export/exporters.py" line="461">
+                    <description>Generate compact vector PDFs with calibrated print-scale verification</description>
+                    <methods>
+                        <method name="generate_pdf" line="472" complexity="medium">
+                            <description>Render marker grids and an eligible default 100 mm ruler</description>
+                            <returns>bytes - PDF document</returns>
+                        </method>
+                        <method name="_draw_scale_ruler" line="609" complexity="low">
+                            <description>Render ruler geometry inside the clear PDF margin</description>
                         </method>
                     </methods>
                 </class>
@@ -106,24 +123,32 @@
                 <submodule name="web" file="web/web.py">
                     <description>Main Flask API endpoints for marker generation</description>
                     <endpoints>
-                        <endpoint path="/api/preview" method="POST" line="301">
+                        <endpoint path="/api/preview" method="POST" line="329">
                             <description>Generate SVG preview of markers</description>
                             <validation>dictionary, size_mm, rows, cols</validation>
                             <error_handling>specific validation messages</error_handling>
                         </endpoint>
-                        <endpoint path="/api/download" method="POST" line="373">
+                        <endpoint path="/api/download" method="POST" line="402">
                             <description>Generate and download LightBurn file</description>
                             <output_format>.lbrn2</output_format>
                         </endpoint>
-                        <endpoint path="/api/dictionaries" method="GET" line="294">
+                        <endpoint path="/api/dictionaries" method="GET" line="321">
                             <description>Get available ArUCO dictionaries</description>
                             <performance>O(1) - cached dictionary info</performance>
                         </endpoint>
-                        <endpoint path="/api/health" method="GET" line="707">
+                        <endpoint path="/api/export/svg" method="POST" line="581">
+                            <description>Export SVG with a default ruler when placement allows</description>
+                            <output_format>.svg</output_format>
+                        </endpoint>
+                        <endpoint path="/api/export/pdf" method="POST" line="629">
+                            <description>Export compact PDF with a default ruler when placement allows</description>
+                            <output_format>.pdf</output_format>
+                        </endpoint>
+                        <endpoint path="/api/health" method="GET" line="744">
                             <description>Comprehensive health and dependency status</description>
                             <performance>O(1) - lightweight checks</performance>
                         </endpoint>
-                        <endpoint path="/api/healthz" method="GET" line="765">
+                        <endpoint path="/api/healthz" method="GET" line="800">
                             <description>Lightweight health probe</description>
                             <performance>O(1)</performance>
                         </endpoint>
@@ -284,8 +309,8 @@
             <test_file name="test_batch_generator.py" purpose="Batch processing" coverage="zip generation, grid optimization"/>
             <test_file name="test_calibration_logic.py" purpose="Calibration pipeline validation" coverage="synthetic calibration"/>
             <test_file name="test_charuco.py" purpose="ChArUco generation helpers" coverage="board geometry"/>
-            <test_file name="test_export_formats.py" purpose="Export format validation" coverage="LightBurn, SVG"/>
-            <test_file name="test_export_snapshots.py" purpose="Snapshot export validation" coverage="SVG, LightBurn"/>
+            <test_file name="test_export_formats.py" purpose="Export format validation" coverage="LightBurn, SVG, PDF, ruler placement and cut isolation"/>
+            <test_file name="test_export_snapshots.py" purpose="Snapshot export validation" coverage="SVG, PDF ruler commands, LightBurn"/>
             <test_file name="test_generation_quality.py" purpose="Quality assurance" coverage="marker quality"/>
             <test_file name="test_navigation.py" purpose="Navigation and routing" coverage="frontend routes"/>
             <test_file name="test_ui_pages.py" purpose="UI smoke tests" coverage="generate + calibration pages"/>
@@ -329,6 +354,7 @@
             <main_api>aruco_generator/web/web.py</main_api>
             <advanced_api>aruco_generator/web/advanced_web.py</advanced_api>
             <svg_generation>aruco_generator/core/drawing.py</svg_generation>
+            <pdf_export>aruco_generator/export/exporters.py</pdf_export>
             <database_models>aruco_generator/db/models.py</database_models>
             <frontend_api>static/js/core/api.js</frontend_api>
             <error_patterns>docs/ai/ERROR_HANDLING.md</error_patterns>
@@ -336,11 +362,12 @@
         </file_locations>
 
         <common_line_references>
-            <line_ref description="ArUCO class initialization" file="aruco_generator/core/aruco.py" line="302"/>
-            <line_ref description="Main preview endpoint" file="aruco_generator/web/web.py" line="301"/>
-            <line_ref description="Dictionary info method" file="aruco_generator/core/aruco.py" line="369"/>
-            <line_ref description="Marker generation method" file="aruco_generator/core/aruco.py" line="446"/>
-            <line_ref description="SVG drawing context" file="aruco_generator/core/drawing.py" line="40"/>
+            <line_ref description="ArUCO class initialization" file="aruco_generator/core/aruco.py" line="305"/>
+            <line_ref description="Main preview endpoint" file="aruco_generator/web/web.py" line="329"/>
+            <line_ref description="Dictionary info method" file="aruco_generator/core/aruco.py" line="372"/>
+            <line_ref description="Marker generation method" file="aruco_generator/core/aruco.py" line="449"/>
+            <line_ref description="SVG drawing context" file="aruco_generator/core/drawing.py" line="110"/>
+            <line_ref description="PDF exporter" file="aruco_generator/export/exporters.py" line="461"/>
         </common_line_references>
     </quick_reference>
 </ai_navigation>

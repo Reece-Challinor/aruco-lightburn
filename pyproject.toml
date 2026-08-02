@@ -1,10 +1,10 @@
 # <ai_agent_documentation>
 #   <file_meta>
 #     <name>pyproject.toml</name>
-#     <version>1.5.0</version>
+#     <version>1.6.0</version>
 #     <type>build_config</type>
-#     <purpose>Project metadata and build configuration</purpose>
-#     <last_updated>2026-02-23</last_updated>
+#     <purpose>Project metadata, runtime dependencies, and build configuration</purpose>
+#     <last_updated>2026-08-01</last_updated>
 #     <maintainer>ArUCO Generator Team</maintainer>
 #   </file_meta>
 # </ai_agent_documentation>
@@ -27,6 +27,7 @@ dependencies = [
     "numpy==1.26.4",
     # Export formats
     "pyyaml>=6.0.2",
+    "reportlab>=4.0.0",  # Required by the production PDF export route
     # Server
     "gunicorn>=23.0.0",
     "flask-login>=0.6.3",
@@ -44,7 +45,6 @@ dev = [
     "isort>=5.13.0",
     "pre-commit>=3.6.0",
     "bandit>=1.7.8",
-    "reportlab>=4.0.0",
     "mypy>=1.8.0",
     "pip-audit>=2.7.0",
 ]
